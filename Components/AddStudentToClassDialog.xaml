@@ -1,0 +1,65 @@
+﻿<UserControl x:Class="WPF_Student_Management.Components.AddStudentToClassDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WPF_Student_Management.Components"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="800">
+
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Thêm học sinh vào lớp" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,15" Foreground="#2C3E50"/>
+
+        <Button Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                Foreground="Gray" Width="30" Height="30" Padding="0">
+            <materialDesign:PackIcon Kind="Close" Width="20" Height="20"/>
+        </Button>
+
+        <ListBox Grid.Row="1" ItemsSource="{Binding AvailableStudents}" BorderThickness="1" BorderBrush="#EEEEEE" ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="#EEEEEE" BorderThickness="0,0,0,1" Padding="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center"/>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" FontSize="16" Foreground="#2C3E50"/>
+                                <TextBlock Text="{Binding StudentID}" Foreground="Gray" FontSize="13" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Gender}" HorizontalAlignment="Right" Foreground="#34495E"/>
+                                <TextBlock Text="{Binding DateOfBirh}" Foreground="Gray" FontSize="13" Margin="0,2,0,0" HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Button Grid.Row="2" Content="Lưu lựa chọn" Margin="0,15,0,0" Height="45" FontSize="16"
+                Command="{Binding SaveSelectionCommand}"
+                Style="{StaticResource MaterialDesignFlatMidBgButton}" Background="#FF270EDC" Foreground="White"/>
+    </Grid>
+</UserControl>
