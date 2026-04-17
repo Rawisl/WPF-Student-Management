@@ -5,4 +5,5 @@
 - **Components**: Chứa các UserControl dùng chung (...UC) và các Popup (...Dialog).
 - **Services**: Các lớp kết nối Database SQL Server - Định dạng .cs (file xử lý trực tiếp DB)
 - **Resources**: Chứa Style Material Design và các icon của ứng dụng - Định dạng .xaml (Resouce Dictionary), .png, .svg,.., các Converter (ví dụ: RoleToVisibilityConverter).
-- **Helpers** Các Converter (ví dụ: RoleToVisibilityConverter), helpers dùng chung
+- **Helpers**: Chứa các Helpers dùng chung, tái sử dụng nhiều lần trong các components nhỏ
+- **Converters**: Các Converter (ví dụ: RoleToVisibilityConverter)
