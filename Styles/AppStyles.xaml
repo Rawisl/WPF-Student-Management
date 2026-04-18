@@ -1,0 +1,152 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <!--Bỏ mấy cái x:Key đi để nó tự động áp dụng cho mọi targettype khi sử dụng type đó cho component mà k cần gọi tới Style=...-->
+    <!--Riêng button thì n còn có 2 loại primary với outline nên để lại x:Key để gọi tới đúng loại cần-->
+
+    <!--Rounded ComboBox-->
+    <Style TargetType="ComboBox"
+           BasedOn="{StaticResource MaterialDesignComboBox}">
+        <Setter Property="Padding"
+                Value="10,0,30,0" />
+        <Setter Property="Height"
+                Value="35" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <Border x:Name="border"
+                                Background="White"
+                                BorderBrush="#D2D6DC"
+                                BorderThickness="1"
+                                CornerRadius="8" />
+                        <ContentPresenter Margin="10,0,30,0"
+                                          VerticalAlignment="Center"
+                                          Content="{TemplateBinding SelectionBoxItem}" />
+                        <Path Data="M 0 0 L 4 4 L 8 0 Z"
+                              Fill="Gray"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Center"
+                              Margin="0,0,10,0" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--Rounded ComboxBox Item-->
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="Padding"
+                Value="15,8" />
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Left"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver"
+                                 Value="True">
+                            <Setter TargetName="Bd"
+                                    Property="Background"
+                                    Value="#F3F4F6" />
+                        </Trigger>
+                        <Trigger Property="IsSelected"
+                                 Value="True">
+                            <Setter TargetName="Bd"
+                                    Property="Background"
+                                    Value="#1A73E8" />
+                            <Setter Property="Foreground"
+                                    Value="White" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="DataGridColumnHeader"
+           BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
+        <Setter Property="Background"
+                Value="#F8F9FA" />
+        <Setter Property="Foreground"
+                Value="Black" />
+        <Setter Property="FontWeight"
+                Value="SemiBold" />
+        <Setter Property="Height"
+                Value="45" />
+        <Setter Property="Padding"
+                Value="10,0,10,0" />
+        <Setter Property="BorderThickness"
+                Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridColumnHeader">
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="5"
+                                Margin="2,0,2,0" />
+                        <ContentPresenter HorizontalAlignment="Left"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PrimaryRoundedButton"
+           TargetType="Button"
+           BasedOn="{StaticResource MaterialDesignRaisedButton}">
+        <Setter Property="materialDesign:ButtonAssist.CornerRadius"
+                Value="10" />
+        <Setter Property="Background"
+                Value="#FF270EDC" />
+        <Setter Property="BorderBrush"
+                Value="#FF270EDC" />
+        <Setter Property="Foreground"
+                Value="White" />
+        <Setter Property="Height"
+                Value="40" />
+        <Setter Property="FontSize"
+                Value="16" />
+        <Setter Property="FontWeight"
+                Value="SemiBold" />
+        <Setter Property="Cursor"
+                Value="Hand" />
+        <Style.Triggers>
+            <Trigger Property="IsEnabled"
+                     Value="False">
+                <Setter Property="Background"
+                        Value="LightGray" />
+                <Setter Property="Foreground"
+                        Value="DarkGray" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="OutlineRoundedButton"
+           TargetType="Button"
+           BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+        <Setter Property="materialDesign:ButtonAssist.CornerRadius"
+                Value="10" />
+        <Setter Property="Foreground"
+                Value="#FF270EDC" />
+        <Setter Property="BorderBrush"
+                Value="#FF270EDC" />
+        <Setter Property="Height"
+                Value="40" />
+        <Setter Property="FontSize"
+                Value="16" />
+        <Setter Property="FontWeight"
+                Value="SemiBold" />
+        <Setter Property="Cursor"
+                Value="Hand" />
+    </Style>
+
+</ResourceDictionary>

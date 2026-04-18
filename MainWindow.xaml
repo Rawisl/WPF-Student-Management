@@ -5,11 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
         xmlns:views="clr-namespace:WPF_Student_Management.Views"
-        xmlns:local="clr-namespace:WPF_Student_Management" 
+        xmlns:local="clr-namespace:WPF_Student_Management"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow"
+        Height="450"
+        Width="800">
 
     <Window.Resources>
         <DataTemplate DataType="{x:Type viewmodels:ClassRosterViewModel}">
@@ -32,50 +34,54 @@
         </DataTemplate>
     </Window.Resources>
 
-    <materialDesign:DialogHost 
-        Identifier="RootDialog" 
-        CloseOnClickAway="True">
+    <materialDesign:DialogHost Identifier="RootDialog"
+                               CloseOnClickAway="True">
         <Grid x:Name="MainGrid">
             <!-- Grid chia giữa Sidebar và UserContent -->
             <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="Sidebar" Width="250"/>
-                <ColumnDefinition x:Name="Main_Content" Width="*"/>
+                <ColumnDefinition x:Name="Sidebar"
+                                  Width="250" />
+                <ColumnDefinition x:Name="Main_Content"
+                                  Width="*" />
             </Grid.ColumnDefinitions>
 
             <!-- StackPanel tránh các button đè nhau -->
-            <StackPanel x:Name="StPn_Button" HorizontalAlignment="Center" Height="304" VerticalAlignment="Center" Width="230">
-                <Button Content="Xếp lớp" 
-            Command="{Binding NavigateCommand}" 
-            CommandParameter="{Binding ClassRosterVM}"/>
+            <StackPanel x:Name="StPn_Button"
+                        HorizontalAlignment="Center"
+                        Height="304"
+                        VerticalAlignment="Center"
+                        Width="230">
+                <Button Content="Xếp lớp"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{Binding ClassRosterVM}" />
 
-                <Button Content="Sổ điểm môn học" 
-            Command="{Binding NavigateCommand}" 
-            CommandParameter="{Binding SubjectGradebookVM}"/>
+                <Button Content="Sổ điểm môn học"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{Binding SubjectGradebookVM}" />
 
-                <Button Content="Lớp chủ nhiệm" 
-            Command="{Binding NavigateCommand}" 
-            CommandParameter="{Binding HomeroomDashboardVM}"/>
+                <Button Content="Lớp chủ nhiệm"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{Binding HomeroomDashboardVM}" />
 
-                <Button Content="Danh sách toàn trường" 
-            Command="{Binding NavigateCommand}" 
-            CommandParameter="{Binding GlobalStudentManagementVM}"/>
+                <Button Content="Danh sách toàn trường"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{Binding GlobalStudentManagementVM}" />
 
-                <Button Content="Thay đổi quy định" 
-            Command="{Binding NavigateCommand}" 
-            CommandParameter="{Binding RegulationSettingsVM}"/>
+                <Button Content="Thay đổi quy định"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{Binding RegulationSettingsVM}" />
 
-                <Button Content="Cài đặt" 
-            Command="{Binding NavigateCommand}" 
-            CommandParameter="{Binding SettingsVM}"/>
+                <Button Content="Cài đặt"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="{Binding SettingsVM}" />
             </StackPanel>
 
-            <ContentControl 
-            x:Name="MainContent" 
-            Grid.Column="1" 
-            Content="{Binding CurrentView}" 
-            HorizontalAlignment="Stretch" 
-            VerticalAlignment="Stretch"
-            Margin="20"/>
+            <ContentControl x:Name="MainContent"
+                            Grid.Column="1"
+                            Content="{Binding CurrentView}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Margin="20" />
         </Grid>
     </materialDesign:DialogHost>
 </Window>
