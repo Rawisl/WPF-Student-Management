@@ -1,73 +1,98 @@
 ﻿<UserControl x:Class="WPF_Student_Management.Views.ClassRosterView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WPF_Student_Management.Views"
              xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
+             mc:Ignorable="d"
+             d:DesignHeight="450"
+             d:DesignWidth="800"
              xmlns:components="clr-namespace:WPF_Student_Management.Components"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
 
     <UserControl.DataContext>
-        <viewmodels:ClassRosterViewModel/>
+        <viewmodels:ClassRosterViewModel />
     </UserControl.DataContext>
-    
-    <UserControl.Resources>
-        <Style x:Key="RoundedComboBox" TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignComboBox}">
-            <Setter Property="Padding" Value="10,0,30,0"/>
-            <Setter Property="Height" Value="35"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid>
-                            <Border x:Name="border" Background="White" BorderBrush="#D2D6DC" BorderThickness="1" CornerRadius="8"/>
-                            <ContentPresenter Margin="10,0,30,0" VerticalAlignment="Center" Content="{TemplateBinding SelectionBoxItem}"/>
-                            <Path Data="M 0 0 L 4 4 L 8 0 Z" Fill="Gray" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
+
+
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <materialDesign:Card Grid.Row="0" Margin="0,0,0,20" Padding="15,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderBrush="#E0E0E0" BorderThickness="1" UniformCornerRadius="15">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <Label Content="Khối:" FontSize="18" Foreground="Gray" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                <ComboBox x:Name="ChonKhoiCB" Width="100" Height="35" Margin="5,0,20,0" VerticalAlignment="Center" Style="{StaticResource RoundedComboBox}"/>
+        <materialDesign:Card Grid.Row="0"
+                             Margin="0,0,0,20"
+                             Padding="15,10"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Stretch"
+                             BorderBrush="#E0E0E0"
+                             BorderThickness="1"
+                             UniformCornerRadius="15">
+            <StackPanel Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Label Content="Khối:"
+                       FontSize="18"
+                       Foreground="Gray"
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold" />
+                <ComboBox x:Name="ChonKhoiCB"
+                          Width="100"
+                          Height="35"
+                          Margin="5,0,20,0"
+                          VerticalAlignment="Center" />
 
-                <Label Content="Lớp:" FontSize="18" Foreground="Gray" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                <ComboBox x:Name="ChonLopCB" Width="120" Height="35" Margin="5,0,20,0" VerticalAlignment="Center" Style="{StaticResource RoundedComboBox}"/>
+                <Label Content="Lớp:"
+                       FontSize="18"
+                       Foreground="Gray"
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold" />
+                <ComboBox x:Name="ChonLopCB"
+                          Width="120"
+                          Height="35"
+                          Margin="5,0,20,0"
+                          VerticalAlignment="Center" />
 
-                <TextBlock Text="{Binding ClassSizeText}" Foreground="#2C3E50" FontWeight="Bold" FontSize="18" VerticalAlignment="Center" Margin="20,0,30,0"/>
+                <TextBlock Text="{Binding ClassSizeText}"
+                           Foreground="#2C3E50"
+                           FontWeight="Bold"
+                           FontSize="18"
+                           VerticalAlignment="Center"
+                           Margin="20,0,30,0" />
 
-                <Button Content="+ Thêm học sinh" 
-                    Command="{Binding OpenAddStudentDialogCommand}" 
-                    FontSize="15" Margin="40,0,0,0" Height="40" Cursor="Hand">
+                <Button Content="+ Thêm học sinh"
+                        Command="{Binding OpenAddStudentDialogCommand}"
+                        FontSize="15"
+                        Margin="40,0,0,0"
+                        Height="40"
+                        Cursor="Hand">
                     <Button.Style>
                         <Style TargetType="{x:Type Button}">
-                            <Setter Property="Background" Value="#FF270EDC"/>
-                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Background"
+                                    Value="#FF270EDC" />
+                            <Setter Property="Foreground"
+                                    Value="White" />
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="{x:Type Button}">
-                                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="15,5">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="8"
+                                                Padding="15,5">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center" />
                                         </Border>
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
                             <Style.Triggers>
-                                <Trigger Property="IsEnabled" Value="False">
-                                    <Setter Property="Background" Value="LightGray"/>
-                                    <Setter Property="Foreground" Value="DarkGray"/>
+                                <Trigger Property="IsEnabled"
+                                         Value="False">
+                                    <Setter Property="Background"
+                                            Value="LightGray" />
+                                    <Setter Property="Foreground"
+                                            Value="DarkGray" />
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
@@ -76,15 +101,20 @@
             </StackPanel>
         </materialDesign:Card>
 
-        <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="10">
+        <Border Grid.Row="1"
+                Background="White"
+                CornerRadius="12"
+                Padding="10">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5"/>
+                <DropShadowEffect BlurRadius="10"
+                                  ShadowDepth="1"
+                                  Color="#DDDDDD"
+                                  Opacity="0.5" />
             </Border.Effect>
 
-            <components:StudentDataGridUC 
-                ItemsSource="{Binding CurrentClassStudents}" 
-                ShowActionColumn="False"/>
+            <components:StudentDataGridUC ItemsSource="{Binding CurrentClassStudents}"
+                                          ShowActionColumn="False" />
         </Border>
     </Grid>
-    
+
 </UserControl>

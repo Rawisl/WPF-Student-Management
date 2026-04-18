@@ -1,48 +1,85 @@
 ﻿<Window x:Class="WPF_Student_Management.Views.MaterialMessageBox"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Thông báo" Height="220" Width="400"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        WindowStartupLocation="CenterScreen" Topmost="True">
+        Title="Thông báo"
+        Height="220"
+        Width="400"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True">
 
-    <Border CornerRadius="10" Background="White" Margin="10">
+    <Border CornerRadius="10"
+            Background="White"
+            Margin="10">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.2"/>
+            <DropShadowEffect BlurRadius="15"
+                              ShadowDepth="3"
+                              Opacity="0.2" />
         </Border.Effect>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="50" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="60" />
             </Grid.RowDefinitions>
 
-            <Border x:Name="HeaderBorder" Background="#2196F3" CornerRadius="10,10,0,0">
-                <TextBlock x:Name="txtTitle" Text="THÔNG BÁO" Foreground="White" 
-                           VerticalAlignment="Center" Margin="20,0" 
-                           FontWeight="Bold" FontSize="16"/>
+            <Border x:Name="HeaderBorder"
+                    Background="#2196F3"
+                    CornerRadius="10,10,0,0">
+                <TextBlock x:Name="txtTitle"
+                           Text="THÔNG BÁO"
+                           Foreground="White"
+                           VerticalAlignment="Center"
+                           Margin="20,0"
+                           FontWeight="Bold"
+                           FontSize="16" />
             </Border>
 
-            <TextBlock x:Name="txtMessage" Grid.Row="1" Text="Nội dung thông báo ở đây..." 
-                       TextWrapping="Wrap" Margin="20" FontSize="15" 
-                       VerticalAlignment="Center" Foreground="#333333"/>
+            <TextBlock x:Name="txtMessage"
+                       Grid.Row="1"
+                       Text="Nội dung thông báo ở đây..."
+                       TextWrapping="Wrap"
+                       Margin="20"
+                       FontSize="15"
+                       VerticalAlignment="Center"
+                       Foreground="#333333" />
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,15,0">
-                <Button x:Name="btnCancel" Content="Hủy" Width="80" Height="35" Margin="0,0,10,0" 
-                        Background="#E0E0E0" Foreground="Black" BorderThickness="0" 
-                        Click="BtnCancel_Click" Visibility="Collapsed">
+            <StackPanel Grid.Row="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,0,15,0">
+                <Button x:Name="btnCancel"
+                        Content="Hủy"
+                        Width="80"
+                        Height="35"
+                        Margin="0,0,10,0"
+                        Background="#E0E0E0"
+                        Foreground="Black"
+                        BorderThickness="0"
+                        Click="BtnCancel_Click"
+                        Visibility="Collapsed">
                     <Button.Resources>
                         <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="5"/>
+                            <Setter Property="CornerRadius"
+                                    Value="5" />
                         </Style>
                     </Button.Resources>
                 </Button>
 
-                <Button x:Name="btnOK" Content="OK" Width="80" Height="35" 
-                        Background="#2196F3" Foreground="White" BorderThickness="0" 
+                <Button x:Name="btnOK"
+                        Content="OK"
+                        Width="80"
+                        Height="35"
+                        Background="#2196F3"
+                        Foreground="White"
+                        BorderThickness="0"
                         Click="BtnOK_Click">
                     <Button.Resources>
                         <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="5"/>
+                            <Setter Property="CornerRadius"
+                                    Value="5" />
                         </Style>
                     </Button.Resources>
                 </Button>

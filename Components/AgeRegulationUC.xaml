@@ -1,13 +1,128 @@
 ﻿<UserControl x:Class="WPF_Student_Management.Components.AgeRegulationUC"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d"
+             d:DesignHeight="450"
+             d:DesignWidth="800"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers">
+    <materialDesign:Card Margin="0,0,0,20"
+                         Padding="20"
+                         UniformCornerRadius="20"
+                         BorderBrush="Black"
+                         BorderThickness="1">
+        <StackPanel>
+            <TextBlock Text="Quy định về Tuổi"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       Margin="0,0,0,15"
+                       Foreground="#FF1A237E" />
+            <Separator Margin="0,0,0,15"
+                       Background="#F0F0F0" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-    <Grid>
-            
-    </Grid>
+                <StackPanel Grid.Column="0">
+                    <Label Content="Tuổi tối thiểu:"
+                           Foreground="Black"
+                           Margin="0,0,0,5"
+                           FontSize="18"
+                           FontWeight="Bold" />
+                    <Border Background="#F3F5F9"
+                            CornerRadius="10"
+                            Height="45"
+                            BorderBrush="#D2D6DC"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="40" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtMinAge"
+                                     Text="{Binding MinAge, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     VerticalContentAlignment="Center"
+                                     Padding="15,0"
+                                     FontSize="16"
+                                     helpers:TextBoxHelper.IsNumericOnly="True"
+                                     Grid.Column="0" />
+                            <StackPanel Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Margin="0,0,5,0">
+                                <Button Command="{Binding IncreaseMinAgeCommand}"
+                                        Content="▲"
+                                        Height="18"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                                <Button Command="{Binding DecreaseMinAgeCommand}"
+                                        Content="▼"
+                                        Height="18"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <Label Content="Tuổi tối đa:"
+                           Foreground="Black"
+                           Margin="0,0,0,5"
+                           FontSize="18"
+                           FontWeight="Bold" />
+                    <Border Background="#F3F5F9"
+                            CornerRadius="10"
+                            Height="45"
+                            BorderBrush="#D2D6DC"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="40" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtMaxAge"
+                                     Text="{Binding MaxAge, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     VerticalContentAlignment="Center"
+                                     Padding="15,0"
+                                     FontSize="16"
+                                     helpers:TextBoxHelper.IsNumericOnly="True"
+                                     Grid.Column="0" />
+                            <StackPanel Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Margin="0,0,5,0">
+                                <Button Command="{Binding IncreaseMaxAgeCommand}"
+                                        Content="▲"
+                                        Height="18"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                                <Button Command="{Binding DecreaseMaxAgeCommand}"
+                                        Content="▼"
+                                        Height="18"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </materialDesign:Card>
 </UserControl>
