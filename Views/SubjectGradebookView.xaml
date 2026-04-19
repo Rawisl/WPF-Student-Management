@@ -16,23 +16,55 @@
         <viewmodels:SubjectGradebookViewModel />
     </UserControl.DataContext>
 
-    <Grid Margin="20">
-        <TabControl Style="{StaticResource MaterialDesignNavigationRailTabControl}"
-                    materialDesign:ColorZoneAssist.Mode="PrimaryMid"
-                    TabStripPlacement="Top">
+    <Grid Margin="20" Background="#F8F9FA">
 
-            <TabItem Header="Nhập bảng điểm"
-                     FontSize="16"
-                     FontWeight="SemiBold">
-                <components:GradeEntryUC DataContext="{Binding}"
-                                         Margin="0,15,0,0" />
+        <TabControl Style="{StaticResource MaterialDesignTabControl}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    SelectedIndex="0">
+
+            <TabControl.Resources>
+                <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#673AB7"/>
+            </TabControl.Resources>
+
+            <TabItem>
+                <TabItem.Header>
+                    <Grid Width="380">
+                        <TextBlock Text="Nhập bảng điểm" 
+                                   FontSize="17" 
+                                   FontWeight="SemiBold" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                </TabItem.Header>
+
+                <materialDesign:Card Margin="0,15,0,0" 
+                                     Padding="15" 
+                                     UniformCornerRadius="12" 
+                                     materialDesign:ElevationAssist.Elevation="Dp2"
+                                     Background="White">
+                    <components:GradeEntryUC DataContext="{Binding}" />
+                </materialDesign:Card>
             </TabItem>
 
-            <TabItem Header="Báo cáo tổng kết môn"
-                     FontSize="16"
-                     FontWeight="SemiBold">
-                <components:SubjectReportUC DataContext="{Binding}"
-                                            Margin="0,15,0,0" />
+            <TabItem>
+                <TabItem.Header>
+                    <Grid Width="380">
+                        <TextBlock Text="Báo cáo tổng kết môn" 
+                                   FontSize="17" 
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                </TabItem.Header>
+
+                <materialDesign:Card Margin="0,15,0,0" 
+                                     Padding="15" 
+                                     UniformCornerRadius="12" 
+                                     materialDesign:ElevationAssist.Elevation="Dp2"
+                                     Background="White">
+                    <components:SubjectReportUC DataContext="{Binding}" />
+                </materialDesign:Card>
             </TabItem>
 
         </TabControl>
