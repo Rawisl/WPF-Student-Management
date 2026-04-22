@@ -9,6 +9,77 @@
              d:DesignWidth="800">
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <Grid Grid.Row="0"
+              Margin="0,0,0,10">
+            <TextBlock Text="Cấu hình danh sách môn học"
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold"
+                       FontSize="16" />
+            <Button Command="{Binding AddSubjectCommand}"
+                    Content="+ Thêm môn"
+                    HorizontalAlignment="Right"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Foreground="#FF270EDC"
+                    FontWeight="Bold"
+                    Cursor="Hand" />
+        </Grid>
+
+        <DataGrid Grid.Row="1"
+                  x:Name="dgMonHoc"
+                  ItemsSource="{Binding SubjectList}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  Background="White"
+                  BorderThickness="1"
+                  BorderBrush="#F0F0F0"
+                  RowHeight="40"
+                  ColumnHeaderHeight="40">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="STT"
+                                    Binding="{Binding OrdinalNumber}"
+                                    Width="60"
+                                    IsReadOnly="True" />
+                <DataGridTemplateColumn Header="Tên môn học"
+                                        Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="#F3F5F9"
+                                    CornerRadius="5"
+                                    Margin="2">
+                                <TextBox Text="{Binding SubjectName, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Padding="5,2" />
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Xóa"
+                                    Binding="{Binding DeleteIcon}"
+                                    Width="60"
+                                    IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground"
+                                    Value="Red" />
+                            <Setter Property="FontWeight"
+                                    Value="Bold" />
+                            <Setter Property="HorizontalAlignment"
+                                    Value="Center" />
+                            <Setter Property="VerticalAlignment"
+                                    Value="Center" />
+                            <Setter Property="Cursor"
+                                    Value="Hand" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </UserControl>

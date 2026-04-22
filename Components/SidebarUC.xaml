@@ -8,8 +8,66 @@
              d:DesignHeight="450"
              d:DesignWidth="800">
 
+    <ScrollViewer VerticalScrollBarVisibility="Hidden"
+                  HorizontalScrollBarVisibility="Disabled">
+        <!-- StackPanel tránh các button đè nhau -->
+        <StackPanel x:Name="StPn_Button"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Margin="0,20,0,20"
+                    Width="230">
+            <Button Content="Xếp lớp"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding ClassRosterVM}" />
 
-    <Grid>
+            <Button Content="Sổ điểm môn học"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding SubjectGradebookVM}" />
 
-    </Grid>
+            <Button Content="Lớp chủ nhiệm"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding HomeroomDashboardVM}" />
+
+            <Button Content="Danh sách toàn trường"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding GlobalStudentManagementVM}" />
+
+            <Button Content="Quản lý lớp học"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding ClassManagementVM}" />
+
+            <Button Content="Quản lý môn học"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding SubjectManagementVM}" />
+
+            <Button Content="Thay đổi quy định"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding RegulationSettingsVM}" />
+
+
+            <Button Content="Quản lý nhân viên"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding EmployeeManagementVM}" />
+
+            <Button Content="Xử lý đơn từ"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding EnrollmentChangeExecutionVM}" />
+
+            <Button Content="Báo cáo tổng kết toàn trường"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding GlobalSummaryReportVM}" />
+
+            <Button Content="Tra cứu điểm"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding GradeLookupVM}" />
+
+            <Button Content="Phân công giảng dạy"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding TeachingAssignmentVM}" />
+
+            <Button Content="Cài đặt"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding SettingsVM}" />
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>
