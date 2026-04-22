@@ -8,6 +8,7 @@
         xmlns:local="clr-namespace:WPF_Student_Management"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
+        xmlns:components="clr-namespace:WPF_Student_Management.Components"
         mc:Ignorable="d"
         Title="MainWindow"
         Height="450"
@@ -17,20 +18,53 @@
         <DataTemplate DataType="{x:Type viewmodels:ClassRosterViewModel}">
             <views:ClassRosterView />
         </DataTemplate>
+        
         <DataTemplate DataType="{x:Type viewmodels:SubjectGradebookViewModel}">
             <views:SubjectGradebookView />
         </DataTemplate>
+        
         <DataTemplate DataType="{x:Type viewmodels:HomeroomDashboardViewModel}">
             <views:HomeroomDashboardView />
         </DataTemplate>
+        
         <DataTemplate DataType="{x:Type viewmodels:GlobalStudentManagementViewModel}">
             <views:GlobalStudentManagementView />
         </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type viewmodels:ClassManagementViewModel}">
+            <views:ClassManagementView />
+        </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type viewmodels:SubjectManagementViewModel}">
+            <views:SubjectManagementView />
+        </DataTemplate>
+        
         <DataTemplate DataType="{x:Type viewmodels:RegulationSettingsViewModel}">
             <views:RegulationSettingsView />
         </DataTemplate>
+        
         <DataTemplate DataType="{x:Type viewmodels:SettingsViewModel}">
             <views:SettingsView />
+        </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type viewmodels:EmployeeManagementViewModel}">
+            <views:EmployeeManagementView />
+        </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type viewmodels:EnrollmentChangeExecutionViewModel}">
+            <views:EnrollmentChangeExecutionView />
+        </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type viewmodels:GlobalSummaryReportViewModel}">
+            <views:GlobalSummaryReportView />
+        </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type viewmodels:GradeLookupViewModel}">
+            <views:GradeLookupView />
+        </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type viewmodels:TeachingAssignmentViewModel}">
+            <views:TeachingAssignmentView />
         </DataTemplate>
     </Window.Resources>
 
@@ -44,38 +78,21 @@
                 <ColumnDefinition x:Name="Main_Content"
                                   Width="*" />
             </Grid.ColumnDefinitions>
+            
+            <Border Grid.Column="0"
+                    Background="White">
+                
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15"
+                                      Direction="0"
+                                      ShadowDepth="2"
+                                      Color="#DDDDDD"
+                                      Opacity="0.5" />
+                </Border.Effect>
 
-            <!-- StackPanel tránh các button đè nhau -->
-            <StackPanel x:Name="StPn_Button"
-                        HorizontalAlignment="Center"
-                        Height="304"
-                        VerticalAlignment="Center"
-                        Width="230">
-                <Button Content="Xếp lớp"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding ClassRosterVM}" />
-
-                <Button Content="Sổ điểm môn học"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding SubjectGradebookVM}" />
-
-                <Button Content="Lớp chủ nhiệm"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding HomeroomDashboardVM}" />
-
-                <Button Content="Danh sách toàn trường"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding GlobalStudentManagementVM}" />
-
-                <Button Content="Thay đổi quy định"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding RegulationSettingsVM}" />
-
-                <Button Content="Cài đặt"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding SettingsVM}" />
-            </StackPanel>
-
+                <components:SidebarUC />
+            </Border>
+            
             <ContentControl x:Name="MainContent"
                             Grid.Column="1"
                             Content="{Binding CurrentView}"

@@ -11,21 +11,6 @@ using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.ViewModels
 {
-    public class ClassModel
-    {
-        public int OrdinalNumber { get; set; }
-        public string ClassID { get; set; } = string.Empty;
-        public string Grade { get; set; } = string.Empty;
-        public string ClassName { get; set; } = string.Empty;
-        public string DeleteIcon { get; set; } = "X";
-    }
-    public class SubjectModel
-    {
-        public int OrdinalNumber { get; set; }
-        public string SubjectID { get; set; } = string.Empty;
-        public string SubjectName { get; set; } = string.Empty;
-        public string DeleteIcon { get; set; } = "X";
-    }
     public partial class RegulationSettingsViewModel : ObservableObject
     {
         private bool _isLoaded = false;
@@ -38,12 +23,6 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty] private int? _maxAge;
         [ObservableProperty] private int? _maxClassSize;
         [ObservableProperty] private double? _passingGrade;
-
-        [ObservableProperty]
-        private ObservableCollection<ClassModel> _classList = new ObservableCollection<ClassModel>();
-
-        [ObservableProperty]
-        private ObservableCollection<SubjectModel> _subjectList = new ObservableCollection<SubjectModel>();
 
         public RegulationSettingsViewModel()
         {
@@ -144,19 +123,6 @@ namespace WPF_Student_Management.ViewModels
         {
             //PassingGrade ??= 0.0;
             //if (PassingGrade > 0.0) PassingGrade = System.Math.Round((double)PassingGrade.Value - 0.1, 1);
-        }
-
-        // --- LOGIC THÊM LỚP/MÔN ---
-        [RelayCommand]
-        private void AddClass()
-        {
-            //DanhSachLop.Add(new LopHocModel { OrdinalNumber = DanhSachLop.Count + 1, Khoi = "", TenLop = "" });
-        }
-
-        [RelayCommand]
-        private void AddSubject()
-        {
-            //DanhSachMon.Add(new MonHocModel { OrdinalNumber = DanhSachMon.Count + 1, TenMon = "" });
         }
 
         // --- LƯU DỮ LIỆU ---
