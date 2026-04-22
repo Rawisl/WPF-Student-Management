@@ -3,7 +3,8 @@
                     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
     <!--Bỏ mấy cái x:Key đi để nó tự động áp dụng cho mọi targettype khi sử dụng type đó cho component mà k cần gọi tới Style=...-->
     <!--Riêng button thì n còn có 2 loại primary với outline nên để lại x:Key để gọi tới đúng loại cần-->
-
+    <!--Style="{StaticResource x:Key}-->
+    
     <!--Rounded ComboBox-->
     <Style TargetType="ComboBox"
            BasedOn="{StaticResource MaterialDesignComboBox}">

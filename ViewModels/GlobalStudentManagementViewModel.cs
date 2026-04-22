@@ -49,7 +49,7 @@ namespace WPF_Student_Management.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-        private string _diaChi = string.Empty;
+        private string _address = string.Empty;
 
         [ObservableProperty] 
         private string _email = string.Empty;
@@ -74,6 +74,7 @@ namespace WPF_Student_Management.ViewModels
         {
             AllStudent = new ObservableCollection<StudentItem>();
             LoadMockData();
+            OnDateOfBirthChanged(DateTime.Now);
         }
 
         private void LoadMockData()
@@ -172,7 +173,7 @@ namespace WPF_Student_Management.ViewModels
             // Bắt buộc nhập Họ Tên và Địa Chỉ, và không có lỗi tuổi
             return string.IsNullOrEmpty(AgeErrorMessage) &&
                    !string.IsNullOrWhiteSpace(FullName) &&
-                   !string.IsNullOrWhiteSpace(DiaChi);
+                   !string.IsNullOrWhiteSpace(Address);
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
@@ -198,10 +199,9 @@ namespace WPF_Student_Management.ViewModels
         private void Cancel()
         {
             // Reset form sạch sẽ
-            FullName = DiaChi = Email = string.Empty;
+            FullName = Address = Email = string.Empty;
             DateOfBirth = DateTime.Now;
             AgeErrorMessage = string.Empty;
-
             // Đóng Dialog
             MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
         }
