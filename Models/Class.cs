@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace WPF_Student_Management.Models
 {
     //lớp học
-    internal class Class
+    public class Class
     {
+
     }
 }
