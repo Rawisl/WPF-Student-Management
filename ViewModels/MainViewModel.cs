@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.ViewModels
@@ -33,9 +34,12 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private object _currentView;
 
+        public ICommand LogoutCommand { get; }
+
         public MainViewModel()
         {
             CurrentView = ClassRosterVM; // Trang mặc định
+            LogoutCommand = new RelayCommand(ExecuteLogout);
         }
 
         [RelayCommand]
@@ -56,6 +60,34 @@ namespace WPF_Student_Management.ViewModels
 
             // 2. NẾU AN TOÀN -> THỰC HIỆN CHUYỂN TRANG
             CurrentView = destinationViewModel;
+        }
+
+        private void ExecuteLogout(object obj)
+        {
+            // Xóa thông tin đăng nhập trong Singleton
+            CurrentUser.Instance.Logout();
+
+            // Mở lại cửa sổ đăng nhập
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.Show();
+
+            // Đóng cửa sổ hiện tại (MainWindow)
+            if (obj is Window mainWindow)
+            {
+                mainWindow.Close();
+            }
+            else
+            {
+                // Cách dự phòng đóng tất cả các cửa sổ cũ
+                foreach (Window window in Application.Current.Windows)
+                {
+                    if (window is MainWindow)
+                    {
+                        window.Close();
+                        break;
+                    }
+                }
+            }
         }
     }
 }
