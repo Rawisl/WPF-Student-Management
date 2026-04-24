@@ -5,15 +5,144 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WPF_Student_Management.Views"
              xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
-             d:DesignHeight="450"
-             d:DesignWidth="800">
+             d:DesignHeight="650" d:DesignWidth="1100"
+             Background="#F5F6FA">
 
     <UserControl.DataContext>
         <viewmodels:EmployeeManagementViewModel />
     </UserControl.DataContext>
 
-    <Grid>
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6*" />
+            <ColumnDefinition Width="4*" />
+        </Grid.ColumnDefinitions>
 
+        <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="15" Margin="0,0,15,0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="DANH SÁCH GIÁO VIÊN / NHÂN VIÊN" FontSize="18" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding StaffList}" 
+                          SelectedItem="{Binding CurrentStaff, Mode=TwoWay}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                          SelectionMode="Single" 
+                          Background="White" BorderThickness="0"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEEEEE"
+                          RowHeight="40" ColumnHeaderHeight="45">
+
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Background" Value="#F8F9FA"/>
+                            <Setter Property="Padding" Value="10,0"/>
+                        </Style>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Padding" Value="10,0"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        </Style>
+                    </DataGrid.Resources>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Mã NV" Binding="{Binding StaffId}" Width="70"/>
+                        <DataGridTextColumn Header="Họ và Tên" Binding="{Binding FullName}" Width="*"/>
+                        <DataGridTextColumn Header="Giới tính" Binding="{Binding Gender}" Width="80"/>
+                        <DataGridTextColumn Header="Chuyên môn" Binding="{Binding Specialization}" Width="120"/>
+                        <DataGridTextColumn Header="SĐT" Binding="{Binding PhoneNumber}" Width="110"/>
+                        <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <materialDesign:Card Grid.Column="1" UniformCornerRadius="12" Padding="20">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="THÔNG TIN CHI TIẾT" FontSize="18" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+
+                    <TextBlock Text="Mã Nhân viên (StaffID) (*)" FontWeight="SemiBold" Foreground="DimGray" Margin="0,5,0,2"/>
+                    <TextBox Text="{Binding CurrentStaff.StaffId, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+                    <TextBlock Text="Họ và Tên (*)" FontWeight="SemiBold" Foreground="DimGray" Margin="0,15,0,2"/>
+                    <TextBox Text="{Binding CurrentStaff.FullName, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+                    <TextBlock Text="Số điện thoại (*)" FontWeight="SemiBold" Foreground="DimGray" Margin="0,15,0,2"/>
+                    <TextBox Text="{Binding CurrentStaff.PhoneNumber, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+                    <TextBlock Text="Email (*)" FontWeight="SemiBold" Foreground="DimGray" Margin="0,15,0,2"/>
+                    <TextBox Text="{Binding CurrentStaff.Email, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+                    <Grid Margin="0,15,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Giới tính" FontWeight="SemiBold" Foreground="DimGray" Margin="0,0,0,2"/>
+                            <ComboBox ItemsSource="{Binding GenderList}" 
+                                      SelectedItem="{Binding CurrentStaff.Gender, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Style="{StaticResource MaterialDesignComboBox}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="CCCD/CMND (*)" FontWeight="SemiBold" Foreground="DimGray" Margin="0,0,0,2"/>
+                            <TextBox Text="{Binding CurrentStaff.NationalId, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,15,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Chuyên môn" FontWeight="SemiBold" Foreground="DimGray" Margin="0,0,0,2"/>
+                            <TextBox Text="{Binding CurrentStaff.Specialization, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Ngày vào làm" FontWeight="SemiBold" Foreground="DimGray" Margin="0,0,0,2"/>
+                            <DatePicker SelectedDate="{Binding CurrentStaff.HireDate, Mode=TwoWay}" materialDesign:HintAssist.Hint="Chọn ngày"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Địa chỉ" FontWeight="SemiBold" Foreground="DimGray" Margin="0,15,0,2"/>
+                    <TextBox Text="{Binding CurrentStaff.HometownAddress, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+
+                    <TextBlock Text="Trạng thái" FontWeight="SemiBold" Foreground="DimGray" Margin="0,15,0,2"/>
+                    <ComboBox ItemsSource="{Binding StatusList}" 
+                              SelectedItem="{Binding CurrentStaff.Status, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Style="{StaticResource MaterialDesignComboBox}"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,25,0,0">
+                        <Button Content="LÀM MỚI" Command="{Binding ClearFormCommand}" 
+                                Style="{StaticResource MaterialDesignOutlinedButton}" 
+                                Width="100" Margin="0,0,10,0" Cursor="Hand"/>
+
+                        <Button Content="XÓA" Command="{Binding DeleteCommand}" 
+                                Background="#FFE57373" BorderBrush="#FFE57373" Foreground="White"
+                                Width="80" Margin="0,0,10,0" Cursor="Hand"/>
+
+                        <Button Content="LƯU DỮ LIỆU" Command="{Binding SaveCommand}" 
+                                Background="#FF4CAF50" BorderBrush="#FF4CAF50" Foreground="White"
+                                Width="130" Cursor="Hand"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </materialDesign:Card>
     </Grid>
 </UserControl>

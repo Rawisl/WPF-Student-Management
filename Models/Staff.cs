@@ -31,12 +31,19 @@ namespace WPF_Student_Management.Models
 
             DataTable data = DatabaseHelper.ExecuteQuery(query);
 
+            if (data == null)
+            {
+                return staffList;
+            }
+
             foreach (DataRow row in data.Rows)
             {
                 Staff staff = new Staff()
                 {
-                    StaffId = Convert.ToInt32(row["EmployeeID"]),
-                    AccountId = Convert.ToInt32(row["AccountID"]),
+                    StaffId = row["EmployeeID"] != DBNull.Value ? Convert.ToInt32(row["EmployeeID"]) : 0,
+
+                    AccountId = row["AccountID"] != DBNull.Value ? Convert.ToInt32(row["AccountID"]) : 0,
+
                     FullName = row["FullName"].ToString() ?? "",
                     Gender = row["Gender"] as string,
                     Specialization = row["Specialization"] as string,
