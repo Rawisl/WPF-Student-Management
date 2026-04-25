@@ -10,95 +10,196 @@
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         xmlns:components="clr-namespace:WPF_Student_Management.Components"
         mc:Ignorable="d"
-        Title="MainWindow"
-        Height="450"
-        Width="800">
+        Title="Hệ thống quản lý học sinh"
+        Height="700"
+        Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Icon="Images/student-management-logo.ico"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"
+                      ResizeBorderThickness="5"
+                      GlassFrameThickness="0"
+                      CornerRadius="0" />
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <DataTemplate DataType="{x:Type viewmodels:ClassRosterViewModel}">
             <views:ClassRosterView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:SubjectGradebookViewModel}">
             <views:SubjectGradebookView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:HomeroomDashboardViewModel}">
             <views:HomeroomDashboardView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:GlobalStudentManagementViewModel}">
             <views:GlobalStudentManagementView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:ClassManagementViewModel}">
             <views:ClassManagementView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:SubjectManagementViewModel}">
             <views:SubjectManagementView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:RegulationSettingsViewModel}">
             <views:RegulationSettingsView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:SettingsViewModel}">
             <views:SettingsView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:EmployeeManagementViewModel}">
             <views:EmployeeManagementView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:EnrollmentChangeExecutionViewModel}">
             <views:EnrollmentChangeExecutionView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:GlobalSummaryReportViewModel}">
             <views:GlobalSummaryReportView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:GradeLookupViewModel}">
             <views:GradeLookupView />
         </DataTemplate>
-        
+
         <DataTemplate DataType="{x:Type viewmodels:TeachingAssignmentViewModel}">
             <views:TeachingAssignmentView />
         </DataTemplate>
     </Window.Resources>
 
-    <materialDesign:DialogHost Identifier="RootDialog"
-                               CloseOnClickAway="True">
-        <Grid x:Name="MainGrid">
-            <!-- Grid chia giữa Sidebar và UserContent -->
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="Sidebar"
-                                  Width="250" />
-                <ColumnDefinition x:Name="Main_Content"
-                                  Width="*" />
-            </Grid.ColumnDefinitions>
-            
-            <Border Grid.Column="0"
-                    Background="White">
-                
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="15"
-                                      Direction="0"
-                                      ShadowDepth="2"
-                                      Color="#DDDDDD"
-                                      Opacity="0.5" />
-                </Border.Effect>
 
-                <components:SidebarUC />
-            </Border>
-            
-            <ContentControl x:Name="MainContent"
-                            Grid.Column="1"
-                            Content="{Binding CurrentView}"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            Margin="20" />
+    <Border Background="#F4F6F8"
+            CornerRadius="15"
+            BorderBrush="#D1D5DB"
+            BorderThickness="1">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0"
+                  Background="Transparent"
+                  MouseLeftButtonDown="TopBar_MouseLeftButtonDown">
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="15,0,0,0">
+                    <Image Source="Images/student-management-logo.ico"
+                           Width="22"
+                           Height="22"
+                           Margin="0,0,10,0"
+                           RenderOptions.BitmapScalingMode="HighQuality" />
+                    <TextBlock Text="Hệ thống quản lý học sinh"
+                               FontWeight="Bold"
+                               FontSize="15"
+                               Foreground="#1A237E" />
+                </StackPanel>
+
+
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,0,10,0">
+
+                    <Button Click="BtnMinimize_Click"
+                            Width="30"
+                            Height="30"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Foreground="Gray"
+                            Cursor="Hand"
+                            ToolTip="Thu nhỏ">
+                        <materialDesign:PackIcon Kind="WindowMinimize"
+                                                 Width="18"
+                                                 Height="18"
+                                                 HorizontalAlignment="Center" />
+                    </Button>
+                    <Button Click="BtnMaximize_Click"
+                            Width="30"
+                            Height="30"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Foreground="Gray"
+                            Cursor="Hand"
+                            ToolTip="Thu phóng">
+                        <materialDesign:PackIcon x:Name="iconMaximize"
+                                                 Kind="WindowMaximize"
+                                                 Width="18"
+                                                 Height="18"
+                                                 HorizontalAlignment="Center"
+                                                 VerticalAlignment="Center" />
+                    </Button>
+                    <Button Click="BtnClose_Click"
+                            Width="30"
+                            Height="30"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Foreground="#FF4757"
+                            Cursor="Hand"
+                            ToolTip="Đóng">
+                        <materialDesign:PackIcon Kind="Close"
+                                                 Width="20"
+                                                 Height="20"
+                                                 HorizontalAlignment="Center" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="1">
+                <materialDesign:DialogHost Identifier="RootDialog"
+                                           CloseOnClickAway="True"
+                                           DialogBackground="Transparent">
+                    <Grid x:Name="MainGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="Sidebar"
+                                              Width="250" />
+                            <ColumnDefinition x:Name="Main_Content"
+                                              Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0"
+                                Background="#273b5c"
+                                CornerRadius="15,0,0,15">
+                            <components:SidebarUC />
+                        </Border>
+
+                        <Border Grid.Column="1"
+                                Background="White"
+                                Margin="-20, 0, 0, 0"
+                                CornerRadius="15">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="20"
+                                                  Direction="0"
+                                                  ShadowDepth="0"
+                                                  Color="#000000"
+                                                  Opacity="0.1" />
+                            </Border.Effect>
+
+                            <ContentControl x:Name="MainContent"
+                                            Content="{Binding CurrentView}"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Stretch"
+                                            Margin="15" />
+                        </Border>
+                    </Grid>
+                    
+                </materialDesign:DialogHost>
+            </Grid>
         </Grid>
-    </materialDesign:DialogHost>
+    </Border>
 </Window>

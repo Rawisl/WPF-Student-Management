@@ -6,15 +6,73 @@
              xmlns:local="clr-namespace:WPF_Student_Management.Views"
              xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
              xmlns:components="clr-namespace:WPF_Student_Management.Components"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="800">
 
-    <UserControl.DataContext>
-        <viewmodels:SubjectGradebookViewModel />
-    </UserControl.DataContext>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-    <Grid>
-        <components:SubjectListUC />
+        <Grid Grid.Row="0"
+              Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0"
+                        VerticalAlignment="Center">
+                <TextBlock Text="Cấu hình môn học"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#1A237E" />
+
+                <TextBlock Text="Quản lý danh sách các môn học giảng dạy trong nhà trường"
+                           FontSize="14"
+                           Foreground="#878A99"
+                           Margin="0,5,0,0" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Button Command="{Binding AddSubjectCommand}"
+                        Height="42"
+                        Padding="15,0,15,0"
+                        Style="{StaticResource PrimaryRoundedButton}">
+
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="PlusBoxOutline"
+                                                 Width="20"
+                                                 Height="20"
+                                                 Margin="0,0,8,0" />
+                        <TextBlock Text="Thêm môn học"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Background="White"
+                CornerRadius="12"
+                Padding="10">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10"
+                                  ShadowDepth="1"
+                                  Color="#DDDDDD"
+                                  Opacity="0.5" />
+            </Border.Effect>
+
+            <components:SubjectListUC />
+        </Border>
+
     </Grid>
 </UserControl>

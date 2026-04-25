@@ -6,7 +6,8 @@
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
              mc:Ignorable="d"
              d:DesignHeight="450"
-             d:DesignWidth="800">
+             d:DesignWidth="800"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -14,72 +15,93 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0"
-              Margin="0,0,0,10">
-            <TextBlock Text="Cấu hình danh sách môn học"
-                       VerticalAlignment="Center"
-                       FontWeight="SemiBold"
-                       FontSize="16" />
-            <Button Command="{Binding AddSubjectCommand}"
-                    Content="+ Thêm môn"
-                    HorizontalAlignment="Right"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Foreground="#FF270EDC"
-                    FontWeight="Bold"
-                    Cursor="Hand" />
-        </Grid>
-
         <DataGrid Grid.Row="1"
-                  x:Name="dgMonHoc"
-                  ItemsSource="{Binding SubjectList}"
-                  AutoGenerateColumns="False"
-                  CanUserAddRows="False"
-                  Background="White"
-                  BorderThickness="1"
-                  BorderBrush="#F0F0F0"
-                  RowHeight="40"
-                  ColumnHeaderHeight="40">
+                  x:Name="dgSubject"
+                  ItemsSource="{Binding SubjectsList}"
+                  Style="{StaticResource GlobalDataGridStyle}"
+                  CellStyle="{StaticResource GlobalDataGridCellStyle}"
+                  FontSize="15">
+
             <DataGrid.Columns>
-                <DataGridTextColumn Header="STT"
-                                    Binding="{Binding OrdinalNumber}"
-                                    Width="60"
-                                    IsReadOnly="True" />
-                <DataGridTemplateColumn Header="Tên môn học"
-                                        Width="*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Border Background="#F3F5F9"
-                                    CornerRadius="5"
-                                    Margin="2">
-                                <TextBox Text="{Binding SubjectName, UpdateSourceTrigger=PropertyChanged}"
-                                         BorderThickness="0"
-                                         Background="Transparent"
-                                         Padding="5,2" />
-                            </Border>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Xóa"
-                                    Binding="{Binding DeleteIcon}"
-                                    Width="60"
-                                    IsReadOnly="True">
+
+                <DataGridTextColumn Header="Mã môn"
+                                    Binding="{Binding SubjectId}"
+                                    Width="80"
+                                    IsReadOnly="True"
+                                    HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                    ElementStyle="{StaticResource GlobalCenterElementStyle}">
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Tên môn học"
+                                    Binding="{Binding SubjectName}"
+                                    Width="*"
+                                    IsReadOnly="True"
+                                    HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
                     <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground"
-                                    Value="Red" />
+                        <Style TargetType="TextBlock"
+                               BasedOn="{StaticResource GlobalLeftElementStyle}">
                             <Setter Property="FontWeight"
-                                    Value="Bold" />
-                            <Setter Property="HorizontalAlignment"
-                                    Value="Center" />
-                            <Setter Property="VerticalAlignment"
-                                    Value="Center" />
-                            <Setter Property="Cursor"
-                                    Value="Hand" />
+                                    Value="SemiBold" />
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Loại điểm"
+                                    Binding="{Binding GradeType, Converter={StaticResource GradeTypeConverter}}"
+                                    Width="250"
+                                    IsReadOnly="True"
+                                    HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                    ElementStyle="{StaticResource GlobalCenterElementStyle}">
+                </DataGridTextColumn>
+
+
+                <DataGridTemplateColumn x:Name="colAction"
+                                        Header="Thao Tác"
+                                        Width="100"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility"
+                                                Value="Hidden" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}"
+                                                         Value="True">
+                                                <Setter Property="Visibility"
+                                                        Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+
+                                <Button Command="{Binding DataContext.DeleteSubjectCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                        Foreground="#FF4757"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Width="35"
+                                        Height="35"
+                                        Padding="0"
+                                        Cursor="Hand"
+                                        ToolTip="Xóa môn học">
+                                    <materialDesign:PackIcon Kind="TrashCanOutline"
+                                                             Width="22"
+                                                             Height="22"
+                                                             HorizontalAlignment="Center"
+                                                             VerticalAlignment="Center" />
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
+
         </DataGrid>
+
     </Grid>
 </UserControl>

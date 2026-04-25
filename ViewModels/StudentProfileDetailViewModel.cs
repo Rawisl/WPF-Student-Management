@@ -7,12 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WPF_Student_Management.Helpers;
+using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
     public partial class StudentProfileDetailViewModel : ObservableObject
     {
-        private readonly StudentItem _originalItem; // Giữ tham chiếu để update lại UI bảng chính
+        private readonly Student _originalItem; // Giữ tham chiếu để update lại UI bảng chính
 
         [ObservableProperty] private string _studentID;
 
@@ -37,22 +38,62 @@ namespace WPF_Student_Management.ViewModels
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _ageErrorMessage = string.Empty;
 
-        public StudentProfileDetailViewModel(StudentItem hs)
-        {
-            _originalItem = hs;
+        //TẠO 2 BIẾN LƯU TRỮ QUY ĐỊNH LÚC VỪA MỞ FORM(Cho số mặc định lỡ DB lỗi)
+        private int _minAge = 15;
+        private int _maxAge = 20;
 
-            // Map dữ liệu từ Item sang ViewModel của Popup
-            StudentID = hs.StudentID;
-            FullName = hs.FullName;
-            Gender = hs.Gender;
-            // Parse ngày từ string sang DateTime để dùng DatePicker cho xịn
-            if (DateTime.TryParseExact(hs.DateOfBirth, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+        public StudentProfileDetailViewModel(Student student)
+        {
+           _originalItem = student;
+
+            //MAP DỮ LIỆU TỪ MODEL VÀO VIEWMODEL
+            // Model là int StudentId, mình format thêm "HS" cho nó đẹp trên Popup
+            StudentID = "HS" + student.StudentId.ToString(); 
+            FullName = student.FullName;
+            Gender = student.Gender;
+
+            //KHÔNG CẦN PARSE STRING NỮA, VÌ DATEOFBIRTH CỦA MODEL LÀ DATETIME? RỒI
+            DateOfBirth = student.DateOfBirth ?? DateTime.Now.AddYears(-15);
+
+            // Nếu Model có mấy trường này thì map luôn:
+            // Address = student.Address;
+            // Email = student.Email;
+
+            //KÉO QUY ĐỊNH TỪ DB LÊN NGAY LÚC KHỞI TẠO
+            LoadAgeRegulations();
+
+            // Ép nó check lại tuổi ngay khi vừa load lên (lỡ tuổi lúc trước hợp lệ, giờ đổi quy định thành không hợp lệ)
+            OnDateOfBirthChanged(DateOfBirth);
+        }
+        private void LoadAgeRegulations()
+        {
+            try
             {
-                DateOfBirth = date;
+                //Kéo toàn bộ list tham số từ DB lên
+                var allRegulations = Regulation.GetAllRegulations();
+
+                if (allRegulations != null && allRegulations.Any())
+                {
+                    //Tìm dòng có tên là "MinAge"
+                    var minAgeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MinAge");
+                    if (minAgeParam != null)
+                    {
+                        // Ép kiểu từ Decimal (trong Model của Long) sang int
+                        _minAge = (int)minAgeParam.Value;
+                    }
+
+                    //Tìm dòng có tên là "MaxAge"
+                    var maxAgeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MaxAge");
+                    if (maxAgeParam != null)
+                    {
+                        _maxAge = (int)maxAgeParam.Value;
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                DateOfBirth = DateTime.Now.AddYears(-15); // Default nếu lỗi parse
+                // Lỗi DB thì nuốt lỗi, UI vẫn xài số 15-20 mặc định, app không sập
+                Console.WriteLine("Không tải được quy định tuổi: " + ex.Message);
             }
         }
 
@@ -62,9 +103,8 @@ namespace WPF_Student_Management.ViewModels
             int age = DateTime.Now.Year - value.Year;
             if (DateTime.Now.DayOfYear < value.DayOfYear) age--;
 
-            // Giả sử quy định 15-20 tuổi
-            if (age < 15 || age > 20)
-                AgeErrorMessage = $"Tuổi {age} không hợp lệ (15-20)";
+            if (age < _minAge || age > _maxAge)
+                AgeErrorMessage = $"Tuổi {age} không hợp lệ (Quy định: {_minAge} - {_maxAge})";
             else
                 AgeErrorMessage = string.Empty;
         }
@@ -80,16 +120,18 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand(CanExecute = nameof(CanSave))]
         private void Save()
         {
-            // 2. Lưu vào DB (Giả lập hàm Sua() của Long)
-            // var success = Services.HocSinh.Sua(new Services.HocSinh { ... });
+            // 4. Lưu vào DB 
             bool success = true; // Giả sử thành công
 
             if (success)
             {
-                // 3. Update ngược lại cái dòng trên DataGrid ở màn hình chính
+                // 5. Update ngược lại cái dòng trên DataGrid ở màn hình chính
                 _originalItem.FullName = FullName;
                 _originalItem.Gender = Gender;
-                _originalItem.DateOfBirth = DateOfBirth.ToString("dd/MM/yyyy");
+
+                // Gán thẳng DateTime vào luôn, KHÔNG ToString() nữa vì Model nó cần DateTime
+                _originalItem.DateOfBirth = DateOfBirth;
+                // _originalItem.Address = Address;
 
                 NotificationHelper.ShowSuccess("Cập nhật hồ sơ thành công!");
                 MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");

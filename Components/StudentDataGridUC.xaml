@@ -12,78 +12,63 @@
     <DataGrid HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch"
               ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=UserControl}}"
-              AutoGenerateColumns="False"
-              CanUserAddRows="False"
-              Background="Transparent"
-              BorderThickness="0"
-              CanUserReorderColumns="False"
-              RowHeight="55"
-              ColumnHeaderHeight="45"
-              GridLinesVisibility="None"
-              HeadersVisibility="Column">
+              Style="{StaticResource GlobalDataGridStyle}"
+              CellStyle="{StaticResource GlobalDataGridCellStyle}"
+              FontSize="15">
 
         <DataGrid.Columns>
             <DataGridTextColumn Header="STT"
-                                Binding="{Binding OrdinalNumber}"
+                                Binding="{Binding StudentId}"
                                 Width="60"
-                                IsReadOnly="True">
-                <DataGridTextColumn.ElementStyle>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="VerticalAlignment"
-                                Value="Center" />
-                        <Setter Property="HorizontalAlignment"
-                                Value="Center" />
-                    </Style>
-                </DataGridTextColumn.ElementStyle>
+                                IsReadOnly="True"
+                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                ElementStyle="{StaticResource GlobalCenterElementStyle}">
             </DataGridTextColumn>
-
-            <DataGridTextColumn Header="Mã HS"
-                                Binding="{Binding StudentID}"
-                                Width="100"
-                                Visibility="Collapsed" />
 
             <DataGridTextColumn Header="Họ và Tên"
                                 Binding="{Binding FullName}"
                                 Width="*"
-                                IsReadOnly="True">
+                                IsReadOnly="True"
+                                HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
                 <DataGridTextColumn.ElementStyle>
-                    <Style TargetType="TextBlock">
+                    <Style TargetType="TextBlock"
+                           BasedOn="{StaticResource GlobalLeftElementStyle}">
                         <Setter Property="FontWeight"
                                 Value="SemiBold" />
-                        <Setter Property="VerticalAlignment"
-                                Value="Center" />
                     </Style>
                 </DataGridTextColumn.ElementStyle>
+
             </DataGridTextColumn>
 
             <DataGridTextColumn Header="Giới tính"
                                 Binding="{Binding Gender}"
                                 Width="100"
-                                IsReadOnly="True">
-                <DataGridTextColumn.ElementStyle>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="VerticalAlignment"
-                                Value="Center" />
-                    </Style>
-                </DataGridTextColumn.ElementStyle>
+                                IsReadOnly="True"
+                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                ElementStyle="{StaticResource GlobalCenterElementStyle}">
             </DataGridTextColumn>
 
             <DataGridTextColumn Header="Ngày Sinh"
-                                Binding="{Binding DateOfBirth}"
+                                Binding="{Binding DateOfBirth, StringFormat=dd/MM/yyyy}"
                                 Width="150"
                                 IsReadOnly="True"
-                                Foreground="Gray">
-                <DataGridTextColumn.ElementStyle>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="VerticalAlignment"
-                                Value="Center" />
-                    </Style>
-                </DataGridTextColumn.ElementStyle>
+                                Foreground="Gray"
+                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                ElementStyle="{StaticResource GlobalCenterElementStyle}">
             </DataGridTextColumn>
 
-            <DataGridTemplateColumn x:Name="colThaoTac"
+            <DataGridTextColumn Header="SĐT"
+                                Binding="{Binding PhoneNumber}"
+                                Width="120"
+                                IsReadOnly="True"
+                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                ElementStyle="{StaticResource GlobalCenterElementStyle}">
+            </DataGridTextColumn>
+
+            <DataGridTemplateColumn x:Name="colAction"
                                     Header="Thao Tác"
-                                    Width="120">
+                                    Width="120"
+                                    HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal"
@@ -105,52 +90,44 @@
 
                             <Button Command="{Binding EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
-                                    Content="✎"
-                                    FontSize="20"
                                     Foreground="#00B894"
                                     Background="Transparent"
+                                    Style="{StaticResource MaterialDesignIconForegroundButton}"
                                     BorderThickness="0"
                                     Width="35"
                                     Height="35"
                                     Margin="0,0,10,0"
+                                    Padding="0"
                                     Cursor="Hand"
-                                    ToolTip="Sửa thông tin" />
+                                    ToolTip="Sửa thông tin">
+                                <materialDesign:PackIcon Kind="PencilOutline"
+                                                         Width="22"
+                                                         Height="22"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center" />
+                            </Button>
 
                             <Button Command="{Binding DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
-                                    Content="✕"
-                                    FontSize="18"
-                                    FontWeight="Bold"
                                     Foreground="#FF4757"
                                     Background="Transparent"
+                                    Style="{StaticResource MaterialDesignIconForegroundButton}"
                                     BorderThickness="0"
                                     Width="35"
                                     Height="35"
+                                    Padding="0"
                                     Cursor="Hand"
-                                    ToolTip="Xóa học sinh" />
+                                    ToolTip="Xóa học sinh">
+                                <materialDesign:PackIcon Kind="TrashCanOutline"
+                                                         Width="22"
+                                                         Height="22"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center" />
+                            </Button>
                         </StackPanel>
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
         </DataGrid.Columns>
-
-        <DataGrid.RowStyle>
-            <Style TargetType="DataGridRow"
-                   BasedOn="{StaticResource MaterialDesignDataGridRow}">
-                <Setter Property="Background"
-                        Value="Transparent" />
-                <Setter Property="BorderBrush"
-                        Value="#F0F0F0" />
-                <Setter Property="BorderThickness"
-                        Value="0,0,0,1" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver"
-                             Value="True">
-                        <Setter Property="Background"
-                                Value="#F8F9FA" />
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
-        </DataGrid.RowStyle>
     </DataGrid>
 </UserControl>

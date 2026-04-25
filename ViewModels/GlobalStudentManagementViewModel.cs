@@ -9,110 +9,130 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Effects;
 using WPF_Student_Management.Helpers;
+using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
-    //hiện tại đang dùng tạm cái student item này
-    public partial class StudentItem : ObservableObject
-    {
-        [ObservableProperty] private int _ordinalNumber;
-        [ObservableProperty] private string _studentID = string.Empty;
-        [ObservableProperty] private string _fullName = string.Empty;
-        [ObservableProperty] private string _gender = string.Empty;
-        [ObservableProperty] private string _dateOfBirth = string.Empty;
-    }
-
-    // Lớp trung gian để hiển thị danh sách lớp lên giao diện
-    public class ClassItem
-    {
-        public string MaLop { get; set; } = string.Empty;
-        public string TenLop { get; set; } = string.Empty;
-    }
-
     public partial class GlobalStudentManagementViewModel : ObservableObject
     {
-        [ObservableProperty]
-        private ObservableCollection<StudentItem> _allStudent;
+        //TẠO 2 BIẾN LƯU TRỮ QUY ĐỊNH LÚC VỪA MỞ FORM(Cho số mặc định lỡ DB lỗi)
+        private int _minAge = 15;
+        private int _maxAge = 20;
 
+        [ObservableProperty]
+        private ObservableCollection<Student> _allStudent;
+
+        //thông tin cá nhân của học sinh
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _fullName = string.Empty;
-
-        [ObservableProperty] 
+        [ObservableProperty]
         private bool _isMale = true;
-        [ObservableProperty] 
+        [ObservableProperty]
         private bool _isFemale;
-
-        // Logic đồng bộ giới tính (Optional nhưng nên có cho chắc)
-        partial void OnIsMaleChanged(bool value) => IsFemale = !value;
-        partial void OnIsFemaleChanged(bool value) => IsMale = !value;
-
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private DateTime _dateOfBirth = DateTime.Now;
+        [ObservableProperty]
+        private string _phoneNumber = string.Empty;
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _address = string.Empty;
+        [ObservableProperty]
+        private string _emailPrefix = string.Empty;
 
-        [ObservableProperty] 
-        private string _email = string.Empty;
+        //người bảo hộ của học sinh
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private string _guardianName = string.Empty;
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private string _guardianPhoneNumber = string.Empty;
+
+        //hoàn cảnh gia đình
+        [ObservableProperty]
+        private bool _isFamilyNormal = true;
+        [ObservableProperty]
+        private bool _isFamilyHard;
+
+        //Logic đồng bộ giới tính
+        partial void OnIsMaleChanged(bool value) => IsFemale = !value;
+        partial void OnIsFemaleChanged(bool value) => IsMale = !value;
+
+        //Logic đồng bộ hoàn cảnh gia đình
+        partial void OnIsFamilyNormalChanged(bool value) => IsFamilyHard = !value;
+        partial void OnIsFamilyHardChanged(bool value) => IsFamilyNormal = !value;
 
         // Thông báo lỗi nếu sai tuổi quy định
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _ageErrorMessage = string.Empty;
 
-        // Danh sách lớp nạp từ Database
-        [ObservableProperty]
-        private ObservableCollection<ClassItem> _danhSachLop = new ObservableCollection<ClassItem>();
-
-        [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-        private ClassItem? _selected;
-
-        [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-        private DateTime _dateOfBirth = DateTime.Now;
         public GlobalStudentManagementViewModel()
         {
-            AllStudent = new ObservableCollection<StudentItem>();
-            LoadMockData();
+            AllStudent = new ObservableCollection<Student>();
+            LoadDataFromDatabase();
             OnDateOfBirthChanged(DateTime.Now);
+
+            //KÉO QUY ĐỊNH TỪ DB LÊN NGAY LÚC KHỞI TẠO
+            LoadAgeRegulations();
+
+            // Ép nó check lại tuổi ngay khi vừa load lên (lỡ tuổi lúc trước hợp lệ, giờ đổi quy định thành không hợp lệ)
+            OnDateOfBirthChanged(DateOfBirth);
         }
 
-        private void LoadMockData()
+        private void LoadAgeRegulations()
         {
-            // Bơm dữ liệu giả vào để xem DataGrid lên hình có đẹp không
-            AllStudent.Add(new StudentItem { OrdinalNumber = 1, StudentID = "HS001", FullName = "Nguyễn Văn A", Gender = "Nam", DateOfBirth = "15/05/2008" });
-            AllStudent.Add(new StudentItem { OrdinalNumber = 2, StudentID = "HS002", FullName = "Trần Thị B", Gender = "Nữ", DateOfBirth = "22/08/2008" });
-            AllStudent.Add(new StudentItem { OrdinalNumber = 3, StudentID = "HS003", FullName = "Lê Hoàng C", Gender = "Nam", DateOfBirth = "01/12/2008" });
+            try
+            {
+                //Kéo toàn bộ list tham số từ DB lên
+                var allRegulations = Regulation.GetAllRegulations();
+
+                if (allRegulations != null && allRegulations.Any())
+                {
+                    //Tìm dòng có tên là "MinAge"
+                    var minAgeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MinAge");
+                    if (minAgeParam != null)
+                    {
+                        // Ép kiểu từ Decimal (trong Model của Long) sang int
+                        _minAge = (int)minAgeParam.Value;
+                    }
+
+                    //Tìm dòng có tên là "MaxAge"
+                    var maxAgeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MaxAge");
+                    if (maxAgeParam != null)
+                    {
+                        _maxAge = (int)maxAgeParam.Value;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Lỗi DB thì nuốt lỗi, UI vẫn xài số 15-20 mặc định, app không sập
+                Console.WriteLine("Không tải được quy định tuổi: " + ex.Message);
+            }
         }
 
         private void LoadDataFromDatabase()
         {
-            //AllStudent.Clear();
-            //try
-            //{
-            //    var listHS = Services.HocSinh.LayDanhSach();
-            //    int OrdinalNumber = 1;
-            //    foreach (var hs in listHS)
-            //    {
-            //        AllStudent.Add(new StudentItem
-            //        {
-            //            OrdinalNumber = OrdinalNumber++,
-            //            StudentID = hs.StudentID,
-            //            FullName = hs.FullName,
-            //            Gender = hs.Gender,
-            //            DateOfBirth = hs.DateOfBirth.ToString("dd/MM/yyyy")
-            //        });
-            //    }
-            //}
-            //catch (System.Exception ex)
-            //{
-            //    NotificationHelper.ShowError($"Lỗi kết nối CSDL:\n{ex.Message}");
-            //}
+            AllStudent.Clear();
+            try
+            {
+                var studentList = Student.GetAllStudents();
+                AllStudent = new ObservableCollection<Student>(studentList);
+            }
+            catch (System.Exception ex)
+            {
+                NotificationHelper.ShowError($"Lỗi kết nối CSDL:\n{ex.Message}");
+            }
         }
 
         [RelayCommand]
         private async Task AddStudent()
         {
+            LoadAgeRegulations();
+            OnDateOfBirthChanged(DateOfBirth);
+
             var dialogContent = new WPF_Student_Management.Components.AddStudentDialog
             {
                 DataContext = this // Quan trọng: Dùng chung bộ não này
@@ -121,12 +141,12 @@ namespace WPF_Student_Management.ViewModels
         }
 
         [RelayCommand]
-        private async Task EditStudent(StudentItem hs)
+        private async Task EditStudent(Student student)
         {
-            if (hs == null) return;
+            if (student == null) return;
 
             // Khởi tạo "Bộ não" cho popup
-            var detailVM = new StudentProfileDetailViewModel(hs);
+            var detailVM = new StudentProfileDetailViewModel(student);
 
             // Khởi tạo "Cái xác" popup
             var view = new Components.StudentProfileDetailUC
@@ -139,17 +159,17 @@ namespace WPF_Student_Management.ViewModels
         }
 
         [RelayCommand]
-        private void DeleteStudent(StudentItem hs)
+        private void DeleteStudent(Student student)
         {
-            if (hs != null)
+            if (student != null)
             {
-                bool isChonOK = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa học sinh '{hs.FullName}' khỏi hệ thống không?\nHành động này không thể hoàn tác!");
+                bool isChonOK = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa học sinh '{student.FullName}' khỏi hệ thống không?\nHành động này không thể hoàn tác!");
 
                 if (isChonOK)
                 {
                     // Xóa thẳng trên UI để test cảm giác bấm nút
-                    AllStudent.Remove(hs);
-                    NotificationHelper.ShowSuccess("Xóa học sinh thành công (Mock)!");
+                    AllStudent.Remove(student);
+                    NotificationHelper.ShowSuccess("Xóa học sinh thành công!");
                 }
             }
         }
@@ -160,9 +180,8 @@ namespace WPF_Student_Management.ViewModels
             int age = DateTime.Now.Year - value.Year;
             if (DateTime.Now.DayOfYear < value.DayOfYear) age--;
 
-            // Giả sử quy định là 15-20 tuổi
-            if (age < 15 || age > 20)
-                AgeErrorMessage = $"Tuổi {age} không hợp lệ (Quy định 15-20)";
+            if (age < _minAge || age > _maxAge)
+                AgeErrorMessage = $"Tuổi {age} không hợp lệ (Quy định: {_minAge} - {_maxAge})";
             else
                 AgeErrorMessage = string.Empty;
         }
@@ -170,36 +189,58 @@ namespace WPF_Student_Management.ViewModels
         // Kiểm tra điều kiện để kích hoạt nút Lưu
         private bool CanSave()
         {
-            // Bắt buộc nhập Họ Tên và Địa Chỉ, và không có lỗi tuổi
+            // Bắt buộc nhập Họ Tên học sinh, Địa Chỉ, Họ tên + sdt ng bảo hộ, và không có lỗi tuổi thì mới được lưu
             return string.IsNullOrEmpty(AgeErrorMessage) &&
                    !string.IsNullOrWhiteSpace(FullName) &&
-                   !string.IsNullOrWhiteSpace(Address);
+                   !string.IsNullOrWhiteSpace(Address) &&
+                   !string.IsNullOrEmpty(GuardianName) &&
+                   !string.IsNullOrEmpty(GuardianPhoneNumber);
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
-        private void Save()
+        private void Save() //chưa lưu được nên tạm thời cancel thui
         {
-            // Thêm vào list Mock
-            AllStudent.Add(new StudentItem
-            {
-                OrdinalNumber = AllStudent.Count + 1,
-                StudentID = "HS" + DateTime.Now.ToString("ssmm"),
-                FullName = this.FullName,
-                Gender = IsMale ? "Nam" : "Nữ", // Lúc này IsMale đã được đồng bộ chuẩn
-                DateOfBirth = DateOfBirth.ToString("dd/MM/yyyy")
-            });
+            //var newDbStudent = new WPF_Student_Management.Models.Student
+            //{
+            //    FullName = this.FullName,
+            //    Gender = IsMale ? "Nam" : "Nữ",
+            //    DateOfBirth = this.DateOfBirth,
+            //    PhoneNumber = this.PhoneNumber,
+            //    Email = string.IsNullOrWhiteSpace(this.EmailPrefix)
+            //            ? ""
+            //            : $"{this.EmailPrefix.Trim()}@gmail.com",
+            //    Address = this.Address,
+            //    FamilyBackground = IsFamilyNormal ? "Bình thường" : "Khó khăn",
+            //    GuardianName = this.GuardianName,
+            //    GuardianPhoneNumber = this.GuardianPhoneNumber,
+            //    Status = "Active" // Mặc định khi mới tiếp nhận
+            //};
 
-            NotificationHelper.ShowSuccess("Tiếp nhận thành công!");
+            //bool isSuccess = newDbStudent.AddStudent();
 
-            // Reset form - Gọi Cancel() để nó đóng Dialog luôn
-            Cancel();
+            //if (isSuccess)
+            //{
+            //    NotificationHelper.ShowSuccess("Tiếp nhận học sinh thành công!");
+
+            //    LoadDataFromDatabase();
+
+                Cancel(); // Đóng form
+            //}
+            //else
+            //{
+            //    NotificationHelper.ShowError("Lưu thông tin học sinh thất bại!");
+            //}
         }
 
         [RelayCommand]
         private void Cancel()
         {
             // Reset form sạch sẽ
-            FullName = Address = Email = string.Empty;
+            FullName = Address = EmailPrefix = PhoneNumber = GuardianName = GuardianPhoneNumber = string.Empty;
+
+            IsMale = true;
+            IsFamilyNormal = true;
+
             DateOfBirth = DateTime.Now;
             AgeErrorMessage = string.Empty;
             // Đóng Dialog

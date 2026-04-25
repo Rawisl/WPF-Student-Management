@@ -9,10 +9,6 @@
              d:DesignHeight="450"
              d:DesignWidth="800">
 
-    <UserControl.DataContext>
-        <viewmodels:SettingsViewModel />
-    </UserControl.DataContext>
-
     <Grid>
 
     </Grid>

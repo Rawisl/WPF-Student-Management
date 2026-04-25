@@ -9,10 +9,6 @@
              d:DesignHeight="450"
              d:DesignWidth="800">
 
-    <UserControl.DataContext>
-        <viewmodels:EmployeeManagementViewModel />
-    </UserControl.DataContext>
-
     <Grid>
 
     </Grid>

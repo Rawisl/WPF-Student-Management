@@ -46,12 +46,10 @@ namespace WPF_Student_Management.ViewModels
             if (CurrentView is RegulationSettingsViewModel RegulationSettingsVM && RegulationSettingsVM.HasUnsavedChanges)
             {
                 //Bật Cảnh báo
-                bool isChacChanDi = NotificationHelper.ShowConfirm("Bạn có thay đổi chưa lưu! Xác nhận rời đi và mất dữ liệu?");
+                bool isConfirmSwitchTab = NotificationHelper.ShowConfirm("Bạn có thay đổi chưa lưu! Xác nhận rời đi và mất dữ liệu?");
 
-                if (!isChacChanDi) return; // Nếu chọn Hủy thì ở lại
-
-                RegulationSettingsVM.HasUnsavedChanges = false;
-
+                if (!isConfirmSwitchTab) return; // Nếu chọn Hủy thì ở lại
+                RegulationSettingsVM.LoadDataFromDatabase();
             }
 
             // 2. NẾU AN TOÀN -> THỰC HIỆN CHUYỂN TRANG

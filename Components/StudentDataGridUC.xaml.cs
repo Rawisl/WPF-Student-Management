@@ -77,7 +77,7 @@ namespace WPF_Student_Management.Components
             {
                 bool isShow = (bool)e.NewValue;
                 // Gọi thẳng tên cột ra và cho nó "bay màu" nếu isShow = false
-                uc.colThaoTac.Visibility = isShow ? Visibility.Visible : Visibility.Collapsed;
+                uc.colAction.Visibility = isShow ? Visibility.Visible : Visibility.Collapsed;
             }
         }
     }

@@ -64,7 +64,7 @@ CREATE TABLE Student (
 
 CREATE TABLE Class (
     ClassID INT CONSTRAINT PK_Class PRIMARY KEY,
-    ClassName VARCHAR(50) NOT NULL,
+    ClassName NVARCHAR(50) NOT NULL,
     Grade INT NOT NULL,
     ClassSize INT DEFAULT 0,
     HomeroomTeacherID INT,

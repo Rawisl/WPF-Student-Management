@@ -12,10 +12,6 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:components="clr-namespace:WPF_Student_Management.Components">
 
-    <UserControl.DataContext>
-        <viewmodels:SubjectGradebookViewModel />
-    </UserControl.DataContext>
-
     <Grid Margin="20" Background="#F8F9FA">
 
         <TabControl Style="{StaticResource MaterialDesignTabControl}"

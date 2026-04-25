@@ -8,7 +8,21 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!--Mò đọc tài liệu README của cái nuget packet material mới thấy cách sửa cái cứt chó Defaults...-->
-                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="LightBlue" SecondaryColor="DeepOrange" />
+                <!--
+                <materialDesign:BundledTheme BaseTheme="Light"
+                                             PrimaryColor="BlueGrey"
+                                             SecondaryColor="DeepOrange" />
+                -->
+
+                
+                <materialDesign:CustomColorTheme BaseTheme="Light">
+                    <materialDesign:CustomColorTheme.PrimaryColor>
+                        <Color>#1A237E</Color>
+                    </materialDesign:CustomColorTheme.PrimaryColor>
+                    <materialDesign:CustomColorTheme.SecondaryColor>
+                        <Color>#FFAB40</Color>
+                    </materialDesign:CustomColorTheme.SecondaryColor>
+                </materialDesign:CustomColorTheme>
 
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
                 

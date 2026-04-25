@@ -1,0 +1,78 @@
+﻿<UserControl x:Class="WPF_Student_Management.Components.BatchDeleteEmptyClassesDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Width="800"
+             MaxHeight="800">
+
+
+    <Border CornerRadius="16"
+            Background="White"
+            Margin="10"
+            MinWidth="400"
+            MaxWidth="400"
+            MinHeight="200"
+            MaxHeight="600">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15"
+                              ShadowDepth="3"
+                              Opacity="0.2" />
+        </Border.Effect>
+
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="Xác nhận xóa lớp rỗng"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       Foreground="#d32f2f"
+                       Margin="0,0,0,10" />
+
+            <TextBlock Grid.Row="0"
+                       Margin="0,30,0,10"
+                       TextWrapping="Wrap"
+                       Text="Hệ thống đã quét được các lớp không có học sinh dưới đây. Vui lòng bỏ chọn những lớp bạn muốn giữ lại:" />
+
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          Margin="0,10">
+                <ItemsControl ItemsSource="{Binding EmptyClassesToTrash}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="#EEEEEE"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="5">
+                                <CheckBox IsChecked="{Binding IsSelected}"
+                                          Content="{Binding ClassInfo.DisplayClassName}"
+                                          FontSize="16"
+                                          FontWeight="SemiBold"
+                                          VerticalContentAlignment="Center" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <StackPanel Grid.Row="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,20,0,0">
+                <Button Content="Hủy bỏ"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Command="{Binding CancelBatchDeleteCommand}"
+                        Margin="0,0,10,0" />
+                <Button Content="Xóa lớp đã chọn"
+                        Style="{StaticResource MaterialDesignRaisedLightButton}"
+                        Background="#d32f2f"
+                        BorderBrush="#d32f2f"
+                        Foreground="White"
+                        Command="{Binding ConfirmBatchDeleteCommand}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
