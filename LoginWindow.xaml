@@ -5,21 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPF_Student_Management"
         xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="LoginWindow"
-        Height="450"
-        Width="800">
+        Title="Đăng Nhập Hệ Thống" Height="450" Width="400"
+        WindowStartupLocation="CenterScreen" Background="#F5F6FA">
 
-    <Window.Resources>
-        <!-- đoạn này hình như là ghép UC vào Window, tạm comment lại tại chưa có gì
-        <DataTemplate DataType="{x:Type vm:TrangChuViewModel}">
-            <views:TrangChuUC />
-        </DataTemplate>
-        -->
-    </Window.Resources>
+    <Window.DataContext>
+        <viewmodels:LoginViewModel />
+    </Window.DataContext>
 
+    <Border Background="White" CornerRadius="12" Margin="30" Padding="20">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
+        </Border.Effect>
 
-    <Grid>
+        <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="ĐĂNG NHẬP" FontSize="24" FontWeight="Bold" Foreground="#2C3E50" HorizontalAlignment="Center" Margin="0,0,0,30"/>
 
-    </Grid>
+            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
+                     materialDesign:HintAssist.Hint="Tên đăng nhập (Mã HS/GV hoặc Email)" 
+                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" 
+                     Margin="0,0,0,20" FontSize="16"/>
+
+            <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" 
+                     materialDesign:HintAssist.Hint="Mật khẩu" 
+                     FontFamily="Password" 
+                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" 
+                     Margin="0,0,0,30" FontSize="16"/>
+
+            <Button Content="ĐĂNG NHẬP" Command="{Binding LoginCommand}" 
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                    Style="{StaticResource MaterialDesignRaisedButton}" 
+                    Height="45" FontSize="16" Cursor="Hand"/>
+        </StackPanel>
+    </Border>
 </Window>
