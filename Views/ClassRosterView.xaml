@@ -11,12 +11,6 @@
              xmlns:components="clr-namespace:WPF_Student_Management.Components"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
 
-    <UserControl.DataContext>
-        <viewmodels:ClassRosterViewModel />
-    </UserControl.DataContext>
-
-
-
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

@@ -4,12 +4,227 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="800">
 
 
-    <Grid>
+    <materialDesign:Card Margin="0,0,0,20"
+                         Padding="25"
+                         UniformCornerRadius="20"
+                         BorderBrush="Black"
+                         BorderThickness="1">
+        <StackPanel>
+            <TextBlock Text="Quy định về Hệ số điểm"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       Margin="0,0,0,15"
+                       Foreground="#FF1A237E" />
+            <Separator Margin="0,0,0,20"
+                       Background="#F0F0F0" />
 
-    </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*" />
+                    <ColumnDefinition Width="2" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"
+                            Margin="0,0,30,0">
+                    <Label Content="Kiểm tra thường xuyên:"
+                           Foreground="Black"
+                           Margin="0,0,0,5"
+                           FontSize="18"
+                           FontWeight="Bold" />
+                    <Border Background="#F3F5F9"
+                            CornerRadius="10"
+                            Height="40"
+                            Width="180"
+                            HorizontalAlignment="Left"
+                            Margin="0,5,0,15"
+                            BorderBrush="#D2D6DC"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="35" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding RegularScoreCoefficient, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     VerticalContentAlignment="Center"
+                                     Padding="15,0"
+                                     FontSize="16"
+                                     helpers:TextBoxHelper.IsDecimalOnly="True"/>
+                            <StackPanel Grid.Column="1"
+                                        VerticalAlignment="Center">
+                                <Button Command="{Binding IncreaseRegularCoefficientCommand}"
+                                        Content="▲"
+                                        Height="15"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                                <Button Command="{Binding DecreaseRegularCoefficientCommand}"
+                                        Content="▼"
+                                        Height="15"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Label Content="Kiểm tra giữa kỳ:"
+                           Foreground="Black"
+                           Margin="0,0,0,5"
+                           FontSize="18"
+                           FontWeight="Bold" />
+                    <Border Background="#F3F5F9"
+                            CornerRadius="10"
+                            Height="40"
+                            Width="180"
+                            HorizontalAlignment="Left"
+                            Margin="0,5,0,15"
+                            BorderBrush="#D2D6DC"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="35" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding MidtermScoreCoefficient, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     VerticalContentAlignment="Center"
+                                     Padding="15,0"
+                                     FontSize="16"
+                                     helpers:TextBoxHelper.IsDecimalOnly="True" 
+                                     />
+                            <StackPanel Grid.Column="1"
+                                        VerticalAlignment="Center">
+                                <Button Command="{Binding IncreaseMidtermScoreCoefficientCommand}"
+                                        Content="▲"
+                                        Height="15"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                                <Button Command="{Binding DecreaseMidtermScoreCoefficientCommand}"
+                                        Content="▼"
+                                        Height="15"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Label Content="Kiểm tra cuối kỳ:"
+                           Foreground="Black"
+                           Margin="0,0,0,5"
+                           FontSize="18"
+                           FontWeight="Bold" />
+                    <Border Background="#F3F5F9"
+                            CornerRadius="10"
+                            Height="40"
+                            Width="180"
+                            HorizontalAlignment="Left"
+                            Margin="0,5,0,0"
+                            BorderBrush="#D2D6DC"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="35" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding FinalScoreCoefficient, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     VerticalContentAlignment="Center"
+                                     Padding="15,0"
+                                     FontSize="16"
+                                     helpers:TextBoxHelper.IsDecimalOnly="True" />
+                            <StackPanel Grid.Column="1"
+                                        VerticalAlignment="Center">
+                                <Button Command="{Binding IncreaseFinalScoreCoefficientCommand}"
+                                        Content="▲"
+                                        Height="15"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                                <Button Command="{Binding DecreaseFinalScoreCoefficientCommand}"
+                                        Content="▼"
+                                        Height="15"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="Gray" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <Rectangle Grid.Column="1"
+                           Fill="#F0F0F0"
+                           Margin="0,10"
+                           VerticalAlignment="Stretch" />
+
+                <StackPanel Grid.Column="2"
+                            Margin="30,0,0,0"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Công thức tính ĐTB"
+                               Foreground="Black"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,20" />
+
+                    <Grid HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="ĐTB = "
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Foreground="#1A237E"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
+
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="{Binding FormulaNumerator}"
+                                       FontSize="18"
+                                       HorizontalAlignment="Center"
+                                       Foreground="#1A237E"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,5" />
+
+                            <Rectangle Height="2"
+                                       Fill="#1A237E"
+                                       HorizontalAlignment="Stretch"
+                                       Margin="0,2" />
+
+                            <TextBlock Text="{Binding FormulaDenominator}"
+                                       FontSize="18"
+                                       HorizontalAlignment="Center"
+                                       Foreground="#1A237E"
+                                       FontWeight="SemiBold"
+                                       Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </materialDesign:Card>
 </UserControl>

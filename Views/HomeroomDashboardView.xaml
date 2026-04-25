@@ -8,11 +8,6 @@
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="800">
-
-    <UserControl.DataContext>
-        <viewmodels:HomeroomDashboardViewModel />
-    </UserControl.DataContext>
-
     <Grid>
 
     </Grid>

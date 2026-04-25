@@ -12,10 +12,6 @@
              d:DesignHeight="2000"
              d:DesignWidth="900">
 
-    <UserControl.DataContext>
-        <viewmodels:RegulationSettingsViewModel />
-    </UserControl.DataContext>
-
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -23,50 +19,46 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0"
-              Margin="0,0,0,20"
-              HorizontalAlignment="Stretch"
-              VerticalAlignment="Top">
-            <TextBlock HorizontalAlignment="Left"
-                       TextWrapping="Wrap"
-                       Text="Thay đổi quy định"
-                       VerticalAlignment="Center"
-                       FontSize="36"
-                       TextAlignment="Center"
-                       FontWeight="Bold" />
+              Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-            <Button x:Name="SaveBtn"
-                    Content="Lưu thay đổi"
-                    Command="{Binding SaveSettingsCommand}"
-                    HorizontalAlignment="Right"
-                    Height="50"
-                    VerticalAlignment="Center"
-                    Width="174"
-                    FontSize="20"
-                    Foreground="White"
-                    Background="#FF0006FF"
-                    Cursor="Hand">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius"
-                                Value="10" />
-                    </Style>
-                </Button.Resources>
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="IsEnabled"
-                                Value="{Binding HasUnsavedChanges}" />
-                        <Style.Triggers>
-                            <Trigger Property="IsEnabled"
-                                     Value="False">
-                                <Setter Property="Background"
-                                        Value="LightGray" />
-                                <Setter Property="Foreground"
-                                        Value="DarkGray" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
+            <StackPanel Grid.Column="0"
+                        VerticalAlignment="Center">
+                <TextBlock Text="Thiết lập quy định"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#1A237E" />
+
+                <TextBlock Text="Cài đặt quy định chung trên phạm vi toàn trường"
+                           FontSize="14"
+                           Foreground="#878A99"
+                           Margin="0,5,0,0" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Button Command="{Binding SaveSettingsCommand}"
+                        Height="42"
+                        Padding="15,0,15,0"
+                        Style="{StaticResource PrimaryRoundedButton}">
+
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="CheckAll"
+                                                 Width="20"
+                                                 Height="20"
+                                                 Margin="0,0,8,0" />
+                        <TextBlock Text="Lưu thay đổi"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
         </Grid>
 
         <ScrollViewer HorizontalAlignment="Stretch"
@@ -81,6 +73,8 @@
                 <components:ClassSizeRegulationUC />
 
                 <components:PassingGradeRegulationUC />
+
+                <components:GradeWeightRegulationUC />
 
             </StackPanel>
         </ScrollViewer>

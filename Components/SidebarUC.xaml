@@ -4,87 +4,302 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
-             d:DesignHeight="450"
-             d:DesignWidth="250">
+             d:DesignHeight="700"
+             d:DesignWidth="250"
+             Background="Transparent">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <Style x:Key="ModernSidebarMenu"
+               TargetType="RadioButton">
+            <Setter Property="Background"
+                    Value="Transparent" />
+            <Setter Property="Foreground"
+                    Value="#d9e7ff" />
+            <Setter Property="BorderThickness"
+                    Value="0" />
+            <Setter Property="Height"
+                    Value="45" />
+            <Setter Property="Margin"
+                    Value="10,2,10,2" />
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left" />
+            <Setter Property="Padding"
+                    Value="15,0,0,0" />
+            <Setter Property="Cursor"
+                    Value="Hand" />
+            <Setter Property="GroupName"
+                    Value="SidebarMenuGroup" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}" />
+                        </Border>
 
-        <ScrollViewer Grid.Row="0" 
-                      VerticalScrollBarVisibility="Hidden"
-                      HorizontalScrollBarVisibility="Disabled">
-            <StackPanel x:Name="StPn_Button"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        Margin="0,20,0,20"
-                        Width="230">
-                <Button Content="Xếp lớp"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding ClassRosterVM}" />
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#3F3F4E" />
+                                <Setter Property="Foreground"
+                                        Value="White" />
+                            </Trigger>
 
-                <Button Content="Sổ điểm môn học"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding SubjectGradebookVM}" />
+                            <Trigger Property="IsChecked"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#a0aef2" />
+                                <Setter Property="Foreground"
+                                        Value="White" />
+                                <Setter Property="FontWeight"
+                                        Value="SemiBold" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
 
-                <Button Content="Lớp chủ nhiệm"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding HomeroomDashboardVM}" />
+    <ScrollViewer VerticalScrollBarVisibility="Hidden"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel x:Name="StPn_Button"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top"
+                    Margin="0,20,0,20">
 
-                <Button Content="Danh sách toàn trường"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding GlobalStudentManagementVM}" />
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         IsChecked="True"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding ClassRosterVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="AccountMultiplePlusOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Xếp lớp"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
 
-                <Button Content="Quản lý lớp học"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding ClassManagementVM}" />
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding SubjectGradebookVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="BookOpenVariant"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Sổ điểm môn học"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
 
-                <Button Content="Quản lý môn học"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding SubjectManagementVM}" />
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding HomeroomDashboardVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="GoogleClassroom"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Lớp chủ nhiệm"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
 
-                <Button Content="Thay đổi quy định"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding RegulationSettingsVM}" />
+            <Separator Background="#d9e7ff"
+                       Margin="20,10,20,10"
+                       Height="1"
+                       BorderThickness="0" />
 
-                <Button Content="Quản lý nhân viên"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding EmployeeManagementVM}" />
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding GlobalStudentManagementVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="DatabaseOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Danh sách học sinh"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
 
-                <Button Content="Xử lý đơn từ"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding EnrollmentChangeExecutionVM}" />
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding ClassManagementVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="Domain"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Quản lý lớp học"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
 
-                <Button Content="Báo cáo tổng kết toàn trường"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding GlobalSummaryReportVM}" />
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding SubjectManagementVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="BookEducationOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Quản lý môn học"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
 
-                <Button Content="Tra cứu điểm"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding GradeLookupVM}" />
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding EmployeeManagementVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="BadgeAccountOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Quản lý nhân viên"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
 
-                <Button Content="Phân công giảng dạy"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding TeachingAssignmentVM}" />
+            <Separator Background="#d9e7ff"
+                       Margin="20,10,20,10"
+                       Height="1"
+                       BorderThickness="0" />
 
-                <Button Content="Cài đặt"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="{Binding SettingsVM}" />
-            </StackPanel>
-        </ScrollViewer>
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding EnrollmentChangeExecutionVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="FileDocumentMultipleOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Xử lý đơn từ"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
 
-        <Button Grid.Row="1" 
-                Content="ĐĂNG XUẤT" 
-                Command="{Binding DataContext.LogoutCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
-                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" 
-                Margin="20,10,20,20" 
-                Height="40" 
-                Cursor="Hand"
-                Foreground="IndianRed" 
-                BorderBrush="IndianRed"
-                Background="Transparent" />
-    </Grid>
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding GlobalSummaryReportVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="FileChartOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Báo cáo tổng kết"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding GradeLookupVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="TextSearch"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Tra cứu điểm"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding TeachingAssignmentVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="CalendarAccountOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Phân công giảng dạy"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+
+            <Separator Background="#d9e7ff"
+                       Margin="20,10,20,10"
+                       Height="1"
+                       BorderThickness="0" />
+
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding RegulationSettingsVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="Gavel"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Thay đổi quy định"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding SettingsVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="CogOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Cài đặt"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+
+        </StackPanel>
+    </ScrollViewer>
+
+
+    <!--<Button Grid.Row="1" -->
+            <!--Content="ĐĂNG XUẤT" -->
+            <!--Command="{Binding DataContext.LogoutCommand, RelativeSource={RelativeSource AncestorType=Window}}" -->
+            <!--CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" -->
+            <!--Margin="20,10,20,20" -->
+            <!--Height="40" -->
+            <!--Cursor="Hand" -->
+            <!--Foreground="IndianRed" -->
+            <!--BorderBrush="IndianRed" -->
+            <!--Background="Transparent" /> -->
+    
 </UserControl>

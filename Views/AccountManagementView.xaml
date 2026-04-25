@@ -9,10 +9,6 @@
              d:DesignHeight="450"
              d:DesignWidth="800">
 
-    <UserControl.DataContext>
-        <viewmodels:AccountManagementViewModel />
-    </UserControl.DataContext>
-
     <Grid>
         <!--low-priority vì đã chốt Optional-->
     </Grid>

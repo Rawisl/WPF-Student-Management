@@ -86,5 +86,16 @@ namespace WPF_Student_Management.Models
 
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
+
+        //Lấy thông tin lớp cùng tên gvcn
+        public static DataTable GetAllClassesWithTeacher()
+        {
+            string query = @"
+                SELECT c.ClassID, c.ClassName, c.Grade, c.ClassSize, c.HomeroomTeacherID, e.FullName AS TeacherName 
+                FROM Class c
+                LEFT JOIN Employee e ON c.HomeroomTeacherID = e.EmployeeID";
+
+            return DatabaseHelper.ExecuteQuery(query);
+        }
     }
 }

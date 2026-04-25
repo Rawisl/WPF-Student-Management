@@ -43,7 +43,7 @@
                         <ColumnDefinition Width="40" />
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="txtPassScore"
-                             Text="{Binding PassingGrade, UpdateSourceTrigger=LostFocus, Delay=500, TargetNullValue=''}"
+                             Text="{Binding NumPassingGrade, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
                              BorderThickness="0"
                              Background="Transparent"
                              VerticalContentAlignment="Center"
@@ -54,14 +54,14 @@
                     <StackPanel Grid.Column="1"
                                 VerticalAlignment="Center"
                                 Margin="0,0,5,0">
-                        <Button Command="{Binding IncreasePassingGradeCommand}"
+                        <Button Command="{Binding IncreaseNumPassingGradeCommand}"
                                 Content="▲"
                                 Height="18"
                                 Padding="0"
                                 Background="Transparent"
                                 BorderThickness="0"
                                 Foreground="Gray" />
-                        <Button Command="{Binding DecreasePassingGradeCommand}"
+                        <Button Command="{Binding DecreaseNumPassingGradeCommand}"
                                 Content="▼"
                                 Height="18"
                                 Padding="0"

@@ -11,51 +11,69 @@
              d:DesignHeight="450"
              d:DesignWidth="800">
 
-    <UserControl.DataContext>
-        <viewmodels:GlobalStudentManagementViewModel />
-    </UserControl.DataContext>
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+        <Grid Grid.Row="0"
+              Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-        <materialDesign:Card Grid.Row="0"
-                             Margin="0,0,0,20"
-                             Padding="15,10"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Stretch"
-                             BorderBrush="#E0E0E0"
-                             BorderThickness="1"
-                             UniformCornerRadius="15">
-            <StackPanel Orientation="Horizontal"
+            <StackPanel Grid.Column="0"
                         VerticalAlignment="Center">
-                <Button Content="+ Tiếp nhận học sinh"
-                        Command="{Binding AddStudentCommand}"
-                        FontSize="15"
-                        Margin="40,0,0,0"
-                        Height="40"
-                        Cursor="Hand"
+                <TextBlock Text="Danh sách học sinh"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#1A237E" />
+
+                <TextBlock Text="Quản lý thông tin của học sinh toàn trường"
+                           FontSize="14"
+                           Foreground="#878A99"
+                           Margin="0,5,0,0" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Button Command="{Binding AddStudentCommand}"
+                        Height="42"
+                        Padding="15,0,15,0"
                         Style="{StaticResource PrimaryRoundedButton}">
+
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="PlusBoxOutline"
+                                                 Width="20"
+                                                 Height="20"
+                                                 Margin="0,0,8,0" />
+                        <TextBlock Text="Tiếp nhận học sinh"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
                 </Button>
             </StackPanel>
-        </materialDesign:Card>
+        </Grid>
 
         <Border Grid.Row="1"
-                Background="White"
-                CornerRadius="12"
-                Padding="10">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="10"
-                                  ShadowDepth="1"
-                                  Color="#DDDDDD"
-                                  Opacity="0.5" />
-            </Border.Effect>
+                    Background="White"
+                    CornerRadius="12"
+                    Padding="10">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10"
+                                      ShadowDepth="1"
+                                      Color="#DDDDDD"
+                                      Opacity="0.5" />
+                </Border.Effect>
 
-            <components:StudentDataGridUC ItemsSource="{Binding AllStudent}"
-                                          EditCommand="{Binding EditStudentCommand}"
-                                          DeleteCommand="{Binding DeleteStudentCommand}" />
-        </Border>
-    </Grid>
+                <components:StudentDataGridUC ItemsSource="{Binding AllStudent}"
+                                              EditCommand="{Binding EditStudentCommand}"
+                                              DeleteCommand="{Binding DeleteStudentCommand}" />
+            </Border>
+        </Grid>
 </UserControl>
