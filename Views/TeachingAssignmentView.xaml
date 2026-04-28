@@ -5,10 +5,118 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WPF_Student_Management.Views"
              xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
-             d:DesignHeight="450"
-             d:DesignWidth="800">
-    <Grid>
+             d:DesignHeight="600"
+             d:DesignWidth="1000">
 
+    <UserControl.DataContext>
+        <viewmodels:TeachingAssignmentViewModel />
+    </UserControl.DataContext>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Phân công giảng dạy"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#1A237E" />
+
+                <TextBlock Text="Quản lý và gán giáo viên phụ trách cho từng môn học của các lớp"
+                           FontSize="14"
+                           Foreground="#878A99"
+                           Margin="0,5,0,0" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+
+                <StackPanel Margin="0,0,20,0" VerticalAlignment="Bottom">
+                    <TextBlock Text="Học kỳ hiện hành" FontSize="12" Foreground="#878A99"/>
+                    <TextBlock Text="HK1 - Năm học 2025-2026" FontSize="15" FontWeight="SemiBold" Foreground="#1A237E" Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <ComboBox ItemsSource="{Binding ClassList}"
+                          SelectedItem="{Binding SelectedClass}"
+                          DisplayMemberPath="ClassName"
+                          materialDesign:HintAssist.Hint="-- Chọn Lớp --"
+                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                          Width="160" 
+                          FontSize="15" 
+                          Margin="0,0,20,0" 
+                          VerticalAlignment="Bottom"/>
+
+                <Button Command="{Binding SaveCommand}"
+                        Height="42"
+                        Padding="15,0,15,0"
+                        Style="{StaticResource PrimaryRoundedButton}"
+                        VerticalAlignment="Bottom">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="ContentSaveOutline"
+                                                 Width="20"
+                                                 Height="20"
+                                                 Margin="0,0,8,0" />
+                        <TextBlock Text="Lưu phân công"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Background="White"
+                CornerRadius="12"
+                Padding="15">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10"
+                                  ShadowDepth="1"
+                                  Color="#DDDDDD"
+                                  Opacity="0.5" />
+            </Border.Effect>
+
+            <DataGrid ItemsSource="{Binding AssignmentList}" 
+                      AutoGenerateColumns="False" 
+                      CanUserAddRows="False" 
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      RowHeight="55" FontSize="15">
+                <DataGrid.Columns>
+
+                    <DataGridTextColumn Header="Môn Học" 
+                                        Binding="{Binding SubjectName}" 
+                                        IsReadOnly="True" 
+                                        Width="2*"/>
+
+                    <DataGridTemplateColumn Header="Giáo Viên Phụ Trách" Width="3*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox ItemsSource="{Binding AvailableTeachers}"
+                                          DisplayMemberPath="FullName"
+                                          SelectedValuePath="StaffId"
+                                          SelectedValue="{Binding SelectedTeacherId, UpdateSourceTrigger=PropertyChanged}"
+                                          materialDesign:HintAssist.Hint="Chưa phân công"
+                                          Style="{StaticResource MaterialDesignComboBox}"
+                                          Padding="5"
+                                          VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
     </Grid>
 </UserControl>
