@@ -23,13 +23,13 @@ namespace WPF_Student_Management.ViewModels
         public ObservableCollection<GradeDetailItem> ScoreList { get; set; }
 
         // Nhận ID và Tên học sinh từ màn hình danh sách truyền sang
-        public StudentGradeDetailViewModel(int studentId, string studentName)
+        public StudentGradeDetailViewModel(string studentId, string studentName)
         {
             StudentName = studentName;
             LoadScores(studentId);
         }
 
-        private void LoadScores(int studentId)
+        private void LoadScores(string studentId)
         {
             ScoreList = new ObservableCollection<GradeDetailItem>();
 

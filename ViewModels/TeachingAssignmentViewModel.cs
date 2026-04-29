@@ -89,6 +89,8 @@ namespace WPF_Student_Management.ViewModels
                 // LỌC GV THEO CHUYÊN MÔN: Sử dụng hàm thông dịch từ đồng nghĩa (Đã FIX lỗi Contains)
                 var matchedTeachers = allStaff.Where(t => IsTeacherMatchSubject(t.Specialization, subject.SubjectName)).ToList();
 
+                matchedTeachers.Insert(0, new Staff { StaffId = 0, FullName = "Trống" });
+
                 var item = new AssignmentDisplayItem
                 {
                     SubjectId = subject.SubjectId,
@@ -101,6 +103,10 @@ namespace WPF_Student_Management.ViewModels
                 if (existingAssign != null)
                 {
                     item.SelectedTeacherId = existingAssign.StaffId;
+                }
+                else
+                {
+                    item.SelectedTeacherId = 0;
                 }
 
                 list.Add(item);
@@ -122,7 +128,8 @@ namespace WPF_Student_Management.ViewModels
                 // Insert lại những môn đã được chọn giáo viên
                 foreach (var item in AssignmentList)
                 {
-                    if (item.SelectedTeacherId.HasValue) // Chỉ lưu những môn có chọn GV
+                    // Chỉ lưu xuống Database nếu TeacherId > 0
+                    if (item.SelectedTeacherId.HasValue && item.SelectedTeacherId.Value > 0)
                     {
                         TeachingAssignment newAssign = new TeachingAssignment
                         {

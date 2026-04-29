@@ -40,9 +40,9 @@
             </Border>
         </Grid>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20" VerticalAlignment="Bottom">
+        <Grid Grid.Row="1" Margin="0,0,0,20" VerticalAlignment="Bottom">
 
-            <StackPanel Orientation="Vertical" Margin="0,0,20,0">
+            <StackPanel Orientation="Vertical" Margin="0,0,20,0" HorizontalAlignment="Left">
                 <TextBlock Text="Chọn lớp học:" Foreground="#878A99" FontWeight="SemiBold" FontSize="13" Margin="5,0,0,5" />
 
                 <ComboBox ItemsSource="{Binding ClassList}"
@@ -55,13 +55,14 @@
             <Button Command="{Binding SaveCommand}"
                     Height="42" Padding="15,0,15,0"
                     Style="{StaticResource PrimaryRoundedButton}"
+                    HorizontalAlignment="Right" 
                     VerticalAlignment="Bottom">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <materialDesign:PackIcon Kind="ContentSaveOutline" Width="20" Height="20" Margin="0,0,8,0" />
                     <TextBlock Text="Lưu phân công" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
-        </StackPanel>
+        </Grid>
 
         <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="15">
             <Border.Effect>
@@ -83,7 +84,6 @@
                                           DisplayMemberPath="FullName"
                                           SelectedValuePath="StaffId"
                                           SelectedValue="{Binding SelectedTeacherId, UpdateSourceTrigger=PropertyChanged}"
-                                          materialDesign:HintAssist.Hint="Chưa phân công"
                                           BorderThickness="0" Padding="5" VerticalAlignment="Center"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

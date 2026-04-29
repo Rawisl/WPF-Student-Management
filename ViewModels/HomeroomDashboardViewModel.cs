@@ -14,7 +14,7 @@ namespace WPF_Student_Management.ViewModels
     public class HomeroomStudentGradeItem
     {
         public int STT { get; set; }
-        public int StudentId { get; set; }
+        public string StudentId { get; set; }
         public string FullName { get; set; }
         public string Gender { get; set; }
         public string ClassName { get; set; }
@@ -80,14 +80,34 @@ namespace WPF_Student_Management.ViewModels
 
             try
             {
-                // Sử dụng UserId từ CurrentUser. Nếu chưa đăng nhập (CurrentUser rỗng), 
-                // mặc định lấy ID là 4 (Thầy Phạm Văn Cán - GVCN 10A1) để test.
-                int currentUserId = (CurrentUser.Instance != null && CurrentUser.Instance.UserId != 0)
-                                    ? CurrentUser.Instance.UserId
-                                    : 4;
+                // Kiểm tra trạng thái đăng nhập
+                if (CurrentUser.Instance == null || CurrentUser.Instance.UserId == 0)
+                {
+                    ClassTitle = "Vui lòng đăng nhập vào hệ thống.";
+                    FilterData();
+                    return;
+                }
 
-                // Query lấy danh sách học sinh và điểm trung bình dựa trên AccountID của GVCN
-                // Đếm thêm số môn đã nhập (GradedCount) và số môn yêu cầu (TotalSubjects)
+                int currentUserId = CurrentUser.Instance.UserId;
+
+                // Kiểm tra Role của User hiện tại có phải GVCN hay không
+                string roleQuery = @"
+                    SELECT r.RoleName 
+                    FROM Account a 
+                    JOIN Role r ON a.RoleID = r.RoleID 
+                    WHERE a.AccountID = @AccountID";
+
+                DataTable dtRole = DatabaseHelper.ExecuteQuery(roleQuery, new[] { new SqlParameter("@AccountID", currentUserId) });
+
+                if (dtRole.Rows.Count == 0 || dtRole.Rows[0]["RoleName"].ToString() != "GVCN")
+                {
+                    // Nếu là Học sinh, GVBM, Giáo vụ... thì báo lỗi và dừng hàm luôn
+                    ClassTitle = "Bạn không phải là Giáo viên chủ nhiệm.";
+                    FilterData();
+                    return;
+                }
+
+                // Đã xác nhận đúng là GVCN -> Query lấy danh sách học sinh và điểm
                 string query = @"
             SELECT 
                 s.StudentID, s.FullName, s.Gender, c.ClassName,
@@ -124,7 +144,7 @@ namespace WPF_Student_Management.ViewModels
                         }
                         else if (gradedCount < totalSubjects)
                         {
-                            scoreStr = "Thiếu điểm môn"; // Học sinh còn thiếu môn chưa nhập
+                            scoreStr = "Thiếu điểm môn";
                         }
                         else
                         {
@@ -136,7 +156,7 @@ namespace WPF_Student_Management.ViewModels
                         _allStudents.Add(new HomeroomStudentGradeItem
                         {
                             STT = stt++,
-                            StudentId = Convert.ToInt32(row["StudentID"]),
+                            StudentId = row["StudentID"].ToString(),
                             FullName = row["FullName"].ToString(),
                             Gender = row["Gender"].ToString(),
                             ClassName = row["ClassName"].ToString(),
@@ -153,7 +173,6 @@ namespace WPF_Student_Management.ViewModels
             }
             catch (Exception ex)
             {
-                // DÙNG NOTIFICATION HELPER THAY VÌ MESSAGEBOX HỆ THỐNG
                 NotificationHelper.ShowError("Lỗi hệ thống khi tải dữ liệu lớp chủ nhiệm: " + ex.Message);
             }
         }
@@ -170,10 +189,8 @@ namespace WPF_Student_Management.ViewModels
 
                 if (value != null)
                 {
-                    // Mở Pop-up xem điểm chi tiết
                     ExecuteOpenDetail(value);
 
-                    // Hoãn việc set null lại một nhịp để WPF kịp xử lý xong sự kiện MouseClick
                     System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                     {
                         _selectedStudent = null;
@@ -185,16 +202,13 @@ namespace WPF_Student_Management.ViewModels
 
         private async void ExecuteOpenDetail(HomeroomStudentGradeItem student)
         {
-            // Tạo ViewModel và truyền ID học sinh vào để nó kéo điểm
             var detailVM = new StudentGradeDetailViewModel(student.StudentId, student.FullName);
 
-            // Gọi Component View và gán DataContext
             var detailView = new WPF_Student_Management.Components.StudentGradeDetailUC
             {
                 DataContext = detailVM
             };
 
-            // Hiển thị Pop-up thông qua RootDialog (được khai báo sẵn ở MainWindow)
             await MaterialDesignThemes.Wpf.DialogHost.Show(detailView, "RootDialog");
         }
 
