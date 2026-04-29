@@ -37,10 +37,9 @@ namespace WPF_Student_Management.Models
         // CREATE
         public bool AddRole()
         {
-            string query = "INSERT INTO Role (RoleID, RoleName) VALUES (@RoleID, @RoleName)";
+            string query = "INSERT INTO Role (RoleName) VALUES (@RoleName)";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@RoleID", this.RoleId),
                 new SqlParameter("@RoleName", this.RoleName)
             };
 

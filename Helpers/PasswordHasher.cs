@@ -19,4 +19,5 @@ namespace WPF_Student_Management.Helpers
             }
         }
     }
+    // For login verification, refer to Models/Account.cs, Login method!!!
 }

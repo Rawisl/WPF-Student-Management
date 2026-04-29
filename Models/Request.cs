@@ -13,7 +13,7 @@ namespace WPF_Student_Management.Models
     public class Request
     {
         public int RequestId { get; set; }
-        public int StudentId { get; set; }
+        public required string StudentId { get; set; }
         public int? CreatedByTeacherId { get; set; }
         public int? NewClassId { get; set; }
         public required string RequestType { get; set; }
@@ -35,7 +35,7 @@ namespace WPF_Student_Management.Models
                 Request req = new Request()
                 {
                     RequestId = Convert.ToInt32(row["RequestID"]),
-                    StudentId = Convert.ToInt32(row["StudentID"]),
+                    StudentId = row["StudentID"].ToString() ?? "",
                     CreatedByTeacherId = row["CreatedByTeacherID"] == DBNull.Value ? null : Convert.ToInt32(row["CreatedByTeacherID"]),
                     NewClassId = row["NewClassID"] == DBNull.Value ? null : Convert.ToInt32(row["NewClassID"]),
                     RequestType = row["RequestType"].ToString() ?? "",
@@ -52,11 +52,10 @@ namespace WPF_Student_Management.Models
         // CREATE
         public bool AddRequest()
         {
-            string query = "INSERT INTO Application (RequestID, StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, FeedbackNote, Status, RespondedAt) " +
-                           "VALUES (@RequestID, @StudentID, @CreatedByTeacherID, @NewClassID, @RequestType, @Reason, @FeedbackNote, @Status, @RespondedAt)";
+            string query = "INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, FeedbackNote, Status, RespondedAt) " +
+                           "VALUES (@StudentID, @CreatedByTeacherID, @NewClassID, @RequestType, @Reason, @FeedbackNote, @Status, @RespondedAt)";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@RequestID", this.RequestId),
                 new SqlParameter("@StudentID", this.StudentId),
                 new SqlParameter("@CreatedByTeacherID", this.CreatedByTeacherId ?? (object)DBNull.Value),
                 new SqlParameter("@NewClassID", this.NewClassId ?? (object)DBNull.Value),
