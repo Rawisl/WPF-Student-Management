@@ -70,8 +70,14 @@
                 <StackPanel>
                     <TextBlock Text="THÔNG TIN CHI TIẾT" FontSize="18" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
 
-                    <TextBlock Text="Mã Nhân viên (StaffID) (*)" FontWeight="SemiBold" Foreground="DimGray" Margin="0,5,0,2"/>
-                    <TextBox Text="{Binding CurrentStaff.StaffId, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>
+                    <TextBlock Text="Mã Nhân viên (StaffID)" FontWeight="SemiBold" Foreground="DimGray" Margin="0,5,0,2"/>
+                    <TextBox Text="{Binding CurrentStaff.StaffId, Mode=OneWay}" 
+                             IsReadOnly="True" 
+                             Background="#E9ECEF" 
+                             Foreground="#878A99"
+                             Cursor="Arrow"
+                             ToolTip="Mã nhân viên do hệ thống tự động cấp, không thể chỉnh sửa."
+                             Padding="5"/>
 
                     <TextBlock Text="Họ và Tên (*)" FontWeight="SemiBold" Foreground="DimGray" Margin="0,15,0,2"/>
                     <TextBox Text="{Binding CurrentStaff.FullName, UpdateSourceTrigger=PropertyChanged}" Padding="5"/>

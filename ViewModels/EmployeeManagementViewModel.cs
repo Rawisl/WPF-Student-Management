@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
-using System.Windows.Input;
-using WPF_Student_Management.Models;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Input;
 using WPF_Student_Management.Helpers;
+using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
@@ -68,7 +68,7 @@ namespace WPF_Student_Management.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải dữ liệu:\n" + ex.Message, "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
+                NotificationHelper.ShowError("Lỗi tải dữ liệu:\n" + ex.Message);
             }
         }
 
@@ -85,16 +85,7 @@ namespace WPF_Student_Management.ViewModels
             };
         }
 
-        private int GetNextAccountId()
-        {
-            string query = "SELECT ISNULL(MAX(AccountID), 0) + 1 FROM Account";
-            var data = DatabaseHelper.ExecuteQuery(query);
-            if (data != null && data.Rows.Count > 0)
-            {
-                return Convert.ToInt32(data.Rows[0][0]);
-            }
-            return 1;
-        }
+        // ĐÃ XÓA HÀM GetNextAccountId() VÌ ĐÃ CÓ AUTO-ID
 
         private int GetRoleId(string roleName)
         {
@@ -111,7 +102,7 @@ namespace WPF_Student_Management.ViewModels
         {
             List<string> missingFields = new List<string>();
 
-            if (CurrentStaff.StaffId <= 0) missingFields.Add("- Mã Nhân Viên (EmployeeID)");
+            // Bỏ qua check StaffId vì thêm mới ID tự động sinh
             if (string.IsNullOrWhiteSpace(CurrentStaff.FullName)) missingFields.Add("- Họ và Tên");
             if (string.IsNullOrWhiteSpace(CurrentStaff.PhoneNumber)) missingFields.Add("- Số điện thoại");
             if (string.IsNullOrWhiteSpace(CurrentStaff.NationalId)) missingFields.Add("- CCCD/CMND");
@@ -124,36 +115,22 @@ namespace WPF_Student_Management.ViewModels
 
             if (missingFields.Count > 0)
             {
-                string errorMessage = $"Vui lòng kiểm tra và nhập đầy đủ {missingFields.Count} thông tin sau:\n\n" + string.Join("\n", missingFields);
-                MessageBox.Show(errorMessage, "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
+                string errorMessage = $"Vui lòng kiểm tra và nhập đầy đủ thông tin sau:\n\n" + string.Join("\n", missingFields);
+                NotificationHelper.ShowWarning(errorMessage);
                 return;
             }
 
             try
             {
                 bool isSuccess = false;
-                bool isNewStaff = true;
-
-                if (StaffList != null)
-                {
-                    foreach (var staff in StaffList)
-                    {
-                        if (staff.StaffId == CurrentStaff.StaffId)
-                        {
-                            isNewStaff = false;
-                            break;
-                        }
-                    }
-                }
+                bool isNewStaff = (CurrentStaff.StaffId == 0);
 
                 if (isNewStaff)
                 {
-                    int newAccountId = GetNextAccountId();
                     int defaultRoleId = GetRoleId("GVBM");
 
                     Account newAcc = new Account
                     {
-                        AccountId = newAccountId,
                         RoleId = defaultRoleId,
                         Username = CurrentStaff.NationalId,
                         PasswordHash = "123456",
@@ -161,20 +138,23 @@ namespace WPF_Student_Management.ViewModels
                         IsActive = true
                     };
 
-                    if (newAcc.AddAccount())
-                    {
-                        CurrentStaff.AccountId = newAccountId;
+                    // ÁP DỤNG AUTO-ID: Lấy ID tài khoản vừa được SQL sinh ra
+                    int generatedAccountId = newAcc.AddAccountAndGetId();
 
+                    if (generatedAccountId > 0)
+                    {
+                        CurrentStaff.AccountId = generatedAccountId;
                         isSuccess = CurrentStaff.AddStaff();
 
+                        // Rollback nếu thêm nhân viên thất bại
                         if (!isSuccess)
                         {
-                            Account.DeleteAccount(newAccountId);
+                            Account.DeleteAccount(generatedAccountId);
                         }
                     }
                     else
                     {
-                        MessageBox.Show("Không thể tạo tài khoản tự động cho nhân viên!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                        NotificationHelper.ShowError("Không thể tạo tài khoản tự động cho nhân viên!");
                         return;
                     }
                 }
@@ -185,18 +165,18 @@ namespace WPF_Student_Management.ViewModels
 
                 if (isSuccess)
                 {
-                    MessageBox.Show("Lưu dữ liệu nhân viên thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    NotificationHelper.ShowSuccess("Lưu dữ liệu nhân viên thành công!");
                     ExecuteLoad(null);
                     ExecuteClearForm(null);
                 }
                 else
                 {
-                    MessageBox.Show("Lưu dữ liệu thất bại, có thể Mã NV, Email hoặc CCCD đã bị trùng!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    NotificationHelper.ShowError("Lưu dữ liệu thất bại, có thể Mã NV, Email hoặc CCCD đã bị trùng!");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi Database:\n" + ex.Message, "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
+                NotificationHelper.ShowError("Lỗi Database:\n" + ex.Message);
             }
         }
 
@@ -208,15 +188,13 @@ namespace WPF_Student_Management.ViewModels
 
             if (CurrentStaff.AccountId == CurrentUser.Instance.UserId)
             {
-                MessageBox.Show("Không thể xóa nhân viên đang đăng nhập vào hệ thống!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                NotificationHelper.ShowError("Không thể xóa nhân viên đang đăng nhập vào hệ thống!");
                 return;
             }
 
-            MessageBoxResult result = MessageBox.Show(
-                $"Bạn có chắc chắn muốn xóa HOÀN TOÀN nhân viên '{CurrentStaff.FullName}' khỏi hệ thống không?\n\nHành động này không thể hoàn tác!",
-                "Xác nhận Xóa", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            bool result = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa HOÀN TOÀN nhân viên '{CurrentStaff.FullName}' khỏi hệ thống không?\n\nHành động này không thể hoàn tác!");
 
-            if (result == MessageBoxResult.Yes)
+            if (result)
             {
                 try
                 {
@@ -228,7 +206,7 @@ namespace WPF_Student_Management.ViewModels
                     {
                         Account.DeleteAccount(accountIdToDelete);
 
-                        MessageBox.Show("Đã xóa nhân viên thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                        NotificationHelper.ShowSuccess("Đã xóa nhân viên thành công!");
                         ExecuteLoad(null);
                         ExecuteClearForm(null);
                     }
@@ -237,17 +215,16 @@ namespace WPF_Student_Management.ViewModels
                 {
                     if (sqlEx.Number == 547)
                     {
-                        MessageBox.Show("Xóa dữ liệu thất bại!\n\nNhân viên này đang có dữ liệu liên kết ở bảng khác.\nVui lòng gỡ bỏ các liên kết này trước khi xóa.",
-                                        "Lỗi ràng buộc dữ liệu", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        NotificationHelper.ShowWarning("Xóa dữ liệu thất bại!\n\nNhân viên này đang có dữ liệu liên kết ở bảng khác.\nVui lòng gỡ bỏ các liên kết này trước khi xóa.");
                     }
                     else
                     {
-                        MessageBox.Show("Lỗi cơ sở dữ liệu:\n" + sqlEx.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
+                        NotificationHelper.ShowError("Lỗi cơ sở dữ liệu:\n" + sqlEx.Message);
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Không thể xóa nhân viên.\nLỗi chi tiết: " + ex.Message, "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
+                    NotificationHelper.ShowError("Không thể xóa nhân viên.\nLỗi chi tiết: " + ex.Message);
                 }
             }
         }
