@@ -39,11 +39,10 @@ namespace WPF_Student_Management.Models
         // CREATE
         public bool AddRegulation()
         {
-            string query = "INSERT INTO Parameter (ParameterID, ParameterName, Value) " +
-                           "VALUES (@ParameterID, @ParameterName, @Value)";
+            string query = "INSERT INTO Parameter (ParameterName, Value) " +
+                           "VALUES (@ParameterName, @Value)";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@ParameterID", this.RegulationId),
                 new SqlParameter("@ParameterName", this.RegulationName),
                 new SqlParameter("@Value", this.Value)
             };

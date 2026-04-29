@@ -12,7 +12,7 @@ namespace WPF_Student_Management.Models
     public class StudentScore
     {
         public int ScoreId { get; set; }
-        public int StudentId { get; set; }
+        public required string StudentId { get; set; }
         public int SubjectId { get; set; }
         public decimal? RegularTestScore { get; set; }
         public decimal? MidTermScore { get; set; }
@@ -32,7 +32,7 @@ namespace WPF_Student_Management.Models
                 StudentScore score = new StudentScore()
                 {
                     ScoreId = Convert.ToInt32(row["ScoreID"]),
-                    StudentId = Convert.ToInt32(row["StudentID"]),
+                    StudentId = row["StudentID"].ToString() ?? "",
                     SubjectId = Convert.ToInt32(row["SubjectID"]),
                     RegularTestScore = row["RegularTestScore"] == DBNull.Value ? null : Convert.ToDecimal(row["RegularTestScore"]),
                     MidTermScore = row["MidTermScore"] == DBNull.Value ? null : Convert.ToDecimal(row["MidTermScore"]),
@@ -48,11 +48,10 @@ namespace WPF_Student_Management.Models
         public bool AddScore()
         {
             // AverageScore is calculated via SQL Trigger, so it is omitted from INSERT
-            string query = "INSERT INTO Score (ScoreID, StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) " +
-                           "VALUES (@ScoreID, @StudentID, @SubjectID, @RegularTestScore, @MidTermScore, @FinalTermScore)";
+            string query = "INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) " +
+                           "VALUES (@StudentID, @SubjectID, @RegularTestScore, @MidTermScore, @FinalTermScore)";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@ScoreID", this.ScoreId),
                 new SqlParameter("@StudentID", this.StudentId),
                 new SqlParameter("@SubjectID", this.SubjectId),
                 new SqlParameter("@RegularTestScore", this.RegularTestScore ?? (object)DBNull.Value),

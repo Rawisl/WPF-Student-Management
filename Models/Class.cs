@@ -44,11 +44,10 @@ namespace WPF_Student_Management.Models
         // CREATE
         public bool AddClass()
         {
-            string query = "INSERT INTO Class (ClassID, ClassName, Grade, ClassSize, HomeroomTeacherID) " +
-                           "VALUES (@ClassID, @ClassName, @Grade, @ClassSize, @HomeroomTeacherID)";
+            string query = "INSERT INTO Class (ClassName, Grade, ClassSize, HomeroomTeacherID) " +
+                           "VALUES (@ClassName, @Grade, @ClassSize, @HomeroomTeacherID)";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@ClassID", this.ClassId),
                 new SqlParameter("@ClassName", this.ClassName),
                 new SqlParameter("@Grade", this.Grade),
                 new SqlParameter("@ClassSize", this.ClassSize),
