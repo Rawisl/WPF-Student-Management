@@ -86,7 +86,7 @@ namespace WPF_Student_Management.ViewModels
 
             foreach (var subject in allSubjects)
             {
-                // LỌC GV THEO CHUYÊN MÔN: Sử dụng hàm thông dịch từ đồng nghĩa
+                // LỌC GV THEO CHUYÊN MÔN: Sử dụng hàm thông dịch từ đồng nghĩa (Đã FIX lỗi Contains)
                 var matchedTeachers = allStaff.Where(t => IsTeacherMatchSubject(t.Specialization, subject.SubjectName)).ToList();
 
                 var item = new AssignmentDisplayItem
@@ -134,11 +134,11 @@ namespace WPF_Student_Management.ViewModels
                     }
                 }
 
-                MessageBox.Show("Lưu phân công giảng dạy thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                NotificationHelper.ShowSuccess("Lưu phân công giảng dạy thành công!");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi lưu: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                NotificationHelper.ShowError("Lỗi khi lưu: " + ex.Message);
             }
         }
 
@@ -151,16 +151,19 @@ namespace WPF_Student_Management.ViewModels
             specialization = specialization.ToLower().Trim();
             subjectName = subjectName.ToLower().Trim();
 
-            // Kiểm tra chứa từ khóa (VD: "Toán" nằm trong "Toán học", "Lý" nằm trong "Vật Lý")
-            if (specialization.Contains(subjectName) || subjectName.Contains(specialization))
-                return true;
+            // NẾU TÊN MÔN VÀ CHUYÊN MÔN GIỐNG NHAU Y ĐÚNG
+            if (specialization == subjectName) return true;
 
-            // Xử lý các trường hợp ngoại lệ (tên môn 1 nẻo, chuyên môn 1 kiểu) theo DB 
-            if (subjectName == "đạo đức" && specialization == "giáo dục công dân") return true;
-            if (subjectName == "thể dục" && specialization == "giáo dục thể chất") return true;
+            // MAP RẠCH RÒI TỪNG MÔN 1-1 ĐỂ KHÔNG BỊ DÍNH CHỮ "LÝ" (Vật Lý / Địa Lý / Quản lý)
+            if (subjectName == "toán" && specialization == "toán học") return true;
+            if (subjectName == "lý" && specialization == "vật lý") return true;
+            if (subjectName == "hóa" && specialization == "hóa học") return true;
+            if (subjectName == "sinh" && specialization == "sinh học") return true;
             if (subjectName == "sử" && specialization == "lịch sử") return true;
             if (subjectName == "địa" && specialization == "địa lý") return true;
             if (subjectName == "văn" && specialization == "ngữ văn") return true;
+            if (subjectName == "đạo đức" && specialization == "giáo dục công dân") return true;
+            if (subjectName == "thể dục" && specialization == "giáo dục thể chất") return true;
 
             return false;
         }

@@ -87,10 +87,13 @@ namespace WPF_Student_Management.ViewModels
                                     : 4;
 
                 // Query lấy danh sách học sinh và điểm trung bình dựa trên AccountID của GVCN
+                // Đếm thêm số môn đã nhập (GradedCount) và số môn yêu cầu (TotalSubjects)
                 string query = @"
             SELECT 
                 s.StudentID, s.FullName, s.Gender, c.ClassName,
-                AVG(sc.AverageScore) as OverallAverage
+                AVG(sc.AverageScore) as OverallAverage,
+                COUNT(sc.SubjectID) as GradedCount,
+                (SELECT COUNT(*) FROM Subject WHERE IsDeleted = 0) as TotalSubjects
             FROM Student s
             JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
             JOIN Class c ON cp.ClassID = c.ClassID
@@ -110,10 +113,25 @@ namespace WPF_Student_Management.ViewModels
                     int stt = 1;
                     foreach (DataRow row in dt.Rows)
                     {
-                        // Format điểm trung bình, nếu chưa có điểm thì hiện thông báo
-                        string scoreStr = row["OverallAverage"] != DBNull.Value
-                            ? Convert.ToDecimal(row["OverallAverage"]).ToString("0.0")
-                            : "Chưa có điểm";
+                        int gradedCount = Convert.ToInt32(row["GradedCount"]);
+                        int totalSubjects = Convert.ToInt32(row["TotalSubjects"]);
+
+                        // Kiểm tra học sinh đã nhập đủ điểm các môn hay chưa
+                        string scoreStr;
+                        if (gradedCount == 0)
+                        {
+                            scoreStr = "Chưa có điểm";
+                        }
+                        else if (gradedCount < totalSubjects)
+                        {
+                            scoreStr = "Thiếu điểm môn"; // Học sinh còn thiếu môn chưa nhập
+                        }
+                        else
+                        {
+                            scoreStr = row["OverallAverage"] != DBNull.Value
+                                ? Convert.ToDecimal(row["OverallAverage"]).ToString("0.0")
+                                : "Chưa có điểm";
+                        }
 
                         _allStudents.Add(new HomeroomStudentGradeItem
                         {
@@ -135,7 +153,8 @@ namespace WPF_Student_Management.ViewModels
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Lỗi hệ thống khi tải dữ liệu lớp chủ nhiệm: " + ex.Message);
+                // DÙNG NOTIFICATION HELPER THAY VÌ MESSAGEBOX HỆ THỐNG
+                NotificationHelper.ShowError("Lỗi hệ thống khi tải dữ liệu lớp chủ nhiệm: " + ex.Message);
             }
         }
 

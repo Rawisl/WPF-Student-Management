@@ -33,11 +33,12 @@ namespace WPF_Student_Management.ViewModels
         {
             ScoreList = new ObservableCollection<GradeDetailItem>();
 
+            // Lấy tất cả môn học đang hoạt động, LEFT JOIN sang bảng điểm của học sinh này
             string query = @"
                 SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore
-                FROM Score sc
-                JOIN Subject sub ON sc.SubjectID = sub.SubjectID
-                WHERE sc.StudentID = @StudentID";
+                FROM Subject sub
+                LEFT JOIN Score sc ON sub.SubjectID = sc.SubjectID AND sc.StudentID = @StudentID
+                WHERE sub.IsDeleted = 0";
 
             var dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@StudentID", studentId) });
 

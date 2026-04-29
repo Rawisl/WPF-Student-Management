@@ -2,34 +2,46 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             Width="650" Height="450" Background="White">
+             Width="850" Height="550" Background="Transparent">
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Border CornerRadius="16"
+            Background="White"
+            Margin="10"
+            ClipToBounds="True">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15"
+                              ShadowDepth="3"
+                              Opacity="0.2" />
+        </Border.Effect>
 
-        <TextBlock Grid.Row="0" Text="{Binding StudentName, StringFormat='Chi tiết điểm: {0}'}" 
-                   FontSize="22" FontWeight="Bold" Foreground="#1A237E" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <DataGrid Grid.Row="1" ItemsSource="{Binding ScoreList}" 
-                  AutoGenerateColumns="False" IsReadOnly="True" 
-                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                  RowHeight="40" FontSize="15" Background="Transparent">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Môn học" Binding="{Binding SubjectName}" Width="1.5*"/>
-                <DataGridTextColumn Header="Điểm Thường xuyên" Binding="{Binding RegularScore}" Width="*"/>
-                <DataGridTextColumn Header="Điểm Giữa kỳ" Binding="{Binding MidTermScore}" Width="*"/>
-                <DataGridTextColumn Header="Điểm Cuối kỳ" Binding="{Binding FinalTermScore}" Width="*"/>
-                <DataGridTextColumn Header="Trung Bình" Binding="{Binding AverageScore}" Width="*" FontWeight="Bold" Foreground="#E65100"/>
-            </DataGrid.Columns>
-        </DataGrid>
+            <TextBlock Grid.Row="0" Text="{Binding StudentName, StringFormat='Chi tiết điểm: {0}'}" 
+                       FontSize="24" FontWeight="Bold" Foreground="#1A237E" Margin="0,0,0,20" HorizontalAlignment="Center"/>
 
-        <Button Grid.Row="2" Content="ĐÓNG" 
-                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
-                Style="{StaticResource MaterialDesignOutlinedButton}" 
-                Margin="0,20,0,0" HorizontalAlignment="Center" Width="120" FontSize="15"/>
-    </Grid>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding ScoreList}" 
+                      AutoGenerateColumns="False" IsReadOnly="True" 
+                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                      RowHeight="45" FontSize="15" Background="Transparent"
+                      BorderThickness="0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Môn học" Binding="{Binding SubjectName}" Width="1.2*"/>
+                    <DataGridTextColumn Header="Điểm Thường xuyên" Binding="{Binding RegularScore}" Width="1.5*"/>
+                    <DataGridTextColumn Header="Điểm Giữa kỳ" Binding="{Binding MidTermScore}" Width="1.2*"/>
+                    <DataGridTextColumn Header="Điểm Cuối kỳ" Binding="{Binding FinalTermScore}" Width="1.2*"/>
+                    <DataGridTextColumn Header="Trung Bình" Binding="{Binding AverageScore}" Width="*" FontWeight="Bold" Foreground="#E65100"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Button Grid.Row="2" Content="ĐÓNG" 
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
+                    Style="{StaticResource MaterialDesignOutlinedButton}" 
+                    Margin="0,20,0,0" HorizontalAlignment="Center" Width="140" Height="40" FontSize="16"/>
+        </Grid>
+    </Border>
 </UserControl>
