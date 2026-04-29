@@ -42,14 +42,14 @@ namespace WPF_Student_Management.Models
         // CREATE
         public bool AddAccount()
         {
-            string query = "INSERT INTO Account (AccountID, RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive) " +
-                           "VALUES (@AccountID, @RoleID, @Username, @PasswordHash, @IsRequiredChangePassword, @IsActive)";
+            string query = "INSERT INTO Account (RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive) " +
+                           "VALUES (@RoleID, @Username, @PasswordHash, @IsRequiredChangePassword, @IsActive)";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@AccountID", this.AccountId),
                 new SqlParameter("@RoleID", this.RoleId),
                 new SqlParameter("@Username", this.Username),
-                new SqlParameter("@PasswordHash", this.PasswordHash),
+                // Hash the password inline before saving
+                new SqlParameter("@PasswordHash", PasswordHasher.HashPassword(this.PasswordHash)),
                 new SqlParameter("@IsRequiredChangePassword", this.IsRequiredChangePassword),
                 new SqlParameter("@IsActive", this.IsActive)
             };
@@ -68,7 +68,8 @@ namespace WPF_Student_Management.Models
                 new SqlParameter("@AccountID", this.AccountId),
                 new SqlParameter("@RoleID", this.RoleId),
                 new SqlParameter("@Username", this.Username),
-                new SqlParameter("@PasswordHash", this.PasswordHash),
+                // Hash the password inline before saving
+                new SqlParameter("@PasswordHash", PasswordHasher.HashPassword(this.PasswordHash)),
                 new SqlParameter("@IsRequiredChangePassword", this.IsRequiredChangePassword),
                 new SqlParameter("@IsActive", this.IsActive)
             };
@@ -85,6 +86,35 @@ namespace WPF_Student_Management.Models
             };
 
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
+        }
+        public static Account? Login(string username, string rawPassword)
+        {
+            /// Hash the incoming attempt
+            string hashedAttempt = PasswordHasher.HashPassword(rawPassword);
+
+            // Search for a matching username AND matching hash in the DB
+            string query = "SELECT * FROM Account WHERE Username = @Username AND PasswordHash = @PasswordHash AND IsActive = 1";
+
+            SqlParameter[] parameters = new SqlParameter[] {
+                new SqlParameter("@Username", username),
+                new SqlParameter("@PasswordHash", hashedAttempt)
+            };
+
+            DataTable data = DatabaseHelper.ExecuteQuery(query, parameters);
+
+            if (data.Rows.Count > 0)
+            {
+                DataRow row = data.Rows[0];
+                return new Account()
+                {
+                    AccountId = Convert.ToInt32(row["AccountID"]),
+                    Username = row["Username"].ToString() ?? "",
+                    PasswordHash = row["PasswordHash"].ToString() ?? "", // Compare hashes, not raw passwords
+                    RoleId = Convert.ToInt32(row["RoleID"])
+                };
+            }
+
+            return null; // Login failed
         }
     }
 }

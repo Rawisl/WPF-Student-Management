@@ -62,11 +62,10 @@ namespace WPF_Student_Management.Models
         // CREATE
         public bool AddStaff()
         {
-            string query = "INSERT INTO Employee (EmployeeID, AccountID, FullName, Gender, Specialization, Email, HireDate, HometownAddress, PhoneNumber, NationalID, Status) " +
-                           "VALUES (@EmployeeID, @AccountID, @FullName, @Gender, @Specialization, @Email, @HireDate, @HometownAddress, @PhoneNumber, @NationalID, @Status)";
+            string query = "INSERT INTO Employee (AccountID, FullName, Gender, Specialization, Email, HireDate, HometownAddress, PhoneNumber, NationalID, Status) " +
+                           "VALUES (@AccountID, @FullName, @Gender, @Specialization, @Email, @HireDate, @HometownAddress, @PhoneNumber, @NationalID, @Status)";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@EmployeeID", this.StaffId),
                 new SqlParameter("@AccountID", this.AccountId),
                 new SqlParameter("@FullName", this.FullName),
                 new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),

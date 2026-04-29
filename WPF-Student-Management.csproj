@@ -31,12 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Services\DatabaseInit.sql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Services\insertMockData.sql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="Services\StudentManagementDB.mdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

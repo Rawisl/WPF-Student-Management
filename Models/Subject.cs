@@ -41,11 +41,10 @@ namespace WPF_Student_Management.Models
         // CREATE
         public bool AddSubject()
         {
-            string query = "INSERT INTO Subject (SubjectID, SubjectName, GradeType, IsDeleted) " +
-                           "VALUES (@SubjectID, @SubjectName, @GradeType, @IsDeleted)";
+            string query = "INSERT INTO Subject (SubjectName, GradeType, IsDeleted) " +
+                           "VALUES (@SubjectName, @GradeType, @IsDeleted)";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@SubjectID", this.SubjectId),
                 new SqlParameter("@SubjectName", this.SubjectName),
                 new SqlParameter("@GradeType", this.GradeType),
                 new SqlParameter("@IsDeleted", this.IsDeleted)
