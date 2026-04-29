@@ -6,37 +6,82 @@
         xmlns:local="clr-namespace:WPF_Student_Management"
         xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:components="clr-namespace:WPF_Student_Management.Components"
         mc:Ignorable="d"
-        Title="Đăng Nhập Hệ Thống" Height="450" Width="400"
-        WindowStartupLocation="CenterScreen" Background="#F5F6FA">
+        Title="Đăng Nhập Hệ Thống"
+        Height="450"
+        Width="400"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"
+                      ResizeBorderThickness="5"
+                      GlassFrameThickness="0"
+                      CornerRadius="0" />
+    </WindowChrome.WindowChrome>
 
     <Window.DataContext>
         <viewmodels:LoginViewModel />
     </Window.DataContext>
 
-    <Border Background="White" CornerRadius="12" Margin="30" Padding="20">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
-        </Border.Effect>
+    <Border Background="#F5F6FA"
+            CornerRadius="10"
+            BorderBrush="#D1D5DB"
+            BorderThickness="1">
 
-        <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="ĐĂNG NHẬP" FontSize="24" FontWeight="Bold" Foreground="#2C3E50" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
-                     materialDesign:HintAssist.Hint="Tên đăng nhập (Mã HS/GV hoặc Email)" 
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" 
-                     Margin="0,0,0,20" FontSize="16"/>
+            <components:CustomTopBarUC Grid.Row="0"
+                                       TitleText="Đăng nhập"
+                                       ShowMaximizeButton="Hidden" />
+            <Border Grid.Row="1"
+                    Background="White"
+                    CornerRadius="12"
+                    Margin="30"
+                    Padding="20">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10"
+                                      ShadowDepth="1"
+                                      Color="#DDDDDD"
+                                      Opacity="0.5" />
+                </Border.Effect>
 
-            <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" 
-                     materialDesign:HintAssist.Hint="Mật khẩu" 
-                     FontFamily="Password" 
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" 
-                     Margin="0,0,0,30" FontSize="16"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="ĐĂNG NHẬP"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="#2C3E50"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,30" />
 
-            <Button Content="ĐĂNG NHẬP" Command="{Binding LoginCommand}" 
-                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-                    Style="{StaticResource MaterialDesignRaisedButton}" 
-                    Height="45" FontSize="16" Cursor="Hand"/>
-        </StackPanel>
+                    <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                             materialDesign:HintAssist.Hint="Tên đăng nhập (Mã HS/GV hoặc Email)"
+                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                             Margin="0,0,0,20"
+                             FontSize="16" />
+
+                    <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                             materialDesign:HintAssist.Hint="Mật khẩu"
+                             FontFamily="Password"
+                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                             Margin="0,0,0,30"
+                             FontSize="16" />
+
+                    <Button Content="ĐĂNG NHẬP"
+                            Command="{Binding LoginCommand}"
+                            CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                            Style="{StaticResource PrimaryRoundedButton}"
+                            Height="45"
+                            FontSize="16"
+                            Cursor="Hand" />
+                </StackPanel>
+            </Border>
+        </Grid>
     </Border>
 </Window>

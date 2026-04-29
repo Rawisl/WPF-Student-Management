@@ -23,5 +23,15 @@ namespace WPF_Student_Management
         {
             InitializeComponent();
         }
+        private void LoginWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Tìm component TopBar (đang nằm ở vị trí đầu tiên trong Grid)
+            var topBar = (Components.CustomTopBarUC)((System.Windows.Controls.Grid)((System.Windows.Controls.Border)this.Content).Child).Children[0];
+
+            // Ẩn nút Maximize đi
+            topBar.btnMaximize.Visibility = Visibility.Collapsed;
+            // Đổi lại title của topbar
+            topBar.txtTitle.Text = "Đăng nhập phần mềm";
+        }
     }
 }
