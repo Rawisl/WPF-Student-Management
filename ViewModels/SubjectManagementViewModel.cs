@@ -1,10 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
@@ -19,13 +17,6 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveSubjectCommand))]
         private string _newSubjectName = string.Empty;
-
-        //
-        // [MỚI THÊM] Biến hứng ID nhập chay
-        [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(SaveSubjectCommand))]
-        private string _newSubjectId = string.Empty;
-        //
 
         // Dùng bool cho RadioButton (Mặc định chọn Điểm số)
         [ObservableProperty]
@@ -44,6 +35,7 @@ namespace WPF_Student_Management.ViewModels
         {
             LoadSubjectsData();
         }
+
         private void LoadSubjectsData()
         {
             try
@@ -69,58 +61,37 @@ namespace WPF_Student_Management.ViewModels
 
         // Điều kiện cho phép bấm nút Lưu (Tên môn không được để trống)
         private bool CanSaveSubject() => !string.IsNullOrWhiteSpace(NewSubjectName);
+
         [RelayCommand(CanExecute = nameof(CanSaveSubject))]
         private void SaveSubject()
         {
-            //Chuẩn hóa tên (Cắt khoảng trắng thừa)
+            // Chuẩn hóa tên (Cắt khoảng trắng thừa)
             string cleanName = NewSubjectName.Trim();
 
-
-            //tạm thời comment lại để add môn xong test
-            //KIỂM TRA NGOẠI LỆ (EXCEPTION): Môn đã tồn tại chưa?
-            // (So sánh không phân biệt hoa thường)
-            //if (SubjectsList.Any(s => s.SubjectName.Equals(cleanName, StringComparison.OrdinalIgnoreCase)))
-            //{
-            //    NotificationHelper.ShowWarning($"Môn học '{cleanName}' đã tồn tại trong hệ thống!\nVui lòng chọn tên khác.");
-            //    return;
-            //}
-
-
-            //
-            // [MỚI THÊM] Ép kiểu ID sang số nguyên (Vì DB của Long là int)
-            if (!int.TryParse(NewSubjectId.Trim(), out int parsedId))
+            // KIỂM TRA NGOẠI LỆ (EXCEPTION): Môn đã tồn tại chưa? (So sánh không phân biệt hoa thường)
+            if (SubjectsList.Any(s => s.SubjectName.Equals(cleanName, StringComparison.OrdinalIgnoreCase)))
             {
-                NotificationHelper.ShowWarning("Mã môn học phải là một con số!");
+                NotificationHelper.ShowWarning($"Môn học '{cleanName}' đã tồn tại trong hệ thống!\nVui lòng chọn tên khác.");
                 return;
             }
-            // [MỚI THÊM] Chặn test trùng ID luôn cho chắc
-            if (SubjectsList.Any(s => s.SubjectId == parsedId))
-            {
-                NotificationHelper.ShowWarning($"Mã môn học '{parsedId}' đã có người xài rồi!");
-                return;
-            }
-            //
 
-
-            //Chuyển đổi loại điểm chuẩn bị ném xuống DB
+            // Chuyển đổi loại điểm chuẩn bị ném xuống DB
             string dbGradeType = IsScoreGradeType ? "Score" : "PassFail";
 
-            //Khởi tạo Model
+            // Khởi tạo Model (Không cần truyền SubjectId nữa, DB tự lo)
             var newSubject = new Subject
             {
-                SubjectId = parsedId, // [MỚI THÊM] Nhét cái ID nhập chay vào đây
-
                 SubjectName = cleanName,
                 GradeType = dbGradeType,
                 IsDeleted = false
             };
 
-            //Lưu xuống DB bằng hàm của Model
+            // Lưu xuống DB bằng hàm của Model
             if (newSubject.AddSubject())
             {
                 NotificationHelper.ShowSuccess("Thêm môn học mới thành công!");
 
-                // Load lại bảng danh sách
+                // Load lại bảng danh sách để lấy được SubjectId xịn do CSDL vừa tự sinh ra
                 LoadSubjectsData();
 
                 // Đóng form và dọn dẹp
@@ -136,9 +107,6 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private void CancelAddSubject()
         {
-            NewSubjectId = string.Empty; // [MỚI THÊM] Reset ô ID
-
-
             NewSubjectName = string.Empty;
             IsScoreGradeType = true; // Trả về mặc định
             MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");

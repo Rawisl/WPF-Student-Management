@@ -12,6 +12,7 @@
         Height="450"
         Width="400"
         WindowStartupLocation="CenterScreen"
+        Icon="Images/student-management-logo.ico"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent">
@@ -78,6 +79,7 @@
                             Command="{Binding LoginCommand}"
                             CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
                             Style="{StaticResource PrimaryRoundedButton}"
+                            IsDefault="True"
                             Height="45"
                             FontSize="16"
                             Cursor="Hand" />

@@ -114,12 +114,12 @@ namespace WPF_Student_Management.ViewModels
                     // Bạn cần viết thêm logic INSERT Account ở đây...
                 }
 
-                MessageBox.Show("Cập nhật tài khoản thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                NotificationHelper.ShowConfirm("Cập nhật tài khoản thành công!");
                 ExecuteLoad();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                NotificationHelper.ShowError("Lỗi: " + ex.Message);
             }
         }
 

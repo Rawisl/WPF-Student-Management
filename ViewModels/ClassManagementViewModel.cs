@@ -217,29 +217,23 @@ namespace WPF_Student_Management.ViewModels
 
             try
             {
-                int newId = ClassList.Any() ? ClassList.Max(c => c.ClassId) + 1 : 1;
+                //Tạo object không cần gán ClassId nữa (để DB tự lo)
                 Class newClass = new Class
                 {
-                    ClassId = newId,
                     ClassName = fullClassName,
                     Grade = Grade,
                     ClassSize = 0,
                     HomeroomTeacherId = finalTeacherId
                 };
 
+                //Lưu xuống CSDL
                 if (newClass.AddClass())
                 {
-                    ClassList.Add(new ClassItemUI
-                    {
-                        ClassId = newId,
-                        ClassName = fullClassName,
-                        Grade = Grade,
-                        ClassSize = 0,
-                        HomeroomTeacherId = finalTeacherId,
-                        HomeroomTeacherName = finalTeacherName
-                    });
                     NotificationHelper.ShowSuccess("Lập danh sách lớp thành công!");
-                    CancelAddClass();
+                    CancelAddClass(); // Đóng Pop-up và xóa form
+
+                    //Kéo lại mẻ lưới từ DB để UI nhận được ClassId thật do DB tự sinh
+                    LoadClassesFromDatabase();
                 }
                 else
                 {
@@ -429,11 +423,10 @@ namespace WPF_Student_Management.ViewModels
         {
             // Lọc ra những lớp mà user tick CheckBox
             var classesToDelete = EmptyClassesToTrash.Where(x => x.IsSelected).Select(x => x.ClassInfo).ToList();
-            bool isConfirm = NotificationHelper.ShowConfirm(
-    $"Bạn có chắc chắn muốn xóa '{classesToDelete.Count()}' lớp không?\n" +
-    "Các lớp học đã chọn sẽ bị xóa hoàn toàn khỏi hệ thống và không thể hoàn tác!");
 
-            if(!isConfirm) return;
+            bool isConfirm = NotificationHelper.ShowConfirm( $"Bạn có chắc chắn muốn xóa '{classesToDelete.Count()}' lớp không?\n" + "Các lớp học đã chọn sẽ bị xóa hoàn toàn khỏi hệ thống và không thể hoàn tác!");
+
+            if (!isConfirm) return;
 
             if (!classesToDelete.Any())
             {

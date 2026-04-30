@@ -64,27 +64,60 @@
             </Button>
         </Grid>
 
-        <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="15">
+        <Border Grid.Row="2"
+                Background="White"
+                CornerRadius="12"
+                Padding="15">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
+                <DropShadowEffect BlurRadius="10"
+                                  ShadowDepth="1"
+                                  Color="#DDDDDD"
+                                  Opacity="0.5" />
             </Border.Effect>
 
-            <DataGrid ItemsSource="{Binding AssignmentList}" 
-                      AutoGenerateColumns="False" CanUserAddRows="False" 
-                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                      Background="Transparent" BorderThickness="0"
-                      RowHeight="55" FontSize="15">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Môn Học" Binding="{Binding SubjectName}" IsReadOnly="True" Width="2*"/>
+            <!-- 1. Bơm Style Global vào đây để khử viền xấu và chuẩn hóa UI -->
+            <DataGrid ItemsSource="{Binding AssignmentList}"
+                      Style="{StaticResource GlobalDataGridStyle}"
+                      CellStyle="{StaticResource GlobalDataGridCellStyle}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      FontSize="15">
 
-                    <DataGridTemplateColumn Header="Giáo Viên Phụ Trách" Width="3*">
+                <DataGrid.Columns>
+                    <!-- 2. Cột Môn Học: Áp dụng HeaderStyle và ElementStyle giống bản chuẩn -->
+                    <DataGridTextColumn Header="Môn Học"
+                                        Binding="{Binding SubjectName}"
+                                        IsReadOnly="True"
+                                        Width="2*"
+                                        HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock"
+                                   BasedOn="{StaticResource GlobalLeftElementStyle}">
+                                <!-- Làm đậm tên môn học lên chút cho đẹp -->
+                                <Setter Property="FontWeight"
+                                        Value="SemiBold" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <!-- 3. Cột Giáo Viên: Bóp lại ComboBox cho gọn gàng -->
+                    <DataGridTemplateColumn Header="Giáo Viên Phụ Trách"
+                                            Width="3*"
+                                            HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
+                                <!-- Thêm Margin, căn giữa dọc và áp dụng Style của MaterialDesign -->
                                 <ComboBox ItemsSource="{Binding AvailableTeachers}"
                                           DisplayMemberPath="FullName"
                                           SelectedValuePath="StaffId"
                                           SelectedValue="{Binding SelectedTeacherId, UpdateSourceTrigger=PropertyChanged}"
-                                          BorderThickness="0" Padding="5" VerticalAlignment="Center"/>
+                                          materialDesign:HintAssist.Hint="-- Chọn giáo viên --"
+                                          HorizontalAlignment="Stretch"
+                                          VerticalAlignment="Center"
+                                          Margin="10,0,30,0"
+                                          Padding="5,8"
+                                          FontSize="15"
+                                          Cursor="Hand" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

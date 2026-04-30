@@ -271,6 +271,7 @@
                         Margin="0,20,0,0">
 
                 <Button Command="{Binding CancelCommand}"
+                        IsCancel="True"
                         Content="Hủy"
                         Width="100"
                         Height="40"
@@ -280,6 +281,7 @@
                 </Button>
 
                 <Button Command="{Binding SaveCommand}"
+                        IsDefault="True"
                         Content="Lưu học sinh"
                         Width="140"
                         Height="40"
