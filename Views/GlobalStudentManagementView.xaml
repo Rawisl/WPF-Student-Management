@@ -71,7 +71,7 @@
                                       Opacity="0.5" />
                 </Border.Effect>
 
-                <components:StudentDataGridUC ItemsSource="{Binding AllStudent}"
+                <components:StudentProfileUC ItemsSource="{Binding AllStudent}"
                                               EditCommand="{Binding EditStudentCommand}"
                                               DeleteCommand="{Binding DeleteStudentCommand}" />
             </Border>

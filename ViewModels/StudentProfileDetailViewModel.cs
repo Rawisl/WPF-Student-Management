@@ -1,11 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
 
@@ -21,83 +17,101 @@ namespace WPF_Student_Management.ViewModels
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _fullName;
 
-        [ObservableProperty] private string _gender;
+        // --- CÁC BIẾN MỚI THÊM ĐỂ KHỚP VỚI GIAO DIỆN XAML ---
+        [ObservableProperty] private bool _isMale;
+        [ObservableProperty] private bool _isFemale;
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private DateTime _dateOfBirth;
 
+        [ObservableProperty] private bool _isFamilyNormal = true;
+        [ObservableProperty] private bool _isFamilyHard;
+
+        [ObservableProperty] private string _phoneNumber;
+        [ObservableProperty] private string _emailPrefix;
+
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _address;
 
-        [ObservableProperty] private string _email;
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private string _guardianName;
 
-        // Thuộc tính để hiện lỗi tuổi lên UI popup
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private string _guardianPhoneNumber;
+        // ----------------------------------------------------
+
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _ageErrorMessage = string.Empty;
 
-        //TẠO 2 BIẾN LƯU TRỮ QUY ĐỊNH LÚC VỪA MỞ FORM(Cho số mặc định lỡ DB lỗi)
         private int _minAge = 15;
         private int _maxAge = 20;
 
         public StudentProfileDetailViewModel(Student student)
         {
-           _originalItem = student;
+            _originalItem = student;
 
-            //MAP DỮ LIỆU TỪ MODEL VÀO VIEWMODEL
-            // Model là int StudentId, mình format thêm "HS" cho nó đẹp trên Popup
-            StudentID = "HS" + student.StudentId.ToString(); 
+            // 1. MAP DỮ LIỆU CƠ BẢN
+            StudentID = "HS" + student.StudentId.ToString();
             FullName = student.FullName;
-            Gender = student.Gender;
 
-            //KHÔNG CẦN PARSE STRING NỮA, VÌ DATEOFBIRTH CỦA MODEL LÀ DATETIME? RỒI
+            // Xử lý Giới tính cho RadioButton
+            if (student.Gender == "Nam") IsMale = true;
+            else IsFemale = true;
+
             DateOfBirth = student.DateOfBirth ?? DateTime.Now.AddYears(-15);
 
-            // Nếu Model có mấy trường này thì map luôn:
-            // Address = student.Address;
-            // Email = student.Email;
+            // 2. MAP HOÀN CẢNH GIA ĐÌNH
+            if (student.FamilyBackground == "Bình thường") IsFamilyNormal = true;
+            else IsFamilyHard = true;
 
-            //KÉO QUY ĐỊNH TỪ DB LÊN NGAY LÚC KHỞI TẠO
+            // 3. MAP THÔNG TIN LIÊN LẠC
+            Address = student.Address;
+            PhoneNumber = student.PhoneNumber;
+
+            // Xử lý Email: Cắt đuôi @gmail.com để ném lên UI
+            if (!string.IsNullOrWhiteSpace(student.Email) && student.Email.EndsWith("@gmail.com"))
+            {
+                EmailPrefix = student.Email.Replace("@gmail.com", "");
+            }
+            else
+            {
+                EmailPrefix = student.Email;
+            }
+
+            // 4. MAP NGƯỜI BẢO HỘ
+            GuardianName = student.GuardianName;
+            GuardianPhoneNumber = student.GuardianPhoneNumber;
+
+            // Kiểm tra tuổi
             LoadAgeRegulations();
-
-            // Ép nó check lại tuổi ngay khi vừa load lên (lỡ tuổi lúc trước hợp lệ, giờ đổi quy định thành không hợp lệ)
             OnDateOfBirthChanged(DateOfBirth);
         }
+
         private void LoadAgeRegulations()
         {
             try
             {
-                //Kéo toàn bộ list tham số từ DB lên
                 var allRegulations = Regulation.GetAllRegulations();
-
                 if (allRegulations != null && allRegulations.Any())
                 {
-                    //Tìm dòng có tên là "MinAge"
                     var minAgeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MinAge");
-                    if (minAgeParam != null)
-                    {
-                        // Ép kiểu từ Decimal (trong Model của Long) sang int
-                        _minAge = (int)minAgeParam.Value;
-                    }
+                    if (minAgeParam != null) _minAge = (int)minAgeParam.Value;
 
-                    //Tìm dòng có tên là "MaxAge"
                     var maxAgeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MaxAge");
-                    if (maxAgeParam != null)
-                    {
-                        _maxAge = (int)maxAgeParam.Value;
-                    }
+                    if (maxAgeParam != null) _maxAge = (int)maxAgeParam.Value;
                 }
             }
             catch (Exception ex)
             {
-                // Lỗi DB thì nuốt lỗi, UI vẫn xài số 15-20 mặc định, app không sập
                 Console.WriteLine("Không tải được quy định tuổi: " + ex.Message);
             }
         }
 
-        // Logic check tuổi bê từ HocSinhViewModel sang
         partial void OnDateOfBirthChanged(DateTime value)
         {
             int age = DateTime.Now.Year - value.Year;
@@ -113,25 +127,35 @@ namespace WPF_Student_Management.ViewModels
         private bool CanSave()
         {
             return string.IsNullOrEmpty(AgeErrorMessage) &&
-                               !string.IsNullOrWhiteSpace(FullName) &&
-                               !string.IsNullOrWhiteSpace(Address);
+                   !string.IsNullOrWhiteSpace(FullName) &&
+                   !string.IsNullOrWhiteSpace(Address) &&
+                   !string.IsNullOrWhiteSpace(GuardianName) &&
+                   !string.IsNullOrWhiteSpace(GuardianPhoneNumber);
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
         private void Save()
         {
-            // 4. Lưu vào DB 
-            bool success = true; // Giả sử thành công
+            // Chốt data từ UI
+            string finalGender = IsMale ? "Nam" : "Nữ";
+            string finalFamilyBg = IsFamilyNormal ? "Bình thường" : "Khó khăn";
+            string finalEmail = string.IsNullOrWhiteSpace(EmailPrefix) ? "" : $"{EmailPrefix.Trim()}@gmail.com";
+
+            // (Giả sử gọi update DB thành công)
+            bool success = true;
 
             if (success)
             {
-                // 5. Update ngược lại cái dòng trên DataGrid ở màn hình chính
+                // Update ngược lại UI bảng chính
                 _originalItem.FullName = FullName;
-                _originalItem.Gender = Gender;
-
-                // Gán thẳng DateTime vào luôn, KHÔNG ToString() nữa vì Model nó cần DateTime
+                _originalItem.Gender = finalGender;
                 _originalItem.DateOfBirth = DateOfBirth;
-                // _originalItem.Address = Address;
+                _originalItem.FamilyBackground = finalFamilyBg;
+                _originalItem.Address = Address;
+                _originalItem.PhoneNumber = PhoneNumber;
+                _originalItem.Email = finalEmail;
+                _originalItem.GuardianName = GuardianName;
+                _originalItem.GuardianPhoneNumber = GuardianPhoneNumber;
 
                 NotificationHelper.ShowSuccess("Cập nhật hồ sơ thành công!");
                 MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
@@ -140,5 +164,11 @@ namespace WPF_Student_Management.ViewModels
 
         [RelayCommand]
         private void Cancel() => MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
+
+        // Logic đồng bộ RadioButton (chống check cả 2 cái cùng lúc)
+        partial void OnIsMaleChanged(bool value) => IsFemale = !value;
+        partial void OnIsFemaleChanged(bool value) => IsMale = !value;
+        partial void OnIsFamilyNormalChanged(bool value) => IsFamilyHard = !value;
+        partial void OnIsFamilyHardChanged(bool value) => IsFamilyNormal = !value;
     }
 }
