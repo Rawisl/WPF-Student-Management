@@ -57,6 +57,28 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
+        public int AddAccountAndGetId()
+        {
+            string query = "INSERT INTO Account (RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive) " +
+                           "OUTPUT INSERTED.AccountID " +
+                           "VALUES (@RoleID, @Username, @PasswordHash, @IsRequiredChangePassword, @IsActive)";
+
+            SqlParameter[] parameters = new SqlParameter[] {
+        new SqlParameter("@RoleID", this.RoleId),
+        new SqlParameter("@Username", this.Username),
+        new SqlParameter("@PasswordHash", PasswordHasher.HashPassword(this.PasswordHash)),
+        new SqlParameter("@IsRequiredChangePassword", this.IsRequiredChangePassword),
+        new SqlParameter("@IsActive", this.IsActive)
+    };
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                return Convert.ToInt32(dt.Rows[0]["AccountID"]);
+            }
+            return 0;
+        }
+
         // UPDATE
         public bool UpdateAccount()
         {

@@ -51,14 +51,14 @@ namespace WPF_Student_Management.ViewModels
             // Kiểm tra xác nhận mật khẩu
             if (NewPassword != ConfirmPassword)
             {
-                MessageBox.Show("Mật khẩu xác nhận không khớp!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                NotificationHelper.ShowWarning("Mật khẩu xác nhận không khớp!");
                 return;
             }
 
             // Báo lỗi nếu MK mới giống MK cũ
             if (NewPassword == OldPassword)
             {
-                MessageBox.Show("Mật khẩu mới bắt buộc phải khác mật khẩu cũ!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                NotificationHelper.ShowError("Mật khẩu mới bắt buộc phải khác mật khẩu cũ!");
                 return;
             }
 
@@ -66,7 +66,7 @@ namespace WPF_Student_Management.ViewModels
             string regexPattern = @"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$"; 
             if (!Regex.IsMatch(NewPassword, regexPattern))
             {
-                MessageBox.Show("Mật khẩu mới phải dài ít nhất 6 ký tự và bao gồm cả chữ và số.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                NotificationHelper.ShowWarning("Mật khẩu mới phải dài ít nhất 6 ký tự và bao gồm cả chữ và số.");
                 return;
             }
 
@@ -87,7 +87,7 @@ namespace WPF_Student_Management.ViewModels
 
                 if (checkData.Rows.Count == 0)
                 {
-                    MessageBox.Show("Mật khẩu hiện tại không chính xác!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    NotificationHelper.ShowError("Mật khẩu hiện tại không chính xác!");
                     return;
                 }
 
@@ -104,7 +104,7 @@ namespace WPF_Student_Management.ViewModels
 
                 if (rowsAffected > 0)
                 {
-                    MessageBox.Show("Đổi mật khẩu thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    NotificationHelper.ShowSuccess("Đổi mật khẩu thành công!");
 
                     // Kiểm tra xem cửa sổ hiện tại có phải là cửa sổ "Đổi mật khẩu bắt buộc" không
                     if (obj is Window currentWindow && currentWindow.GetType().Name == "ForceChangePasswordWindow")
@@ -127,12 +127,12 @@ namespace WPF_Student_Management.ViewModels
                 }
                 else
                 {
-                    MessageBox.Show("Có lỗi xảy ra khi cập nhật dữ liệu.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    NotificationHelper.ShowError("Có lỗi xảy ra khi cập nhật dữ liệu.");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi hệ thống: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                NotificationHelper.ShowError("Lỗi hệ thống: " + ex.Message);
             }
         }
 
