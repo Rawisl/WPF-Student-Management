@@ -57,7 +57,6 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        // CREATE VÀ TRẢ VỀ ID VỪA ĐƯỢC TẠO
         public int AddAccountAndGetId()
         {
             string query = "INSERT INTO Account (RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive) " +
