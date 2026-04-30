@@ -18,7 +18,7 @@ namespace WPF_Student_Management.Helpers
             if (WindowFeature.HasValue && !PermissionService.HasFeature(WindowFeature.Value))
             {
                 // Or whatever app's way of showing permission errors is
-                MessageBox.Show("Bạn không có quyền truy cập màn hình này!", "Lỗi quyền", MessageBoxButton.OK, MessageBoxImage.Warning);
+                NotificationHelper.ShowError("Bạn không có quyền truy cập màn hình này!");
                 Close();
                 return;
             }

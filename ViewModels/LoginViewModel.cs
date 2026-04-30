@@ -61,7 +61,7 @@ namespace WPF_Student_Management.ViewModels
 
                     if (!isActive)
                     {
-                        MessageBox.Show("Tài khoản của bạn đã bị khóa!", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        NotificationHelper.ShowWarning("Tài khoản của bạn đã bị khóa!");
                         return;
                     }
 
@@ -94,12 +94,12 @@ namespace WPF_Student_Management.ViewModels
                 }
                 else
                 {
-                    MessageBox.Show("Thông tin đăng nhập không chính xác!", "Lỗi đăng nhập", MessageBoxButton.OK, MessageBoxImage.Error);
+                    NotificationHelper.ShowError("Thông tin đăng nhập không chính xác!");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi kết nối cơ sở dữ liệu: " + ex.Message, "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
+                NotificationHelper.ShowError("Lỗi kết nối cơ sở dữ liệu: " + ex.Message);
             }
         }
 

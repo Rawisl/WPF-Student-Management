@@ -169,6 +169,7 @@
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
                 <Button Content="Hủy bỏ"
+                        IsCancel="True"
                         Command="{Binding CancelAddClassCommand}"
                         Style="{StaticResource OutlineRoundedButton}"
                         Width="100"
@@ -176,6 +177,7 @@
                         Height="40" />
 
                 <Button Content="Lập lớp rỗng"
+                        IsDefault="True"
                         Command="{Binding SaveClassCommand}"
                         Style="{StaticResource PrimaryRoundedButton}"
                         Width="140"

@@ -4,147 +4,324 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:local="clr-namespace:WPF_Student_Management.Components"
+             xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
              mc:Ignorable="d"
-             d:DesignHeight="625"
-             d:DesignWidth="450">
-    
-    <Border Background="White"
-            CornerRadius="15"
-            Padding="25">
-        <StackPanel>
-            <TextBlock Text="CẬP NHẬT HỒ SƠ"
-                       FontSize="22"
+             d:Height="800"
+             d:Width="850">
+
+    <Border CornerRadius="16"
+            Background="White"
+            Margin="10"
+            MinWidth="800"
+            MaxWidth="800"
+            MinHeight="650"
+            MaxHeight="700">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15"
+                              ShadowDepth="3"
+                              Opacity="0.2" />
+        </Border.Effect>
+
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="CẬP NHẬT HỒ SƠ HỌC SINH"
+                       FontSize="24"
                        FontWeight="Bold"
                        Foreground="#FF1A237E"
                        Margin="0,0,0,20"
                        HorizontalAlignment="Center" />
 
-            <Label Content="Mã Học Sinh:"
-                   FontWeight="SemiBold"
-                   FontSize="14"
-                   Foreground="Gray" />
-            <Border Background="#F5F5F5"
-                    CornerRadius="8"
-                    BorderBrush="#D2D6DC"
-                    BorderThickness="1"
-                    Margin="0,5,0,15"
-                    Height="40">
-                <TextBox Text="{Binding StudentID}"
-                         BorderThickness="0"
-                         Background="Transparent"
-                         IsReadOnly="True"
-                         Foreground="Gray"
-                         VerticalContentAlignment="Center"
-                         Padding="10,0"
-                         FontSize="15" />
+            <Border Grid.Row="1"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Background="White"
+                    CornerRadius="20"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1.5"
+                    Padding="30,25,30,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="2" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Rectangle Grid.Column="1"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Stretch"
+                               Width="2"
+                               Fill="#F0F0F0"
+                               Margin="0,10" />
+
+                    <StackPanel Grid.Column="0"
+                                Margin="10,0,30,0">
+                        <Label Content="Thông tin cơ bản"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Margin="0,0,0,15"
+                               Foreground="#FF1A237E" />
+
+                        <Label Content="Mã Học Sinh:"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <Border Background="#F5F5F5"
+                                CornerRadius="8"
+                                BorderBrush="#D2D6DC"
+                                BorderThickness="1"
+                                Margin="0,2,0,12"
+                                Height="40">
+                            <TextBox Text="{Binding StudentID}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     IsReadOnly="True"
+                                     Foreground="Gray"
+                                     VerticalContentAlignment="Center"
+                                     Padding="10,0"
+                                     FontSize="15" />
+                        </Border>
+
+                        <Label Content="Họ Tên: *"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <Border Background="#F8F9FA"
+                                CornerRadius="8"
+                                BorderBrush="#D2D6DC"
+                                BorderThickness="1"
+                                Margin="0,2,0,12"
+                                Height="40">
+                            <TextBox Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     VerticalContentAlignment="Center"
+                                     Padding="10,0"
+                                     FontSize="15" />
+                        </Border>
+
+                        <Label Content="Giới tính:"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2,0,12"
+                                    Height="40"
+                                    VerticalAlignment="Center">
+                            <RadioButton Content="Nam"
+                                         IsChecked="{Binding IsMale}"
+                                         Margin="0,0,30,0"
+                                         FontSize="15" />
+                            <RadioButton Content="Nữ"
+                                         IsChecked="{Binding IsFemale}"
+                                         FontSize="15" />
+                        </StackPanel>
+
+                        <Label Content="Ngày sinh:"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <Border Background="#F8F9FA"
+                                CornerRadius="8"
+                                BorderBrush="#D2D6DC"
+                                BorderThickness="1"
+                                Margin="0,2,0,5"
+                                Height="40">
+                            <DatePicker SelectedDate="{Binding DateOfBirth, UpdateSourceTrigger=PropertyChanged}"
+                                        BorderThickness="0"
+                                        Background="Transparent"
+                                        VerticalContentAlignment="Center"
+                                        Padding="10,0"
+                                        FontSize="15" />
+                        </Border>
+
+                        <TextBlock Text="{Binding AgeErrorMessage}"
+                                   Foreground="#FF4757"
+                                   FontWeight="Bold"
+                                   Margin="0,5,0,12"
+                                   TextWrapping="Wrap"
+                                   Visibility="{Binding AgeErrorMessage, Converter={StaticResource StringToVisibilityConverter}}" />
+
+                        <Label Content="Hoàn cảnh gia đình:"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2,0,12"
+                                    Height="40"
+                                    VerticalAlignment="Center">
+                            <RadioButton Content="Bình thường"
+                                         IsChecked="{Binding IsFamilyNormal}"
+                                         Margin="0,0,30,0"
+                                         FontSize="15" />
+                            <RadioButton Content="Khó khăn"
+                                         IsChecked="{Binding IsFamilyHard}"
+                                         FontSize="15" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2"
+                                Margin="30,0,10,0">
+                        <Label Content="Liên lạc"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Margin="0,0,0,15"
+                               Foreground="#FF1A237E" />
+
+                        <Label Content="SĐT học sinh:"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <Border Background="#F8F9FA"
+                                CornerRadius="8"
+                                BorderBrush="#D2D6DC"
+                                BorderThickness="1"
+                                Margin="0,2,0,12"
+                                Height="40">
+                            <TextBox Text="{Binding PhoneNumber, UpdateSourceTrigger=PropertyChanged}"
+                                     helpers:TextBoxHelper.IsNumericOnly="True"
+                                     MaxLength="10"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     VerticalContentAlignment="Center"
+                                     Padding="10,0"
+                                     FontSize="15" />
+                        </Border>
+
+                        <Label Content="Email:"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <Border Background="#F8F9FA"
+                                CornerRadius="8"
+                                BorderBrush="#D2D6DC"
+                                BorderThickness="1"
+                                Margin="0,2,0,12"
+                                Height="40">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding EmailPrefix, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         VerticalContentAlignment="Center"
+                                         Padding="10,0,0,0"
+                                         FontSize="15" />
+                                <TextBlock Grid.Column="1"
+                                           Text="@gmail.com"
+                                           VerticalAlignment="Center"
+                                           Padding="0,0,10,0"
+                                           FontSize="15"
+                                           Foreground="#95A5A6"
+                                           FontWeight="SemiBold" />
+                            </Grid>
+                        </Border>
+
+                        <Label Content="Địa chỉ: *"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <Border Background="#F8F9FA"
+                                CornerRadius="8"
+                                BorderBrush="#D2D6DC"
+                                BorderThickness="1"
+                                Margin="0,2,0,12"
+                                Height="60">
+                            <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     TextWrapping="Wrap"
+                                     AcceptsReturn="True"
+                                     Padding="10,5"
+                                     FontSize="15" />
+                        </Border>
+
+                        <Label Content="Họ tên người bảo hộ: *"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <Border Background="#F8F9FA"
+                                CornerRadius="8"
+                                BorderBrush="#D2D6DC"
+                                BorderThickness="1"
+                                Margin="0,2,0,12"
+                                Height="40">
+                            <TextBox Text="{Binding GuardianName, UpdateSourceTrigger=PropertyChanged}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     VerticalContentAlignment="Center"
+                                     Padding="10,0"
+                                     FontSize="15" />
+                        </Border>
+
+                        <Label Content="SĐT người bảo hộ: *"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Foreground="Gray" />
+                        <Border Background="#F8F9FA"
+                                CornerRadius="8"
+                                BorderBrush="#D2D6DC"
+                                BorderThickness="1"
+                                Margin="0,2,0,0"
+                                Height="40">
+                            <TextBox Text="{Binding GuardianPhoneNumber, UpdateSourceTrigger=PropertyChanged}"
+                                     BorderThickness="0"
+                                     helpers:TextBoxHelper.IsNumericOnly="True"
+                                     MaxLength="10"
+                                     Background="Transparent"
+                                     VerticalContentAlignment="Center"
+                                     Padding="10,0"
+                                     FontSize="15" />
+                        </Border>
+                    </StackPanel>
+                </Grid>
             </Border>
 
-            <Label Content="Họ Tên:"
-                   FontWeight="SemiBold"
-                   FontSize="14"
-                   Foreground="Gray" />
-            <Border Background="#F8F9FA"
-                    CornerRadius="8"
-                    BorderBrush="#D2D6DC"
-                    BorderThickness="1"
-                    Margin="0,5,0,15"
-                    Height="40">
-                <TextBox Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"
-                         BorderThickness="0"
-                         Background="Transparent"
-                         VerticalContentAlignment="Center"
-                         Padding="10,0"
-                         FontSize="15" />
-            </Border>
-
-            <Label Content="Giới tính:"
-                   FontWeight="SemiBold"
-                   FontSize="14"
-                   Foreground="Gray" />
-            <Border Background="#F8F9FA"
-                    CornerRadius="8"
-                    BorderBrush="#D2D6DC"
-                    BorderThickness="1"
-                    Margin="0,5,0,15"
-                    Height="40">
-                <ComboBox SelectedValue="{Binding Gender}"
-                          SelectedValuePath="Content"
-                          BorderThickness="0"
-                          Background="Transparent"
-                          VerticalContentAlignment="Center"
-                          Padding="10,0"
-                          FontSize="15">
-                    <ComboBoxItem Content="Nam" />
-                    <ComboBoxItem Content="Nữ" />
-                </ComboBox>
-            </Border>
-
-            <Label Content="Ngày sinh:"
-                   FontWeight="SemiBold"
-                   FontSize="14"
-                   Foreground="Gray" />
-            <Border Background="#F8F9FA"
-                    CornerRadius="8"
-                    BorderBrush="#D2D6DC"
-                    BorderThickness="1"
-                    Margin="0,5,0,5"
-                    Height="40">
-                <DatePicker SelectedDate="{Binding DateOfBirth, UpdateSourceTrigger=PropertyChanged}"
-                            BorderThickness="0"
-                            Background="Transparent"
-                            VerticalContentAlignment="Center"
-                            Padding="10,0"
-                            FontSize="15" />
-            </Border>
-
-            <TextBlock Text="{Binding AgeErrorMessage}"
-                       Foreground="Red"
-                       FontSize="13"
-                       Margin="5,0,0,15"
-                       TextWrapping="Wrap"
-                       Visibility="{Binding AgeErrorMessage, Converter={StaticResource StringToVisibilityConverter}}" />
-
-            <Label Content="Địa chỉ:"
-                   FontWeight="SemiBold"
-                   FontSize="14"
-                   Foreground="Gray" />
-            <Border Background="#F8F9FA"
-                    CornerRadius="8"
-                    BorderBrush="#D2D6DC"
-                    BorderThickness="1"
-                    Margin="0,5,0,20"
-                    Height="60">
-                <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
-                         AcceptsReturn="True"
-                         TextWrapping="Wrap"
-                         BorderThickness="0"
-                         Background="Transparent"
-                         Padding="10,5"
-                         FontSize="15" />
-            </Border>
-
-            <Grid>
+            <Grid Grid.Row="2"
+                  Margin="0,20,0,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
+                <!-- Nút Cấp lại mật khẩu đẩy sang trái -->
                 <Button Grid.Column="0"
-                        Margin="0,0,5,0"
-                        Content="HỦY"
-                        Command="{Binding CancelCommand}"
+                        Command="{Binding ResetPasswordCommand}"
+                        IsEnabled="{Binding IsAccountActive}"
+                        Content="CẤP LẠI MẬT KHẨU"
+                        ToolTipService.ShowOnDisabled="True"
+                        Height="40"
                         Style="{StaticResource OutlineRoundedButton}"
-                        Foreground="Gray"
-                        BorderBrush="Gray" />
-
-                <Button Grid.Column="1"
-                        Margin="5,0,0,0"
-                        Content="LƯU THAY ĐỔI"
-                        Command="{Binding SaveCommand}"
-                        Style="{StaticResource PrimaryRoundedButton}">
+                        Foreground="#D32F2F"
+                        BorderBrush="#EF5350">
                 </Button>
+
+                <!-- 2 Nút Lưu và Hủy đẩy sang phải -->
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right">
+                    <Button Command="{Binding CancelCommand}"
+                            Content="HỦY BỎ"
+                            Width="120"
+                            Height="40"
+                            Margin="0,0,15,0"
+                            Style="{StaticResource OutlineRoundedButton}"
+                            BorderThickness="2" />
+                    <Button Command="{Binding SaveCommand}"
+                            Content="LƯU THAY ĐỔI"
+                            Width="160"
+                            Height="40"
+                            Style="{StaticResource PrimaryRoundedButton}" />
+                </StackPanel>
             </Grid>
-        </StackPanel>
+        </Grid>
     </Border>
 </UserControl>

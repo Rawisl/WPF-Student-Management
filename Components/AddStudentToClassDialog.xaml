@@ -7,10 +7,11 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d">
 
-    <Border Background="White" 
-            CornerRadius="16" 
-            MinWidth="450" 
-            MinHeight="550" 
+    <Border Background="White"
+            CornerRadius="16"
+            MinWidth="500"
+            MaxWidth="500"
+            MinHeight="550"
             MaxHeight="700"
             Padding="25">
 
@@ -22,41 +23,64 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0"
-                       Text="Thêm học sinh vào lớp"
+                       Text="Danh sách học sinh chưa được xếp lớp"
                        FontSize="22"
                        FontWeight="Bold"
                        Margin="0,0,0,20"
-                       Foreground="#2C3E50" />
+                       Foreground="#2C3E50"
+                       HorizontalAlignment="Center"/>
 
             <Button Grid.Row="0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Top"
                     Style="{StaticResource MaterialDesignIconForegroundButton}"
                     Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    IsCancel="True"
                     Foreground="Gray"
                     Width="30"
                     Height="30"
                     Padding="0"
                     Margin="0,-5,-5,0">
-                <materialDesign:PackIcon Kind="Close" Width="22" Height="22" />
+                <materialDesign:PackIcon Kind="Close"
+                                         Width="22"
+                                         Height="22" />
             </Button>
 
+            <!-- Thêm SelectionMode="Multiple" -->
             <ListBox Grid.Row="1"
                      ItemsSource="{Binding AvailableStudents}"
-                     BorderThickness="1"
-                     BorderBrush="#E0E0E0"
-                     Background="#FAFAFA" 
+                     SelectionMode="Multiple"
+                     BorderThickness="0"
+                     Background="Transparent"
                      ScrollViewer.VerticalScrollBarVisibility="Auto">
 
                 <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Style TargetType="ListBoxItem"
+                           BasedOn="{StaticResource MaterialDesignListBoxItem}">
+                        <Setter Property="HorizontalContentAlignment"
+                                Value="Stretch" />
+                        <!-- Ràng buộc trạng thái dòng với biến IsSelected -->
+                        <Setter Property="IsSelected"
+                                Value="{Binding IsSelected, Mode=TwoWay}" />
+                        <!-- Tạo khoảng cách giữa các dòng -->
+                        <Setter Property="Margin"
+                                Value="0,0,0,10" />
+                        <Setter Property="Padding"
+                                Value="0" />
+                        <Setter Property="BorderThickness"
+                                Value="0" />
                     </Style>
                 </ListBox.ItemContainerStyle>
 
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderBrush="#EEEEEE" BorderThickness="0,0,0,1" Padding="10">
+                        <!-- Làm tròn góc, thêm nền xám nhạt cho từng khối học sinh -->
+                        <Border Background="#F8F9FA"
+                                BorderBrush="#E9ECEF"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="15,10"
+                                Cursor="Hand">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="40" />
@@ -64,16 +88,36 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
+                                <!-- IsHitTestVisible="False" giúp click không bị kẹt ở checkbox -->
+                                <CheckBox Grid.Column="0"
+                                          IsChecked="{Binding IsSelected}"
+                                          IsHitTestVisible="False"
+                                          VerticalAlignment="Center" />
 
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
-                                    <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" FontSize="16" Foreground="#2C3E50" />
-                                    <TextBlock Text="{Binding StudentID}" Foreground="Gray" FontSize="13" Margin="0,2,0,0" />
+                                <StackPanel Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Margin="10,0,0,0">
+                                    <TextBlock Text="{Binding FullName}"
+                                               FontWeight="SemiBold"
+                                               FontSize="16"
+                                               Foreground="#2C3E50" />
+                                    <!-- Đã sửa lại StudentId cho khớp với ViewModel -->
+                                    <TextBlock Text="{Binding StudentId}"
+                                               Foreground="Gray"
+                                               FontSize="13"
+                                               Margin="0,2,0,0" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Gender}" HorizontalAlignment="Right" Foreground="#34495E" />
-                                    <TextBlock Text="{Binding DateOfBirth}" Foreground="Gray" FontSize="13" Margin="0,2,0,0" HorizontalAlignment="Right" />
+                                <StackPanel Grid.Column="2"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Gender}"
+                                               HorizontalAlignment="Right"
+                                               Foreground="#34495E" />
+                                    <TextBlock Text="{Binding DateOfBirth}"
+                                               Foreground="Gray"
+                                               FontSize="13"
+                                               Margin="0,2,0,0"
+                                               HorizontalAlignment="Right" />
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -83,15 +127,13 @@
 
             <Button Grid.Row="2"
                     Content="Lưu lựa chọn"
+                    IsDefault="True"
                     Margin="0,20,0,0"
                     Height="45"
-                    FontSize="16"
+                    FontSize="22"
                     FontWeight="SemiBold"
                     Command="{Binding SaveSelectionCommand}"
-                    materialDesign:ButtonAssist.CornerRadius="8" 
-                    Background="#FF270EDC"
-                    BorderBrush="#FF270EDC"
-                    Foreground="White" />
+                    Style="{StaticResource PrimaryRoundedButton}" />
         </Grid>
     </Border>
 </UserControl>

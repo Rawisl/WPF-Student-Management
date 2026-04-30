@@ -32,7 +32,9 @@
                        Foreground="Gray"
                        VerticalAlignment="Center"
                        FontWeight="SemiBold" />
-                <ComboBox x:Name="ChonKhoiCB"
+                <ComboBox x:Name="PickGradeCB"
+                          ItemsSource="{Binding AvailableGrades}"
+                          SelectedItem="{Binding SelectedGrade, UpdateSourceTrigger=PropertyChanged}"
                           Width="100"
                           Height="35"
                           Margin="5,0,20,0"
@@ -43,7 +45,11 @@
                        Foreground="Gray"
                        VerticalAlignment="Center"
                        FontWeight="SemiBold" />
-                <ComboBox x:Name="ChonLopCB"
+                <ComboBox x:Name="PickClassCB"
+                          ItemsSource="{Binding AvailableClasses}"
+                          DisplayMemberPath="ClassName"
+                          SelectedValuePath="ClassId"
+                          SelectedValue="{Binding SelectedClass, UpdateSourceTrigger=PropertyChanged}"
                           Width="120"
                           Height="35"
                           Margin="5,0,20,0"
@@ -58,39 +64,7 @@
 
                 <Button Content="+ Thêm học sinh"
                         Command="{Binding OpenAddStudentDialogCommand}"
-                        FontSize="15"
-                        Margin="40,0,0,0"
-                        Height="40"
-                        Cursor="Hand">
-                    <Button.Style>
-                        <Style TargetType="{x:Type Button}">
-                            <Setter Property="Background"
-                                    Value="#FF270EDC" />
-                            <Setter Property="Foreground"
-                                    Value="White" />
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type Button}">
-                                        <Border Background="{TemplateBinding Background}"
-                                                CornerRadius="8"
-                                                Padding="15,5">
-                                            <ContentPresenter HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center" />
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsEnabled"
-                                         Value="False">
-                                    <Setter Property="Background"
-                                            Value="LightGray" />
-                                    <Setter Property="Foreground"
-                                            Value="DarkGray" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
+                        Style="{StaticResource PrimaryRoundedButton}">
                 </Button>
             </StackPanel>
         </materialDesign:Card>
@@ -106,7 +80,7 @@
                                   Opacity="0.5" />
             </Border.Effect>
 
-            <components:StudentDataGridUC ItemsSource="{Binding CurrentClassStudents}"
+            <components:StudentProfileUC ItemsSource="{Binding CurrentClassStudents}"
                                           ShowActionColumn="False" />
         </Border>
     </Grid>

@@ -79,7 +79,6 @@ CREATE TABLE Subject (
     SubjectName NVARCHAR(100) NOT NULL,
     GradeType VARCHAR(50) NOT NULL, 
     IsDeleted BIT DEFAULT 0,
-    CONSTRAINT CHK_Subject_SubjectName CHECK (SubjectName IN (N'Toán', N'Lý', N'Hóa', N'Sinh', N'Sử', N'Địa', N'Văn', N'Đạo Đức', N'Thể Dục'))
 );
 
 CREATE TABLE Class (

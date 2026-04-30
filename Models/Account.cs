@@ -138,5 +138,36 @@ namespace WPF_Student_Management.Models
 
             return null; // Login failed
         }
+
+        // RESET MẬT KHẨU MẶC ĐỊNH
+        public static bool ResetPassword(int accountId, string rawNewPassword)
+        {
+            string query = @"
+                UPDATE Account 
+                SET PasswordHash = @PasswordHash, 
+                    IsRequiredChangePassword = 1 
+                WHERE AccountID = @AccountID";
+
+            SqlParameter[] parameters = new SqlParameter[] {
+                new SqlParameter("@AccountID", accountId),
+                new SqlParameter("@PasswordHash", PasswordHasher.HashPassword(rawNewPassword))
+            };
+
+            return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
+        }
+
+        // Lấy thông tin IsActive của 1 tài khoản (để kiểm tra xem có bị khóa không)
+        public static bool IsAccountActive(int accountId)
+        {
+            string query = "SELECT IsActive FROM Account WHERE AccountID = @AccountID";
+            SqlParameter[] parameters = new SqlParameter[] { new SqlParameter("@AccountID", accountId) };
+
+            DataTable data = DatabaseHelper.ExecuteQuery(query, parameters);
+            if (data.Rows.Count > 0)
+            {
+                return Convert.ToBoolean(data.Rows[0]["IsActive"]);
+            }
+            return false;
+        }
     }
 }

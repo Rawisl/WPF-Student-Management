@@ -15,8 +15,8 @@
             Margin="10"
             MinWidth="450"
             MaxWidth="450"
-            MinHeight="400"
-            MaxHeight="400">
+            MinHeight="290"
+            MaxHeight="290">
         <Border.Effect>
             <DropShadowEffect BlurRadius="15"
                               ShadowDepth="3"
@@ -25,7 +25,6 @@
 
         <Grid Margin="25">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -75,19 +74,12 @@
                              FontSize="15" />
             </StackPanel>
 
-            <TextBox Grid.Row="4"
-                     materialDesign:HintAssist.Hint="Mã môn học (Nhập số tạm để test) *"
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                     Text="{Binding NewSubjectId, UpdateSourceTrigger=PropertyChanged}"
-                     FontSize="16"
-                     Margin="0,0,0,20"
-                     Foreground="Red" />
-
-            <StackPanel Grid.Row="5"
+            <StackPanel Grid.Row="4"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
                 <Button Content="Hủy bỏ"
                         Command="{Binding CancelAddSubjectCommand}"
+                        IsCancel="True"
                         Style="{StaticResource OutlineRoundedButton}"
                         FontSize="14"
                         Width="90"
@@ -96,6 +88,7 @@
                 <Button Content="Lưu môn"
                         Command="{Binding SaveSubjectCommand}"
                         Style="{StaticResource PrimaryRoundedButton}"
+                        IsDefault="True"
                         FontSize="14"
                         Width="90" />
             </StackPanel>

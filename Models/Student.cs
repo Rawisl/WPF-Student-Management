@@ -221,5 +221,137 @@ namespace WPF_Student_Management.Models
 
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
+
+
+        // THÊM MỚI HỌC SINH + TẠO TÀI KHOẢN KÉP (Dùng cho Tiếp nhận học sinh)
+        public string? ReceiveNewStudent()
+        {
+            // 1. Tạo Password mặc định: ddMMyyyy + 4 số cuối SĐT
+            string defaultRawPassword = "";
+            if (this.DateOfBirth.HasValue && !string.IsNullOrWhiteSpace(this.PhoneNumber) && this.PhoneNumber.Length >= 4)
+            {
+                string dobStr = this.DateOfBirth.Value.ToString("ddMMyyyy");
+                string phoneTail = this.PhoneNumber.Substring(this.PhoneNumber.Length - 4);
+                defaultRawPassword = dobStr + phoneTail;
+            }
+            else
+            {
+                defaultRawPassword = "Password123"; // Fallback nếu thiếu data
+            }
+
+            string hashedPassword = PasswordHasher.HashPassword(defaultRawPassword);
+
+            // 2. Viết câu SQL Transaction để xử lý nghịch lý Gà - Trứng
+            string query = @"
+                BEGIN TRAN;
+                BEGIN TRY
+                    -- Bước 1: Tạo Account với Username tạm thời
+                    -- RoleID = 1 là của Học sinh
+                    INSERT INTO Account (RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive)
+                    VALUES (1, 'TEMP_USERNAME', @PasswordHash, 1, 1);
+                    
+                    DECLARE @NewAccID INT = SCOPE_IDENTITY();
+
+                    -- Bước 2: Tạo Học sinh và tóm lấy StudentID vừa tự sinh (từ Sequence)
+                    DECLARE @OutputTbl TABLE (ID VARCHAR(10));
+
+                    INSERT INTO Student (AccountID, FullName, Gender, DateOfBirth, PhoneNumber, Email, Address, FamilyBackground, GuardianName, GuardianPhoneNumber, Status)
+                    OUTPUT Inserted.StudentID INTO @OutputTbl
+                    VALUES (@NewAccID, @FullName, @Gender, @DateOfBirth, @PhoneNumber, @Email, @Address, @FamilyBackground, @GuardianName, @GuardianPhoneNumber, @Status);
+
+                    DECLARE @FinalStudentID VARCHAR(10) = (SELECT TOP 1 ID FROM @OutputTbl);
+
+                    -- Bước 3: Update lại Username của Account cho chuẩn
+                    UPDATE Account SET Username = @FinalStudentID WHERE AccountID = @NewAccID;
+
+                    COMMIT TRAN;
+                    
+                    -- Bước 4: Trả mã học sinh về cho C#
+                    SELECT @FinalStudentID AS GeneratedID;
+                END TRY
+                BEGIN CATCH
+                    ROLLBACK TRAN;
+                    THROW;
+                END CATCH
+            ";
+
+            SqlParameter[] parameters = new SqlParameter[] {
+                new SqlParameter("@PasswordHash", hashedPassword),
+                new SqlParameter("@FullName", this.FullName),
+                new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),
+                new SqlParameter("@DateOfBirth", this.DateOfBirth ?? (object)DBNull.Value),
+                new SqlParameter("@PhoneNumber", this.PhoneNumber ?? (object)DBNull.Value),
+                new SqlParameter("@Email", this.Email ?? (object)DBNull.Value),
+                new SqlParameter("@Address", this.Address ?? (object)DBNull.Value),
+                new SqlParameter("@FamilyBackground", this.FamilyBackground ?? (object)DBNull.Value),
+                new SqlParameter("@GuardianName", this.GuardianName ?? (object)DBNull.Value),
+                new SqlParameter("@GuardianPhoneNumber", this.GuardianPhoneNumber ?? (object)DBNull.Value),
+                new SqlParameter("@Status", "Active") // Trạng thái mặc định
+            };
+
+            // Dùng ExecuteQuery thay vì NonQuery vì ta cần hứng cái @FinalStudentID trả về
+            DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
+
+            if (result.Rows.Count > 0)
+            {
+                this.StudentId = result.Rows[0]["GeneratedID"].ToString() ?? "";
+                return this.StudentId; // Thành công: Trả về mã HS (VD: hs250001)
+            }
+
+            return null; // Thất bại
+        }
+
+        // TÌM HỌC SINH CHƯA ĐƯỢC XẾP LỚP 
+        public static List<Student> GetUnassignedStudents()
+        {
+            List<Student> students = new List<Student>();
+
+            // Dùng LEFT JOIN và lọc những đứa có ClassID bị NULL
+            string query = @"
+                SELECT s.* 
+                FROM Student s
+                LEFT JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
+                WHERE cp.ClassID IS NULL";
+
+            DataTable data = DatabaseHelper.ExecuteQuery(query);
+
+            foreach (DataRow row in data.Rows)
+            {
+                Student stu = new Student()
+                {
+                    StudentId = row["StudentID"].ToString() ?? "",
+                    AccountId = Convert.ToInt32(row["AccountID"]),
+                    FullName = row["FullName"].ToString() ?? "",
+                    Gender = row["Gender"] as string,
+                    DateOfBirth = row["DateOfBirth"] == DBNull.Value ? null : Convert.ToDateTime(row["DateOfBirth"]),
+                    PhoneNumber = row["PhoneNumber"] as string
+                    // Tạm thời chỉ lấy mấy field cần thiết để hiện lên UI
+                };
+                students.Add(stu);
+            }
+
+            return students;
+        }
+
+        // THÊM HỌC SINH VÀO LỚP (Ghi vào bảng ClassPlacement)
+        public static bool AssignStudentToClass(string studentId, int classId)
+        {
+            string query = "INSERT INTO ClassPlacement (StudentID, ClassID) VALUES (@StudentID, @ClassID)";
+
+            SqlParameter[] parameters = new SqlParameter[] {
+                new SqlParameter("@StudentID", studentId),
+                new SqlParameter("@ClassID", classId)
+            };
+
+            try
+            {
+                return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Lỗi ghi DB xếp lớp: " + ex.Message);
+                return false;
+            }
+        }
     }
 }
