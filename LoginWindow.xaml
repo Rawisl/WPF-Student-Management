@@ -8,13 +8,14 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:components="clr-namespace:WPF_Student_Management.Components"
         mc:Ignorable="d"
-        Title="Đăng Nhập Hệ Thống"
+        Title="Đăng Nhập"
         Height="450"
         Width="400"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent">
+    
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0"
                       ResizeBorderThickness="5"

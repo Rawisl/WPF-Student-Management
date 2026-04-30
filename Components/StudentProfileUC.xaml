@@ -17,9 +17,9 @@
               FontSize="15">
 
         <DataGrid.Columns>
-            <DataGridTextColumn Header="STT"
+            <DataGridTextColumn Header="Mã học sinh"
                                 Binding="{Binding StudentId}"
-                                Width="60"
+                                Width="100"
                                 IsReadOnly="True"
                                 HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
                                 ElementStyle="{StaticResource GlobalCenterElementStyle}">

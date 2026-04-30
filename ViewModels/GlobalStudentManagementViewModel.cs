@@ -156,6 +156,8 @@ namespace WPF_Student_Management.ViewModels
 
             // Bật lên!
             await MaterialDesignThemes.Wpf.DialogHost.Show(view, "RootDialog");
+            // Ngay khi Popup vừa đóng lại (dù là bấm Lưu hay Hủy), ép DataGrid load lại data mới nhất từ CSDL!
+            LoadDataFromDatabase();
         }
 
         [RelayCommand]
@@ -198,38 +200,40 @@ namespace WPF_Student_Management.ViewModels
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
-        private void Save() //chưa lưu được nên tạm thời cancel thui
+        private void Save()
         {
-            //var newDbStudent = new WPF_Student_Management.Models.Student
-            //{
-            //    FullName = this.FullName,
-            //    Gender = IsMale ? "Nam" : "Nữ",
-            //    DateOfBirth = this.DateOfBirth,
-            //    PhoneNumber = this.PhoneNumber,
-            //    Email = string.IsNullOrWhiteSpace(this.EmailPrefix)
-            //            ? ""
-            //            : $"{this.EmailPrefix.Trim()}@gmail.com",
-            //    Address = this.Address,
-            //    FamilyBackground = IsFamilyNormal ? "Bình thường" : "Khó khăn",
-            //    GuardianName = this.GuardianName,
-            //    GuardianPhoneNumber = this.GuardianPhoneNumber,
-            //    Status = "Active" // Mặc định khi mới tiếp nhận
-            //};
+            var newDbStudent = new Student
+            {
+                StudentId = "", // Fix lỗi "required" của C#
+                FullName = this.FullName,
+                Gender = IsMale ? "Nam" : "Nữ",
+                DateOfBirth = this.DateOfBirth,
+                PhoneNumber = this.PhoneNumber,
+                Email = string.IsNullOrWhiteSpace(this.EmailPrefix)
+                        ? ""
+                        : $"{this.EmailPrefix.Trim()}@gmail.com",
+                Address = this.Address,
+                FamilyBackground = IsFamilyNormal ? "Bình thường" : "Khó khăn",
+                GuardianName = this.GuardianName,
+                GuardianPhoneNumber = this.GuardianPhoneNumber,
+                Status = "Active"
+            };
 
-            //bool isSuccess = newDbStudent.AddStudent();
+            string? newStudentId = newDbStudent.ReceiveNewStudent();
 
-            //if (isSuccess)
-            //{
-            //    NotificationHelper.ShowSuccess("Tiếp nhận học sinh thành công!");
+            if (!string.IsNullOrEmpty(newStudentId))
+            {
+                NotificationHelper.ShowSuccess($"Tiếp nhận thành công!\nMã HS / Tài khoản: {newStudentId}");
 
-            //    LoadDataFromDatabase();
+                // Refresh lại Grid để thấy ngay học sinh vừa thêm
+                LoadDataFromDatabase();
 
-                Cancel(); // Đóng form
-            //}
-            //else
-            //{
-            //    NotificationHelper.ShowError("Lưu thông tin học sinh thất bại!");
-            //}
+                Cancel(); // Đóng form, dọn rác
+            }
+            else
+            {
+                NotificationHelper.ShowError("Lưu thông tin học sinh thất bại!");
+            }
         }
 
         [RelayCommand]

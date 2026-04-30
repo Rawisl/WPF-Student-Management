@@ -32,7 +32,9 @@
                        Foreground="Gray"
                        VerticalAlignment="Center"
                        FontWeight="SemiBold" />
-                <ComboBox x:Name="ChonKhoiCB"
+                <ComboBox x:Name="PickGradeCB"
+                          ItemsSource="{Binding AvailableGrades}"
+                          SelectedItem="{Binding SelectedGrade, UpdateSourceTrigger=PropertyChanged}"
                           Width="100"
                           Height="35"
                           Margin="5,0,20,0"
@@ -43,7 +45,11 @@
                        Foreground="Gray"
                        VerticalAlignment="Center"
                        FontWeight="SemiBold" />
-                <ComboBox x:Name="ChonLopCB"
+                <ComboBox x:Name="PickClassCB"
+                          ItemsSource="{Binding AvailableClasses}"
+                          DisplayMemberPath="ClassName"
+                          SelectedValuePath="ClassId"
+                          SelectedValue="{Binding SelectedClass, UpdateSourceTrigger=PropertyChanged}"
                           Width="120"
                           Height="35"
                           Margin="5,0,20,0"

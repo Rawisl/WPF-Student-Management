@@ -285,23 +285,43 @@
                 </Grid>
             </Border>
 
-            <StackPanel Grid.Row="2"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Margin="0,20,0,0">
-                <Button Command="{Binding CancelCommand}"
-                        Content="HỦY BỎ"
-                        Width="120"
+            <Grid Grid.Row="2"
+                  Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Nút Cấp lại mật khẩu đẩy sang trái -->
+                <Button Grid.Column="0"
+                        Command="{Binding ResetPasswordCommand}"
+                        IsEnabled="{Binding IsAccountActive}"
+                        Content="CẤP LẠI MẬT KHẨU"
+                        ToolTipService.ShowOnDisabled="True"
                         Height="40"
-                        Margin="0,0,15,0"
                         Style="{StaticResource OutlineRoundedButton}"
-                        BorderThickness="2" />
-                <Button Command="{Binding SaveCommand}"
-                        Content="LƯU THAY ĐỔI"
-                        Width="160"
-                        Height="40"
-                        Style="{StaticResource PrimaryRoundedButton}" />
-            </StackPanel>
+                        Foreground="#D32F2F"
+                        BorderBrush="#EF5350">
+                </Button>
+
+                <!-- 2 Nút Lưu và Hủy đẩy sang phải -->
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right">
+                    <Button Command="{Binding CancelCommand}"
+                            Content="HỦY BỎ"
+                            Width="120"
+                            Height="40"
+                            Margin="0,0,15,0"
+                            Style="{StaticResource OutlineRoundedButton}"
+                            BorderThickness="2" />
+                    <Button Command="{Binding SaveCommand}"
+                            Content="LƯU THAY ĐỔI"
+                            Width="160"
+                            Height="40"
+                            Style="{StaticResource PrimaryRoundedButton}" />
+                </StackPanel>
+            </Grid>
         </Grid>
     </Border>
 </UserControl>

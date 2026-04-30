@@ -14,6 +14,9 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty] private string _studentID;
 
         [ObservableProperty]
+        private bool _isAccountActive = true;
+
+        [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _fullName;
 
@@ -56,8 +59,9 @@ namespace WPF_Student_Management.ViewModels
             _originalItem = student;
 
             // 1. MAP DỮ LIỆU CƠ BẢN
-            StudentID = "HS" + student.StudentId.ToString();
+            StudentID = student.StudentId.ToString();
             FullName = student.FullName;
+            IsAccountActive = Account.IsAccountActive(student.AccountId);
 
             // Xử lý Giới tính cho RadioButton
             if (student.Gender == "Nam") IsMale = true;
@@ -141,27 +145,73 @@ namespace WPF_Student_Management.ViewModels
             string finalFamilyBg = IsFamilyNormal ? "Bình thường" : "Khó khăn";
             string finalEmail = string.IsNullOrWhiteSpace(EmailPrefix) ? "" : $"{EmailPrefix.Trim()}@gmail.com";
 
-            // (Giả sử gọi update DB thành công)
-            bool success = true;
+            //Cập nhật dữ liệu mới vào object _originalItem
+            _originalItem.FullName = FullName;
+            _originalItem.Gender = finalGender;
+            _originalItem.DateOfBirth = DateOfBirth;
+            _originalItem.FamilyBackground = finalFamilyBg;
+            _originalItem.Address = Address;
+            _originalItem.PhoneNumber = PhoneNumber;
+            _originalItem.Email = finalEmail;
+            _originalItem.GuardianName = GuardianName;
+            _originalItem.GuardianPhoneNumber = GuardianPhoneNumber;
+
+            bool success = _originalItem.UpdateStudent();
 
             if (success)
             {
-                // Update ngược lại UI bảng chính
-                _originalItem.FullName = FullName;
-                _originalItem.Gender = finalGender;
-                _originalItem.DateOfBirth = DateOfBirth;
-                _originalItem.FamilyBackground = finalFamilyBg;
-                _originalItem.Address = Address;
-                _originalItem.PhoneNumber = PhoneNumber;
-                _originalItem.Email = finalEmail;
-                _originalItem.GuardianName = GuardianName;
-                _originalItem.GuardianPhoneNumber = GuardianPhoneNumber;
-
                 NotificationHelper.ShowSuccess("Cập nhật hồ sơ thành công!");
                 MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
             }
+            else
+            {
+                // Nhỡ DB rớt mạng hay gì thì nó văng lỗi
+                NotificationHelper.ShowError("Lỗi: Không thể lưu thông tin xuống CSDL!");
+            }
         }
 
+        [RelayCommand]
+        private void ResetPassword()
+        {
+            //Rào chắn: Nếu tài khoản bị khóa thì không cho làm gì (UI đã chặn rồi, nhưng chặn thêm lớp code cho chắc)
+            if (!IsAccountActive)
+            {
+                NotificationHelper.ShowError("Không thể cấp lại mật khẩu do tài khoản của học sinh đang bị khóa. Vui lòng liên hệ IT Admin.");
+                return;
+            }
+
+            //Hiện Pop-up xác nhận
+            bool isConfirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn đặt lại mật khẩu của học sinh {_originalItem.FullName} về mặc định không?");
+            if (!isConfirm) return;
+
+            //Tái tạo lại mật khẩu mặc định (ddMMyyyy + 4 số cuối SĐT)
+            string defaultRawPassword = "";
+            if (_originalItem.DateOfBirth.HasValue && !string.IsNullOrWhiteSpace(_originalItem.PhoneNumber) && _originalItem.PhoneNumber.Length >= 4)
+            {
+                string dobStr = _originalItem.DateOfBirth.Value.ToString("ddMMyyyy");
+                string phoneTail = _originalItem.PhoneNumber.Substring(_originalItem.PhoneNumber.Length - 4);
+                defaultRawPassword = dobStr + phoneTail;
+            }
+            else
+            {
+                //Fallback nếu data học sinh bị thiếu (VD: Không có SĐT)
+                defaultRawPassword = "Password123";
+            }
+
+            //Múc xuống CSDL
+            bool isSuccess = Account.ResetPassword(_originalItem.AccountId, defaultRawPassword);
+
+            //Báo cáo kết quả
+            if (isSuccess)
+            {
+                //TODO(Note): Chỗ này backend phải có hàm Revoke Token để đá học sinh ra, nhưng tạm thời UI chỉ show thông báo
+                NotificationHelper.ShowSuccess($"Đã cấp lại mật khẩu mặc định thành công cho học sinh {_originalItem.FullName}!\n\nMật khẩu mới: {defaultRawPassword}");
+            }
+            else
+            {
+                NotificationHelper.ShowError("Hệ thống lỗi: Không thể reset mật khẩu lúc này!");
+            }
+        }
         [RelayCommand]
         private void Cancel() => MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
 
