@@ -140,6 +140,20 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand(CanExecute = nameof(CanSave))]
         private void Save()
         {
+            string phoneRegexPattern = @"^0\d{9}$";
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(PhoneNumber?.Trim() ?? "", phoneRegexPattern))
+            {
+                NotificationHelper.ShowWarning("Số điện thoại Học sinh chưa hợp lệ!\nVui lòng nhập ĐỦ 10 chữ số và bắt đầu bằng số 0.");
+                return;
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(GuardianPhoneNumber?.Trim() ?? "", phoneRegexPattern))
+            {
+                NotificationHelper.ShowWarning("Số điện thoại Người bảo hộ chưa hợp lệ!\nVui lòng nhập ĐỦ 10 chữ số và bắt đầu bằng số 0.");
+                return;
+            }
+
             // Chốt data từ UI
             string finalGender = IsMale ? "Nam" : "Nữ";
             string finalFamilyBg = IsFamilyNormal ? "Bình thường" : "Khó khăn";

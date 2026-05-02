@@ -14,10 +14,27 @@
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <materialDesign:Card Grid.Row="0"
+        <Grid Grid.Row="0"
+              Margin="0,0,0,20">
+
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Xếp lớp"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#1A237E" />
+
+                <TextBlock Text="Phân bổ học sinh vào các lớp học"
+                           FontSize="14"
+                           Foreground="#878A99"
+                           Margin="0,5,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <materialDesign:Card Grid.Row="1"
                              Margin="0,0,0,20"
                              Padding="15,10"
                              HorizontalAlignment="Stretch"
@@ -69,7 +86,7 @@
             </StackPanel>
         </materialDesign:Card>
 
-        <Border Grid.Row="1"
+        <Border Grid.Row="2"
                 Background="White"
                 CornerRadius="12"
                 Padding="10">
@@ -81,7 +98,7 @@
             </Border.Effect>
 
             <components:StudentProfileUC ItemsSource="{Binding CurrentClassStudents}"
-                                          ShowActionColumn="False" />
+                                         ShowActionColumn="False" />
         </Border>
     </Grid>
 
