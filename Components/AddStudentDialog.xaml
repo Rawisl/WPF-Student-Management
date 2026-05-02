@@ -95,7 +95,7 @@
                                          FontSize="15" />
                         </StackPanel>
 
-                        <Label Content="Ngày sinh:"
+                        <Label Content="Ngày sinh: *"
                                FontWeight="SemiBold"
                                FontSize="15"
                                Foreground="Gray" />
@@ -146,7 +146,7 @@
                                Margin="0,0,0,10"
                                Foreground="#FF1A237E" />
 
-                        <Label Content="SĐT học sinh:"
+                        <Label Content="SĐT học sinh: *"
                                FontWeight="SemiBold"
                                FontSize="15"
                                Foreground="Gray" />

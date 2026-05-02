@@ -24,5 +24,10 @@ namespace WPF_Student_Management.Views
         {
             InitializeComponent();
         }
+
+        private void Button_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+
+        }
     }
 }

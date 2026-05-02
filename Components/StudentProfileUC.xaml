@@ -19,7 +19,7 @@
         <DataGrid.Columns>
             <DataGridTextColumn Header="Mã học sinh"
                                 Binding="{Binding StudentId}"
-                                Width="100"
+                                Width="115"
                                 IsReadOnly="True"
                                 HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
                                 ElementStyle="{StaticResource GlobalCenterElementStyle}">

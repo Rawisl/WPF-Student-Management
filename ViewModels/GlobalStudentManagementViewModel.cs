@@ -21,6 +21,7 @@ namespace WPF_Student_Management.ViewModels
 
         [ObservableProperty]
         private ObservableCollection<Student> _allStudent;
+        private List<Student> _originalStudentList = new List<Student>();
 
         //thông tin cá nhân của học sinh
         [ObservableProperty]
@@ -54,6 +55,16 @@ namespace WPF_Student_Management.ViewModels
         private bool _isFamilyNormal = true;
         [ObservableProperty]
         private bool _isFamilyHard;
+
+        //Các biến tìm kiếm và lọc
+        [ObservableProperty]
+        private string _searchText = string.Empty;
+
+        [ObservableProperty]
+        private string _selectedGender = "Tất cả";
+
+        // Danh sách đổ vào ComboBox Giới tính
+        public ObservableCollection<string> GenderList { get; } = new ObservableCollection<string> { "Tất cả", "Nam", "Nữ" };
 
         //Logic đồng bộ giới tính
         partial void OnIsMaleChanged(bool value) => IsFemale = !value;
@@ -115,11 +126,16 @@ namespace WPF_Student_Management.ViewModels
 
         private void LoadDataFromDatabase()
         {
-            AllStudent.Clear();
             try
             {
+                // 1. Gọi Database lấy toàn bộ học sinh
                 var studentList = Student.GetAllStudents();
-                AllStudent = new ObservableCollection<Student>(studentList);
+
+                // 2. LƯU VÀO DANH SÁCH GỐC
+                _originalStudentList = studentList;
+
+                // 3. Chạy FilterData để nó tự động xử lý và nạp vào AllStudent (đề phòng lúc reload đang có sẵn chữ ở ô Tìm kiếm)
+                FilterData();
             }
             catch (System.Exception ex)
             {
@@ -191,10 +207,11 @@ namespace WPF_Student_Management.ViewModels
         // Kiểm tra điều kiện để kích hoạt nút Lưu
         private bool CanSave()
         {
-            // Bắt buộc nhập Họ Tên học sinh, Địa Chỉ, Họ tên + sdt ng bảo hộ, và không có lỗi tuổi thì mới được lưu
+            // Bắt buộc nhập Họ Tên học sinh, Địa Chỉ,Sdt liên lạc, Họ tên + sdt ng bảo hộ, và không có lỗi tuổi thì mới được lưu
             return string.IsNullOrEmpty(AgeErrorMessage) &&
                    !string.IsNullOrWhiteSpace(FullName) &&
                    !string.IsNullOrWhiteSpace(Address) &&
+                   !string.IsNullOrWhiteSpace(PhoneNumber) &&
                    !string.IsNullOrEmpty(GuardianName) &&
                    !string.IsNullOrEmpty(GuardianPhoneNumber);
         }
@@ -202,9 +219,25 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand(CanExecute = nameof(CanSave))]
         private void Save()
         {
+
+            //Bắt buộc bắt đầu bằng '0' và theo sau là đúng '9' chữ số (Tổng = 10)
+            string phoneRegexPattern = @"^0\d{9}$";
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(PhoneNumber?.Trim() ?? "", phoneRegexPattern))
+            {
+                NotificationHelper.ShowWarning("Số điện thoại Học sinh chưa hợp lệ!\nVui lòng nhập ĐỦ 10 chữ số và bắt đầu bằng số 0.");
+                return;
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(GuardianPhoneNumber?.Trim() ?? "", phoneRegexPattern))
+            {
+                NotificationHelper.ShowWarning("Số điện thoại Người bảo hộ chưa hợp lệ!\nVui lòng nhập ĐỦ 10 chữ số và bắt đầu bằng số 0.");
+                return;
+            }
+
             var newDbStudent = new Student
             {
-                StudentId = "", // Fix lỗi "required" của C#
+                StudentId = "",
                 FullName = this.FullName,
                 Gender = IsMale ? "Nam" : "Nữ",
                 DateOfBirth = this.DateOfBirth,
@@ -250,7 +283,42 @@ namespace WPF_Student_Management.ViewModels
             // Đóng Dialog
             MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
         }
+        partial void OnSearchTextChanged(string value)
+        {
+            FilterData();
+        }
 
+        // Tự động gọi hàm FilterData() mỗi khi chọn Giới tính khác
+        partial void OnSelectedGenderChanged(string value)
+        {
+            FilterData();
+        }
+        private void FilterData()
+        {
+            if (_originalStudentList == null || !_originalStudentList.Any()) return;
 
+            // Lấy toàn bộ danh sách gốc ra để chuẩn bị cắt gọt
+            var filtered = _originalStudentList.AsEnumerable();
+
+            // 1. LỌC THEO TỪ KHÓA TÌM KIẾM (SearchText)
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                filtered = filtered.Where(s =>
+                    (!string.IsNullOrEmpty(s.FullName) && s.FullName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(s.StudentId) && s.StudentId.Contains(SearchText, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(s.PhoneNumber) && s.PhoneNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+
+            // 2. LỌC THEO GIỚI TÍNH (SelectedGender)
+            if (!string.IsNullOrWhiteSpace(SelectedGender) && SelectedGender != "Tất cả")
+            {
+                filtered = filtered.Where(s => !string.IsNullOrEmpty(s.Gender) && s.Gender.Equals(SelectedGender, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // 3. ĐỔ KẾT QUẢ VÀO DANH SÁCH HIỂN THỊ CỦA DATAGRID
+            // Gán biến trực tiếp như vầy thì [ObservableProperty] sẽ tự động báo UI cập nhật
+            AllStudent = new ObservableCollection<Student>(filtered);
+        }
     }
 }
