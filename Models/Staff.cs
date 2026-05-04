@@ -1,49 +1,82 @@
 ﻿using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.Models
 {
-    public class Staff
+    // BẮT BUỘC KẾ THỪA INotifyPropertyChanged ĐỂ HỖ TRỢ XÁM/SÁNG NÚT LƯU
+    public class Staff : INotifyPropertyChanged
     {
         public int StaffId { get; set; }
         public int AccountId { get; set; }
-        public required string FullName { get; set; }
+
+        public int RoleId { get; set; }
+
+        // --- CÁC THUỘC TÍNH CÓ KIỂM TRA ĐIỀU KIỆN LƯU ---
+        private string _fullName = "";
+        public required string FullName
+        {
+            get => _fullName;
+            set { _fullName = value; OnPropertyChanged(); }
+        }
+
+        private string? _email;
+        public string? Email
+        {
+            get => _email;
+            set { _email = value; OnPropertyChanged(); }
+        }
+
+        private string? _phoneNumber;
+        public string? PhoneNumber
+        {
+            get => _phoneNumber;
+            set { _phoneNumber = value; OnPropertyChanged(); }
+        }
+
+        private string? _nationalId;
+        public string? NationalId
+        {
+            get => _nationalId;
+            set { _nationalId = value; OnPropertyChanged(); }
+        }
+        // ------------------------------------------------
+
         public string? Gender { get; set; }
         public string? Specialization { get; set; }
-        public string? Email { get; set; }
         public DateTime? HireDate { get; set; }
         public string? HometownAddress { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? NationalId { get; set; }
         public string? Status { get; set; }
 
-        // READ
+        // --- CÀI ĐẶT SỰ KIỆN INotifyPropertyChanged ---
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public static List<Staff> GetAllStaff()
         {
             List<Staff> staffList = new List<Staff>();
-            string query = "SELECT * FROM Employee";
+            string query = @"
+            SELECT e.*, a.RoleID
+            FROM Employee e 
+            JOIN Account a ON e.AccountID = a.AccountID";
 
             DataTable data = DatabaseHelper.ExecuteQuery(query);
-
-            if (data == null)
-            {
-                return staffList;
-            }
+            if (data == null) return staffList;
 
             foreach (DataRow row in data.Rows)
             {
-                Staff staff = new Staff()
+                staffList.Add(new Staff()
                 {
-                    StaffId = row["EmployeeID"] != DBNull.Value ? Convert.ToInt32(row["EmployeeID"]) : 0,
-
-                    AccountId = row["AccountID"] != DBNull.Value ? Convert.ToInt32(row["AccountID"]) : 0,
-
+                    StaffId = Convert.ToInt32(row["EmployeeID"]),
+                    AccountId = Convert.ToInt32(row["AccountID"]),
+                    RoleId = Convert.ToInt32(row["RoleID"]),
                     FullName = row["FullName"].ToString() ?? "",
                     Gender = row["Gender"] as string,
                     Specialization = row["Specialization"] as string,
@@ -53,13 +86,11 @@ namespace WPF_Student_Management.Models
                     PhoneNumber = row["PhoneNumber"] as string,
                     NationalId = row["NationalID"] as string,
                     Status = row["Status"] as string
-                };
-                staffList.Add(staff);
+                });
             }
             return staffList;
         }
 
-        // CREATE
         public bool AddStaff()
         {
             string query = "INSERT INTO Employee (AccountID, FullName, Gender, Specialization, Email, HireDate, HometownAddress, PhoneNumber, NationalID, Status) " +
@@ -81,32 +112,44 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        // UPDATE
         public bool UpdateStaff()
         {
-            string query = "UPDATE Employee SET AccountID = @AccountID, FullName = @FullName, Gender = @Gender, " +
-                           "Specialization = @Specialization, Email = @Email, HireDate = @HireDate, " +
-                           "HometownAddress = @HometownAddress, PhoneNumber = @PhoneNumber, NationalID = @NationalID, Status = @Status " +
-                           "WHERE EmployeeID = @EmployeeID";
+            string query = @"
+            BEGIN TRAN;
+            BEGIN TRY
+                UPDATE Employee SET 
+                    FullName = @FullName, Gender = @Gender, Specialization = @Specialization, 
+                    Email = @Email, HireDate = @HireDate, HometownAddress = @HometownAddress, 
+                    PhoneNumber = @PhoneNumber, NationalID = @NationalID, Status = @Status 
+                WHERE EmployeeID = @EmployeeID;
+
+                UPDATE Account SET RoleID = @RoleID WHERE AccountID = @AccountID;
+
+                COMMIT TRAN;
+            END TRY
+            BEGIN CATCH
+                ROLLBACK TRAN;
+                THROW;
+            END CATCH";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@EmployeeID", this.StaffId),
-                new SqlParameter("@AccountID", this.AccountId),
-                new SqlParameter("@FullName", this.FullName),
-                new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),
-                new SqlParameter("@Specialization", this.Specialization ?? (object)DBNull.Value),
-                new SqlParameter("@Email", this.Email ?? (object)DBNull.Value),
-                new SqlParameter("@HireDate", this.HireDate ?? (object)DBNull.Value),
-                new SqlParameter("@HometownAddress", this.HometownAddress ?? (object)DBNull.Value),
-                new SqlParameter("@PhoneNumber", this.PhoneNumber ?? (object)DBNull.Value),
-                new SqlParameter("@NationalID", this.NationalId ?? (object)DBNull.Value),
-                new SqlParameter("@Status", this.Status ?? (object)DBNull.Value)
-            };
+            new SqlParameter("@EmployeeID", this.StaffId),
+            new SqlParameter("@AccountID", this.AccountId),
+            new SqlParameter("@FullName", this.FullName),
+            new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),
+            new SqlParameter("@Specialization", this.Specialization ?? (object)DBNull.Value),
+            new SqlParameter("@Email", this.Email ?? (object)DBNull.Value),
+            new SqlParameter("@HireDate", this.HireDate ?? (object)DBNull.Value),
+            new SqlParameter("@HometownAddress", this.HometownAddress ?? (object)DBNull.Value),
+            new SqlParameter("@PhoneNumber", this.PhoneNumber ?? (object)DBNull.Value),
+            new SqlParameter("@NationalID", this.NationalId ?? (object)DBNull.Value),
+            new SqlParameter("@Status", this.Status ?? (object)DBNull.Value),
+            new SqlParameter("@RoleID", this.RoleId)
+        };
 
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        // DELETE
         public static bool DeleteStaff(int staffId)
         {
             string query = "DELETE FROM Employee WHERE EmployeeID = @EmployeeID";
@@ -117,12 +160,10 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        //Hàm lấy staff chưa được phân công chủ nhiệm lớp nào (Staff nào có account role GVCN ấy)
         public static List<Staff> GetAvailableTeachers()
         {
             List<Staff> staffList = new List<Staff>();
 
-            //JOIN với Account để check RoleID = 5 (GVCN)
             string query = @"
             SELECT e.* FROM Employee e
             INNER JOIN Account a ON e.AccountID = a.AccountID
@@ -153,6 +194,97 @@ namespace WPF_Student_Management.Models
                 });
             }
             return staffList;
+        }
+
+        public string? ReceiveNewStaff()
+        {
+            // Logic tạo Username: gv_ + tên + họ & tên đệm viết tắt
+            string username = GenerateStaffUsername(this.FullName);
+
+            // Logic tạo Password: tên + 4 số cuối SĐT
+            string rawPassword = GenerateStaffPassword(this.FullName, this.PhoneNumber);
+            string hashedPassword = PasswordHasher.HashPassword(rawPassword);
+
+            // Sử dụng Transaction để đảm bảo tạo Account thành công thì mới tạo Employee
+            string query = @"
+        BEGIN TRAN;
+        BEGIN TRY
+            -- Bước 1: Tạo Account với RoleID = 4 (Giáo viên bộ môn mặc định)
+            INSERT INTO Account (RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive)
+            VALUES (4, @Username, @PasswordHash, 1, 1);
+            
+            DECLARE @NewAccID INT = SCOPE_IDENTITY();
+
+            -- Bước 2: Tạo Nhân viên liên kết với Account vừa tạo
+            INSERT INTO Employee (AccountID, FullName, Gender, Specialization, Email, HireDate, HometownAddress, PhoneNumber, NationalID, Status)
+            VALUES (@NewAccID, @FullName, @Gender, @Specialization, @Email, @HireDate, @HometownAddress, @PhoneNumber, @NationalID, @Status);
+
+            COMMIT TRAN;
+            SELECT @Username AS GeneratedUsername;
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRAN;
+            THROW;
+        END CATCH
+    ";
+
+            SqlParameter[] parameters = new SqlParameter[] {
+        new SqlParameter("@Username", username),
+        new SqlParameter("@PasswordHash", hashedPassword),
+        new SqlParameter("@FullName", this.FullName),
+        new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),
+        new SqlParameter("@Specialization", this.Specialization ?? (object)DBNull.Value),
+        new SqlParameter("@Email", this.Email ?? (object)DBNull.Value),
+        new SqlParameter("@HireDate", this.HireDate ?? (object)DBNull.Value),
+        new SqlParameter("@HometownAddress", this.HometownAddress ?? (object)DBNull.Value),
+        new SqlParameter("@PhoneNumber", this.PhoneNumber ?? (object)DBNull.Value),
+        new SqlParameter("@NationalID", this.NationalId ?? (object)DBNull.Value),
+        new SqlParameter("@Status", "Active")
+    };
+
+            DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
+
+            if (result.Rows.Count > 0)
+            {
+                return result.Rows[0]["GeneratedUsername"].ToString();
+            }
+            return null;
+        }
+
+        // Hàm phụ trợ: Chuyển tiếng Việt có dấu thành không dấu và tạo Username
+        private string GenerateStaffUsername(string fullName)
+        {
+            if (string.IsNullOrWhiteSpace(fullName)) return "gv_unknown";
+
+            // Xóa dấu tiếng Việt (Sử dụng TextHelper bạn đã có hoặc hàm tương đương)
+            string unsignedName = TextHelper.RemoveSignForVietnameseString(fullName).ToLower();
+            string[] parts = unsignedName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 1) return "gv_user";
+
+            string firstName = parts[parts.Length - 1]; // Tên chính (can)
+            string initials = ""; // Viết tắt họ và tên đệm (pv)
+
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                initials += parts[i][0];
+            }
+
+            return "gv_" + firstName + initials;
+        }
+
+        // Hàm phụ trợ: Tạo Password mặc định
+        private string GenerateStaffPassword(string fullName, string? phone)
+        {
+            string unsignedName = TextHelper.RemoveSignForVietnameseString(fullName).ToLower();
+            string[] parts = unsignedName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string firstName = parts[parts.Length - 1];
+
+            string lastFourDigits = (phone != null && phone.Length >= 4)
+                ? phone.Substring(phone.Length - 4)
+                : "1234";
+
+            return firstName + lastFourDigits;
         }
     }
 }

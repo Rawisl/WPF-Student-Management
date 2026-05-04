@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
+using MaterialDesignThemes.Wpf;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
 
@@ -16,7 +17,9 @@ namespace WPF_Student_Management.ViewModels
         private ObservableCollection<Staff> _staffList;
 
         public ObservableCollection<string> GenderList { get; } = new ObservableCollection<string> { "Nam", "Nữ" };
-        public ObservableCollection<string> StatusList { get; } = new ObservableCollection<string> { "Active", "Inactive"};
+        public ObservableCollection<string> StatusList { get; } = new ObservableCollection<string> { "Active", "Inactive" };
+
+        public ObservableCollection<Role> RoleList { get; set; }
 
         public ObservableCollection<Staff> StaffList
         {
@@ -28,26 +31,23 @@ namespace WPF_Student_Management.ViewModels
         public Staff CurrentStaff
         {
             get => _currentStaff;
-            set
-            {
-                _currentStaff = value;
-                OnPropertyChanged();
-            }
+            set { _currentStaff = value; OnPropertyChanged(); }
         }
 
         public ICommand LoadCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand DeleteCommand { get; }
-        public ICommand ClearFormCommand { get; }
+        public ICommand OpenAddDialogCommand { get; }
+        public ICommand EditCommand { get; }
 
         public EmployeeManagementViewModel()
         {
-            CurrentStaff = new Staff { StaffId = 0, AccountId = 0, FullName = "", Gender = "Nam", Status = "Active", HireDate = DateTime.Now };
-
             LoadCommand = new RelayCommand(ExecuteLoad);
             SaveCommand = new RelayCommand(ExecuteSave, CanExecuteSave);
-            DeleteCommand = new RelayCommand(ExecuteDelete, CanExecuteDelete);
-            ClearFormCommand = new RelayCommand(ExecuteClearForm);
+            DeleteCommand = new RelayCommand(ExecuteDelete);
+
+            OpenAddDialogCommand = new RelayCommand(ExecuteOpenAddDialog);
+            EditCommand = new RelayCommand(ExecuteEdit);
 
             bool isDesignMode = DesignerProperties.GetIsInDesignMode(new DependencyObject());
             if (!isDesignMode)
@@ -57,6 +57,8 @@ namespace WPF_Student_Management.ViewModels
                     ExecuteLoad(null);
                 }), System.Windows.Threading.DispatcherPriority.Loaded);
             }
+
+            RoleList = new ObservableCollection<Role>(Role.GetAllRoles());
         }
 
         private void ExecuteLoad(object obj)
@@ -72,155 +74,140 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        private void ExecuteClearForm(object obj)
+        // --- CÁC HÀM XỬ LÝ DIALOG ---
+        private async void ExecuteOpenAddDialog(object obj)
         {
-            CurrentStaff = new Staff
-            {
-                StaffId = 0,
-                AccountId = 0,
-                FullName = "",
-                Gender = "Nam",
-                Status = "Active",
-                HireDate = DateTime.Now
-            };
+            // Reset form
+            CurrentStaff = new Staff { StaffId = 0, AccountId = 0, FullName = "", Gender = "Nam", Status = "Active", HireDate = DateTime.Now };
+
+            // Gọi UserControl Dialog mới tạo
+            var dialog = new Components.EmployeeDetailDialog { DataContext = this };
+            await DialogHost.Show(dialog, "RootDialog");
         }
 
-        // ĐÃ XÓA HÀM GetNextAccountId() VÌ ĐÃ CÓ AUTO-ID
+        private async void ExecuteEdit(object obj)
+        {
+            if (obj is Staff staff)
+            {
+                CurrentStaff = staff;
+                var dialog = new Components.EmployeeDetailDialog { DataContext = this };
+                await DialogHost.Show(dialog, "RootDialog");
+            }
+        }
 
         private int GetRoleId(string roleName)
         {
             string query = $"SELECT RoleID FROM Role WHERE RoleName = N'{roleName}'";
             var data = DatabaseHelper.ExecuteQuery(query);
             if (data != null && data.Rows.Count > 0)
-            {
                 return Convert.ToInt32(data.Rows[0][0]);
-            }
             return 4;
         }
 
         private void ExecuteSave(object obj)
         {
-            List<string> missingFields = new List<string>();
-
-            // Bỏ qua check StaffId vì thêm mới ID tự động sinh
-            if (string.IsNullOrWhiteSpace(CurrentStaff.FullName)) missingFields.Add("- Họ và Tên");
-            if (string.IsNullOrWhiteSpace(CurrentStaff.PhoneNumber)) missingFields.Add("- Số điện thoại");
-            if (string.IsNullOrWhiteSpace(CurrentStaff.NationalId)) missingFields.Add("- CCCD/CMND");
-
-            string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            if (string.IsNullOrWhiteSpace(CurrentStaff.Email) || !Regex.IsMatch(CurrentStaff.Email, emailPattern))
-            {
-                missingFields.Add("- Email (Bị trống hoặc sai định dạng)");
-            }
-
-            if (missingFields.Count > 0)
-            {
-                string errorMessage = $"Vui lòng kiểm tra và nhập đầy đủ thông tin sau:\n\n" + string.Join("\n", missingFields);
-                NotificationHelper.ShowWarning(errorMessage);
-                return;
-            }
-
             try
             {
-                bool isSuccess = false;
                 bool isNewStaff = (CurrentStaff.StaffId == 0);
+                bool isSuccess = false;
 
                 if (isNewStaff)
                 {
-                    int defaultRoleId = GetRoleId("GVBM");
+                    // GỌI HÀM TẠO KÉP: Tự tạo Username gv_... và Password trong 1 Transaction SQL
+                    string? generatedUsername = CurrentStaff.ReceiveNewStaff();
 
-                    Account newAcc = new Account
+                    if (!string.IsNullOrEmpty(generatedUsername))
                     {
-                        RoleId = defaultRoleId,
-                        Username = CurrentStaff.NationalId,
-                        PasswordHash = "123456",
-                        IsRequiredChangePassword = true,
-                        IsActive = true
-                    };
-
-                    // ÁP DỤNG AUTO-ID: Lấy ID tài khoản vừa được SQL sinh ra
-                    int generatedAccountId = newAcc.AddAccountAndGetId();
-
-                    if (generatedAccountId > 0)
-                    {
-                        CurrentStaff.AccountId = generatedAccountId;
-                        isSuccess = CurrentStaff.AddStaff();
-
-                        // Rollback nếu thêm nhân viên thất bại
-                        if (!isSuccess)
-                        {
-                            Account.DeleteAccount(generatedAccountId);
-                        }
-                    }
-                    else
-                    {
-                        NotificationHelper.ShowError("Không thể tạo tài khoản tự động cho nhân viên!");
-                        return;
+                        NotificationHelper.ShowSuccess($"Tiếp nhận giáo viên thành công!\nTài khoản: {generatedUsername}");
+                        isSuccess = true;
                     }
                 }
                 else
                 {
+                    // CẬP NHẬT THÔNG TIN CHO NHÂN VIÊN ĐÃ CÓ
                     isSuccess = CurrentStaff.UpdateStaff();
+                    if (isSuccess) NotificationHelper.ShowSuccess("Cập nhật thông tin thành công!");
                 }
 
+                // Nếu mọi thứ ok thì load lại danh sách và đóng cửa sổ
                 if (isSuccess)
                 {
-                    NotificationHelper.ShowSuccess("Lưu dữ liệu nhân viên thành công!");
                     ExecuteLoad(null);
-                    ExecuteClearForm(null);
+                    DialogHost.Close("RootDialog");
                 }
-                else
+                else if (isNewStaff)
                 {
-                    NotificationHelper.ShowError("Lưu dữ liệu thất bại, có thể Mã NV, Email hoặc CCCD đã bị trùng!");
+                    NotificationHelper.ShowError("Tiếp nhận thất bại. Có thể do trùng số CCCD hoặc Số điện thoại trong hệ thống!");
                 }
             }
             catch (Exception ex)
             {
-                NotificationHelper.ShowError("Lỗi Database:\n" + ex.Message);
+                NotificationHelper.ShowError("Lỗi hệ thống: " + ex.Message);
             }
         }
 
-        private bool CanExecuteSave(object obj) => CurrentStaff != null;
+        private bool CanExecuteSave(object obj)
+        {
+            if (CurrentStaff == null) return false;
+
+            // Kiểm tra Họ Tên: Phải có ít nhất 2 từ (Họ và Tên)
+            if (string.IsNullOrWhiteSpace(CurrentStaff.FullName) ||
+                CurrentStaff.FullName.Trim().Split(' ').Length < 2)
+                return false;
+
+            // Kiểm tra SĐT: Phải đúng 10 số và bắt đầu bằng số 0
+            string phonePattern = @"^0\d{9}$";
+            if (string.IsNullOrWhiteSpace(CurrentStaff.PhoneNumber) ||
+                !System.Text.RegularExpressions.Regex.IsMatch(CurrentStaff.PhoneNumber, phonePattern))
+                return false;
+
+            // Kiểm tra CCCD: Ít nhất 9 hoặc 12 số
+            if (string.IsNullOrWhiteSpace(CurrentStaff.NationalId) ||
+                CurrentStaff.NationalId.Length < 9)
+                return false;
+
+            // Kiểm tra Email chuẩn
+            string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (string.IsNullOrWhiteSpace(CurrentStaff.Email) ||
+                !System.Text.RegularExpressions.Regex.IsMatch(CurrentStaff.Email, emailPattern))
+                return false;
+
+            return true;
+        }
 
         private void ExecuteDelete(object obj)
         {
-            if (CurrentStaff == null || CurrentStaff.StaffId <= 0) return;
+            var staffToDelete = obj as Staff ?? CurrentStaff;
+            if (staffToDelete == null || staffToDelete.StaffId <= 0) return;
 
-            if (CurrentStaff.AccountId == CurrentUser.Instance.UserId)
+            if (staffToDelete.AccountId == CurrentUser.Instance.UserId)
             {
                 NotificationHelper.ShowError("Không thể xóa nhân viên đang đăng nhập vào hệ thống!");
                 return;
             }
 
-            bool result = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa HOÀN TOÀN nhân viên '{CurrentStaff.FullName}' khỏi hệ thống không?\n\nHành động này không thể hoàn tác!");
+            bool result = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa HOÀN TOÀN nhân viên '{staffToDelete.FullName}' khỏi hệ thống không?\n\nHành động này không thể hoàn tác!");
 
             if (result)
             {
                 try
                 {
-                    int accountIdToDelete = CurrentStaff.AccountId;
-
-                    bool isDeleted = Staff.DeleteStaff(CurrentStaff.StaffId);
+                    int accountIdToDelete = staffToDelete.AccountId;
+                    bool isDeleted = Staff.DeleteStaff(staffToDelete.StaffId);
 
                     if (isDeleted)
                     {
                         Account.DeleteAccount(accountIdToDelete);
-
                         NotificationHelper.ShowSuccess("Đã xóa nhân viên thành công!");
                         ExecuteLoad(null);
-                        ExecuteClearForm(null);
                     }
                 }
                 catch (Microsoft.Data.SqlClient.SqlException sqlEx)
                 {
                     if (sqlEx.Number == 547)
-                    {
                         NotificationHelper.ShowWarning("Xóa dữ liệu thất bại!\n\nNhân viên này đang có dữ liệu liên kết ở bảng khác.\nVui lòng gỡ bỏ các liên kết này trước khi xóa.");
-                    }
                     else
-                    {
                         NotificationHelper.ShowError("Lỗi cơ sở dữ liệu:\n" + sqlEx.Message);
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -228,8 +215,6 @@ namespace WPF_Student_Management.ViewModels
                 }
             }
         }
-
-        private bool CanExecuteDelete(object obj) => CurrentStaff != null && CurrentStaff.StaffId > 0;
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
