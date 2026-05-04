@@ -16,7 +16,7 @@ namespace WPF_Student_Management.ViewModels
         private ObservableCollection<Staff> _staffList;
 
         public ObservableCollection<string> GenderList { get; } = new ObservableCollection<string> { "Nam", "Nữ" };
-        public ObservableCollection<string> StatusList { get; } = new ObservableCollection<string> { "Active", "Inactive", "Nghỉ thai sản" };
+        public ObservableCollection<string> StatusList { get; } = new ObservableCollection<string> { "Active", "Inactive"};
 
         public ObservableCollection<Staff> StaffList
         {

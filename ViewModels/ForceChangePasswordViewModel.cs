@@ -3,20 +3,14 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Input;
 using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.ViewModels
 {
-    public class SettingsViewModel : INotifyPropertyChanged
+    public class ForceChangePasswordViewModel : INotifyPropertyChanged
     {
-        private string _oldPassword;
-        public string OldPassword
-        {
-            get => _oldPassword;
-            set { _oldPassword = value; OnPropertyChanged(); }
-        }
-
         private string _newPassword;
         public string NewPassword
         {
@@ -33,15 +27,14 @@ namespace WPF_Student_Management.ViewModels
 
         public ICommand ChangePasswordCommand { get; }
 
-        public SettingsViewModel()
+        public ForceChangePasswordViewModel()
         {
             ChangePasswordCommand = new RelayCommand(ExecuteChangePassword, CanExecuteChangePassword);
         }
 
         private bool CanExecuteChangePassword(object obj)
         {
-            return !string.IsNullOrWhiteSpace(OldPassword) &&
-                   !string.IsNullOrWhiteSpace(NewPassword) &&
+            return !string.IsNullOrWhiteSpace(NewPassword) &&
                    !string.IsNullOrWhiteSpace(ConfirmPassword);
         }
 
@@ -50,12 +43,6 @@ namespace WPF_Student_Management.ViewModels
             if (NewPassword != ConfirmPassword)
             {
                 NotificationHelper.ShowWarning("Mật khẩu xác nhận không khớp!");
-                return;
-            }
-
-            if (NewPassword == OldPassword)
-            {
-                NotificationHelper.ShowError("Mật khẩu mới bắt buộc phải khác mật khẩu hiện tại!");
                 return;
             }
 
@@ -69,25 +56,10 @@ namespace WPF_Student_Management.ViewModels
             try
             {
                 int currentUserId = CurrentUser.Instance.UserId;
-                string hashedOldPwd = PasswordHasher.HashPassword(OldPassword);
-
-                string checkQuery = "SELECT AccountID FROM Account WHERE AccountID = @AccountID AND PasswordHash = @PasswordHash";
-                SqlParameter[] checkParams = new SqlParameter[]
-                {
-                    new SqlParameter("@AccountID", currentUserId),
-                    new SqlParameter("@PasswordHash", hashedOldPwd)
-                };
-
-                var checkData = DatabaseHelper.ExecuteQuery(checkQuery, checkParams);
-
-                if (checkData.Rows.Count == 0)
-                {
-                    NotificationHelper.ShowError("Mật khẩu hiện tại không chính xác!");
-                    return;
-                }
-
                 string hashedNewPwd = PasswordHasher.HashPassword(NewPassword);
-                string updateQuery = "UPDATE Account SET PasswordHash = @NewHash WHERE AccountID = @AccountID";
+
+                // Cập nhật mật khẩu mới và TẮT cờ bắt buộc đổi
+                string updateQuery = "UPDATE Account SET PasswordHash = @NewHash, IsRequiredChangePassword = 0 WHERE AccountID = @AccountID";
                 SqlParameter[] updateParams = new SqlParameter[]
                 {
                     new SqlParameter("@NewHash", hashedNewPwd),
@@ -98,10 +70,15 @@ namespace WPF_Student_Management.ViewModels
 
                 if (rowsAffected > 0)
                 {
-                    NotificationHelper.ShowSuccess("Đổi mật khẩu thành công!");
-                    OldPassword = "";
-                    NewPassword = "";
-                    ConfirmPassword = "";
+                    NotificationHelper.ShowSuccess("Đổi mật khẩu thành công! Chào mừng bạn đến với hệ thống.");
+
+                    // Mở MainWindow và đóng cửa sổ hiện tại (Window được truyền vào qua CommandParameter)
+                    if (obj is Window currentWindow)
+                    {
+                        MainWindow main = new MainWindow();
+                        main.Show();
+                        currentWindow.Close();
+                    }
                 }
                 else
                 {
