@@ -74,7 +74,25 @@
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
             </Border.Effect>
-            <DataGrid ItemsSource="{Binding ReportList}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" Background="Transparent" BorderThickness="0" RowHeight="55" FontSize="15">
+            <DataGrid x:Name="ReportDataGrid" 
+                      ItemsSource="{Binding ReportList}" 
+                      SelectedItem="{Binding SelectedReportItem}" 
+                      AutoGenerateColumns="False" 
+                      CanUserAddRows="False" 
+                      IsReadOnly="True" 
+                      HeadersVisibility="Column" 
+                      GridLinesVisibility="Horizontal" 
+                      Background="Transparent" 
+                      BorderThickness="0" 
+                      RowHeight="55" 
+                      FontSize="15">
+
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
+                        <Setter Property="Cursor" Value="Hand" />
+                    </Style>
+                </DataGrid.RowStyle>
+
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="STT" Binding="{Binding STT}" CanUserSort="False" Width="80">
                         <DataGridTextColumn.ElementStyle>
@@ -83,9 +101,28 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
+
                     <DataGridTextColumn Header="Mã HS" Binding="{Binding StudentId}" Width="150" />
                     <DataGridTextColumn Header="Họ và Tên học sinh" Binding="{Binding FullName}" Width="*" />
-                    <DataGridTextColumn Header="Xếp loại Học kỳ" Binding="{Binding Status}" Width="200" FontWeight="Bold" Foreground="#1A237E" />
+
+                    <DataGridTemplateColumn Header="Xếp loại Học kỳ" Width="200">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Status}" FontWeight="Bold" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#1B5E20" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Status}" Value="Không đạt">
+                                                    <Setter Property="Foreground" Value="#D32F2F" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>

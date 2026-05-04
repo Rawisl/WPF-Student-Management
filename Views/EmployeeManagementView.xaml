@@ -77,18 +77,32 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Hidden" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
                                     <Button Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
-                                            CommandParameter="{Binding}"
-                                            Style="{StaticResource MaterialDesignIconButton}" 
-                                            ToolTip="Chỉnh sửa" Width="35" Height="35" Foreground="#1565C0" Cursor="Hand">
+                        CommandParameter="{Binding}"
+                        Style="{StaticResource MaterialDesignIconButton}" 
+                        ToolTip="Chỉnh sửa" Width="35" Height="35" Foreground="#1565C0" Cursor="Hand">
                                         <materialDesign:PackIcon Kind="PencilOutline" />
                                     </Button>
+
                                     <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
-                                            CommandParameter="{Binding}"
-                                            Style="{StaticResource MaterialDesignIconButton}" 
-                                            ToolTip="Xóa" Width="35" Height="35" Foreground="#E53935" Cursor="Hand" Margin="5,0,0,0">
+                        CommandParameter="{Binding}"
+                        Style="{StaticResource MaterialDesignIconButton}" 
+                        ToolTip="Xóa" Width="35" Height="35" Foreground="#E53935" Cursor="Hand" Margin="5,0,0,0">
                                         <materialDesign:PackIcon Kind="TrashCanOutline" />
                                     </Button>
+
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

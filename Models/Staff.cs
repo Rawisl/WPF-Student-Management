@@ -196,26 +196,20 @@ namespace WPF_Student_Management.Models
             return staffList;
         }
 
-        public string? ReceiveNewStaff()
+        public (string Username, string Password)? ReceiveNewStaff()
         {
-            // Logic tạo Username: gv_ + tên + họ & tên đệm viết tắt
             string username = GenerateStaffUsername(this.FullName);
-
-            // Logic tạo Password: tên + 4 số cuối SĐT
             string rawPassword = GenerateStaffPassword(this.FullName, this.PhoneNumber);
             string hashedPassword = PasswordHasher.HashPassword(rawPassword);
 
-            // Sử dụng Transaction để đảm bảo tạo Account thành công thì mới tạo Employee
             string query = @"
         BEGIN TRAN;
         BEGIN TRY
-            -- Bước 1: Tạo Account với RoleID = 4 (Giáo viên bộ môn mặc định)
             INSERT INTO Account (RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive)
             VALUES (4, @Username, @PasswordHash, 1, 1);
             
             DECLARE @NewAccID INT = SCOPE_IDENTITY();
 
-            -- Bước 2: Tạo Nhân viên liên kết với Account vừa tạo
             INSERT INTO Employee (AccountID, FullName, Gender, Specialization, Email, HireDate, HometownAddress, PhoneNumber, NationalID, Status)
             VALUES (@NewAccID, @FullName, @Gender, @Specialization, @Email, @HireDate, @HometownAddress, @PhoneNumber, @NationalID, @Status);
 
@@ -229,24 +223,25 @@ namespace WPF_Student_Management.Models
     ";
 
             SqlParameter[] parameters = new SqlParameter[] {
-        new SqlParameter("@Username", username),
-        new SqlParameter("@PasswordHash", hashedPassword),
-        new SqlParameter("@FullName", this.FullName),
-        new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),
-        new SqlParameter("@Specialization", this.Specialization ?? (object)DBNull.Value),
-        new SqlParameter("@Email", this.Email ?? (object)DBNull.Value),
-        new SqlParameter("@HireDate", this.HireDate ?? (object)DBNull.Value),
-        new SqlParameter("@HometownAddress", this.HometownAddress ?? (object)DBNull.Value),
-        new SqlParameter("@PhoneNumber", this.PhoneNumber ?? (object)DBNull.Value),
-        new SqlParameter("@NationalID", this.NationalId ?? (object)DBNull.Value),
-        new SqlParameter("@Status", "Active")
-    };
+                new SqlParameter("@Username", username),
+                new SqlParameter("@PasswordHash", hashedPassword),
+                new SqlParameter("@FullName", this.FullName),
+                new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),
+                new SqlParameter("@Specialization", this.Specialization ?? (object)DBNull.Value),
+                new SqlParameter("@Email", this.Email ?? (object)DBNull.Value),
+                new SqlParameter("@HireDate", this.HireDate ?? (object)DBNull.Value),
+                new SqlParameter("@HometownAddress", this.HometownAddress ?? (object)DBNull.Value),
+                new SqlParameter("@PhoneNumber", this.PhoneNumber ?? (object)DBNull.Value),
+                new SqlParameter("@NationalID", this.NationalId ?? (object)DBNull.Value),
+                new SqlParameter("@Status", "Active")
+            };
 
             DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
 
             if (result.Rows.Count > 0)
             {
-                return result.Rows[0]["GeneratedUsername"].ToString();
+                string dbUsername = result.Rows[0]["GeneratedUsername"].ToString();
+                return (dbUsername, rawPassword);
             }
             return null;
         }

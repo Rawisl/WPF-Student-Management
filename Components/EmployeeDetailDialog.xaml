@@ -50,12 +50,10 @@
                         </Border>
 
                         <Label Content="Giới tính:" FontWeight="SemiBold" FontSize="14" Foreground="Gray" />
-                        <Border Background="#F8F9FA" CornerRadius="8" BorderBrush="#D2D6DC" BorderThickness="1" Margin="0,2,0,12" Height="40">
-                            <ComboBox ItemsSource="{Binding GenderList}" SelectedItem="{Binding CurrentStaff.Gender}" 
-                                        Style="{StaticResource MaterialDesignComboBox}" 
+
+                        <ComboBox ItemsSource="{Binding GenderList}" SelectedItem="{Binding CurrentStaff.Gender}" 
                                         materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
                                         BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" Padding="10,0" FontSize="15" />
-                        </Border>
 
                         <Label Content="CCCD/CMND: *" FontWeight="SemiBold" FontSize="14" Foreground="Gray" />
                         <Border Background="#F8F9FA" CornerRadius="8" BorderBrush="#D2D6DC" BorderThickness="1" Margin="0,2,0,12" Height="40">
@@ -72,15 +70,14 @@
                         </Border>
 
                         <Label Content="Vai trò / Quyền hạn:" FontWeight="SemiBold" FontSize="14" Foreground="Gray" />
-                        <Border Background="#F8F9FA" CornerRadius="8" BorderBrush="#D2D6DC" BorderThickness="1" Margin="0,2,0,12" Height="40">
+                        
                             <ComboBox ItemsSource="{Binding RoleList}" 
                                         SelectedValue="{Binding CurrentStaff.RoleId}"
                                         SelectedValuePath="RoleId"
                                         DisplayMemberPath="RoleName"
-                                        Style="{StaticResource MaterialDesignComboBox}" 
                                         materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
                                         BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" Padding="10,0" FontSize="15" />
-                        </Border>
+                      
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Margin="30,0,10,0">
@@ -126,12 +123,10 @@
 
                             <StackPanel Grid.Column="2">
                                 <Label Content="Trạng thái:" FontWeight="SemiBold" FontSize="14" Foreground="Gray" />
-                                <Border Background="#F8F9FA" CornerRadius="8" BorderBrush="#D2D6DC" BorderThickness="1" Margin="0,2,0,12" Height="40">
-                                    <ComboBox ItemsSource="{Binding StatusList}" SelectedItem="{Binding CurrentStaff.Status}" 
-                                                Style="{StaticResource MaterialDesignComboBox}" 
+
+                                <ComboBox ItemsSource="{Binding StatusList}" SelectedItem="{Binding CurrentStaff.Status}" 
                                                 materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
                                                 BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" Padding="10,0" FontSize="15" />
-                                </Border>
                             </StackPanel>
                         </Grid>
                     </StackPanel>

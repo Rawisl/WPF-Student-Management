@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
@@ -6,7 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Data.SqlClient;
 using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.ViewModels
@@ -28,6 +29,21 @@ namespace WPF_Student_Management.ViewModels
         public string StudentId { get; set; }
         public string FullName { get; set; }
         public string Status { get; set; } // Đạt / Không đạt
+    }
+
+    public class FailedSubjectItem
+    {
+        public string SubjectName { get; set; }
+        public string RegularTestScore { get; set; }
+        public string MidTermScore { get; set; }
+        public string FinalTermScore { get; set; }
+        public string AverageScore { get; set; }
+    }
+
+    public class FailedSubjectViewModel
+    {
+        public string StudentName { get; set; }
+        public ObservableCollection<FailedSubjectItem> FailedSubjectsList { get; set; }
     }
 
     public class HomeroomDashboardViewModel : INotifyPropertyChanged
@@ -104,6 +120,8 @@ namespace WPF_Student_Management.ViewModels
         public ICommand ConfirmReportCommand { get; }
         public ICommand CancelReportCommand { get; }
 
+        public ICommand ViewDetailCommand { get; }
+
         public HomeroomDashboardViewModel()
         {
             GenderList = new ObservableCollection<string> { "Tất cả", "Nam", "Nữ" };    
@@ -111,6 +129,7 @@ namespace WPF_Student_Management.ViewModels
             GenerateReportCommand = new RelayCommand(ExecuteGenerateReport, CanExecuteReportActions);
             ConfirmReportCommand = new RelayCommand(ExecuteConfirmReport, CanExecuteReportActions);
             CancelReportCommand = new RelayCommand(ExecuteCancelReport, CanExecuteReportActions);
+            ViewDetailCommand = new RelayCommand<object>(ExecuteViewDetail, CanExecuteReportActions);
 
             bool isDesignMode = DesignerProperties.GetIsInDesignMode(new DependencyObject());
             if (!isDesignMode)
@@ -352,6 +371,28 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
+        private ReportItem _selectedReportItem;
+        public ReportItem SelectedReportItem
+        {
+            get => _selectedReportItem;
+            set
+            {
+                _selectedReportItem = value;
+                OnPropertyChanged();
+
+                if (value != null)
+                {
+                    ExecuteViewDetail(value);
+
+                    System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        _selectedReportItem = null;
+                        OnPropertyChanged(nameof(SelectedReportItem));
+                    });
+                }
+            }
+        }
+
         private async void ExecuteOpenDetail(HomeroomStudentGradeItem student)
         {
             var detailVM = new StudentGradeDetailViewModel(student.StudentId, student.FullName);
@@ -362,6 +403,77 @@ namespace WPF_Student_Management.ViewModels
             };
 
             await MaterialDesignThemes.Wpf.DialogHost.Show(detailView, "RootDialog");
+        }
+
+        // --- XỬ LÝ CLICK ĐÚP VÀO HỌC SINH TRONG BÁO CÁO ---
+        private async void ExecuteViewDetail(object obj)
+        {
+            if (obj is ReportItem selectedStudent)
+            {
+                if (selectedStudent.Status.Trim().Equals("Đạt", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                if (selectedStudent.Status.Trim().Equals("Không đạt", StringComparison.OrdinalIgnoreCase))
+                {
+                    var failedList = GetFailedSubjectsFromDB(selectedStudent.StudentId);
+
+                    var detailVM = new FailedSubjectViewModel
+                    {
+                        StudentName = selectedStudent.FullName,
+                        FailedSubjectsList = new ObservableCollection<FailedSubjectItem>(failedList)
+                    };
+
+                    var detailUC = new WPF_Student_Management.Components.FailedSubjectDetailUC
+                    {
+                        DataContext = detailVM
+                    };
+
+                    await MaterialDesignThemes.Wpf.DialogHost.Show(detailUC, "RootDialog");
+                }
+            }
+        }
+
+        private List<FailedSubjectItem> GetFailedSubjectsFromDB(string studentId)
+        {
+            var list = new List<FailedSubjectItem>();
+            try
+            {
+                string paramQuery = "SELECT ISNULL((SELECT Value FROM Parameter WHERE ParameterName = 'NumPassingGrade'), 5.0) as PassingGrade";
+                DataTable dtParam = DatabaseHelper.ExecuteQuery(paramQuery);
+                decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
+
+                string query = @"
+                    SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore 
+                    FROM Score sc
+                    JOIN Subject sub ON sc.SubjectID = sub.SubjectID
+                    WHERE sc.StudentID = @StudentID 
+                      AND sc.AverageScore < @PassingGrade";
+
+                SqlParameter[] parameters = {
+                    new SqlParameter("@StudentID", studentId),
+                    new SqlParameter("@PassingGrade", passingGrade)
+                };
+
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
+                foreach (DataRow row in dt.Rows)
+                {
+                    list.Add(new FailedSubjectItem
+                    {
+                        SubjectName = row["SubjectName"].ToString(),
+                        RegularTestScore = row["RegularTestScore"] != DBNull.Value ? Convert.ToDecimal(row["RegularTestScore"]).ToString("0.##") : "",
+                        MidTermScore = row["MidTermScore"] != DBNull.Value ? Convert.ToDecimal(row["MidTermScore"]).ToString("0.##") : "",
+                        FinalTermScore = row["FinalTermScore"] != DBNull.Value ? Convert.ToDecimal(row["FinalTermScore"]).ToString("0.##") : "",
+                        AverageScore = row["AverageScore"] != DBNull.Value ? Convert.ToDecimal(row["AverageScore"]).ToString("0.##") : ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi tải danh sách môn chưa đạt: " + ex.Message);
+            }
+            return list;
         }
 
         private void FilterData()

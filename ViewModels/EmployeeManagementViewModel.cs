@@ -113,12 +113,16 @@ namespace WPF_Student_Management.ViewModels
 
                 if (isNewStaff)
                 {
-                    // GỌI HÀM TẠO KÉP: Tự tạo Username gv_... và Password trong 1 Transaction SQL
-                    string? generatedUsername = CurrentStaff.ReceiveNewStaff();
+                    var accountInfo = CurrentStaff.ReceiveNewStaff();
 
-                    if (!string.IsNullOrEmpty(generatedUsername))
+                    if (accountInfo != null)
                     {
-                        NotificationHelper.ShowSuccess($"Tiếp nhận giáo viên thành công!\nTài khoản: {generatedUsername}");
+                        NotificationHelper.ShowSuccess(
+                            $"Tiếp nhận giáo viên thành công!\n\n" +
+                            $"Tài khoản: {accountInfo.Value.Username}\n" +
+                            $"Mật khẩu: {accountInfo.Value.Password}\n\n" +
+                            $"Lưu ý: Mật khẩu mặc định là tên + 4 số cuối SĐT.");
+
                         isSuccess = true;
                     }
                 }
