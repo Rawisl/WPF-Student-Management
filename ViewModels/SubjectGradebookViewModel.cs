@@ -84,6 +84,8 @@ namespace WPF_Student_Management.ViewModels
 
         [ObservableProperty] private int _hocKyDuocChon = 1;
 
+        [ObservableProperty] private bool _isClassLocked;
+
         // Năm học lấy chuẩn theo DB của Long
         private string _namHocHienTai = "2023 - 2024";
 
@@ -104,7 +106,8 @@ namespace WPF_Student_Management.ViewModels
             //foreach (var m in dsMon) DanhSachMon.Add(m);
 
             //if (DanhSachLop.Count > 0) LopDuocChon = DanhSachLop[0];
-            //if (DanhSachMon.Count > 0) MonDuocChon = DanhSachMon[0];
+            //if (DanhSachMon.Count > 0) MonDuocChon = DanhSachMon[0
+            //
         }
 
         // === LẤY DANH SÁCH ===
@@ -120,6 +123,16 @@ namespace WPF_Student_Management.ViewModels
             //    try
             //    {
             //        DanhSachHocSinh.Clear();
+
+            //        string lockQuery = "SELECT IsLocked FROM Class WHERE ClassID = @ClassID";
+            //        DataTable dtLock = DatabaseHelper.ExecuteQuery(lockQuery, new[] { new SqlParameter("@ClassID", LopDuocChon.ClassID) });
+
+            //        IsClassLocked = dtLock.Rows.Count > 0 && dtLock.Rows[0]["IsLocked"] != DBNull.Value && Convert.ToBoolean(dtLock.Rows[0]["IsLocked"]);
+
+            //        if (IsClassLocked)
+            //        {
+            //          NotificationHelper.ShowWarning("Lớp này đã bị GVCN chốt sổ! Bạn chỉ có thể xem điểm.");
+            //        }
 
             //        string sqlQuery = @"
             //        SELECT hs.StudentID, hs.FullName, d.Diem15p, d.Diem1Tiet 
@@ -178,6 +191,17 @@ namespace WPF_Student_Management.ViewModels
                 NotificationHelper.ShowWarning("Bảng điểm đang trống, không có gì để lưu!");
                 return;
             }
+
+            //string lockQuery = "SELECT IsLocked FROM Class WHERE ClassID = @ClassID";
+            //DataTable dtLock = DatabaseHelper.ExecuteQuery(lockQuery, new[] { new SqlParameter("@ClassID", LopDuocChon.ClassID) });
+            //bool isLockedInDb = dtLock.Rows.Count > 0 && dtLock.Rows[0]["IsLocked"] != DBNull.Value && Convert.ToBoolean(dtLock.Rows[0]["IsLocked"]);
+
+            //if (isLockedInDb)
+            //{
+            //    IsClassLocked = true;
+            //    NotificationHelper.ShowError("Hành động bị từ chối! Lớp này vừa bị GVCN chốt sổ.");
+            //    return;
+            //}
 
             int thanhCong = 0;
             int thatBai = 0;

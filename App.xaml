@@ -28,6 +28,8 @@
                 
                 <ResourceDictionary Source="pack://application:,,,/WPF-Student-Management;component/Styles/AppStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

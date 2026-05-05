@@ -3,12 +3,128 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
              mc:Ignorable="d"
-             d:DesignHeight="450"
-             d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             Background="Transparent">
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <Grid Grid.Row="0" Margin="0,0,0,20" VerticalAlignment="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Visibility="{Binding IsReportGenerated, Converter={StaticResource BooleanToVisibilityConverter}}" VerticalAlignment="Bottom">
+                <materialDesign:Card Width="150" Padding="15" Margin="0,0,15,0" UniformCornerRadius="12" Background="#E3F2FD" materialDesign:ElevationAssist.Elevation="Dp1">
+                    <StackPanel>
+                        <TextBlock Text="Sĩ số lớp" Foreground="#1565C0" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,5"/>
+                        <TextBlock Text="{Binding TotalStudents}" FontSize="26" FontWeight="Bold" Foreground="#0D47A1"/>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <materialDesign:Card Width="150" Padding="15" Margin="0,0,15,0" UniformCornerRadius="12" Background="#E8F5E9" materialDesign:ElevationAssist.Elevation="Dp1">
+                    <StackPanel>
+                        <TextBlock Text="Số lượng Đạt" Foreground="#2E7D32" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,5"/>
+                        <TextBlock Text="{Binding PassedStudents}" FontSize="26" FontWeight="Bold" Foreground="#1B5E20"/>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <materialDesign:Card Width="150" Padding="15" UniformCornerRadius="12" Background="#FFF3E0" materialDesign:ElevationAssist.Elevation="Dp1">
+                    <StackPanel>
+                        <TextBlock Text="Tỷ lệ Đạt (%)" Foreground="#E65100" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,5"/>
+                        <TextBlock Text="{Binding PassRate}" FontSize="26" FontWeight="Bold" Foreground="#BF360C"/>
+                    </StackPanel>
+                </materialDesign:Card>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+
+                <Button Command="{Binding ConfirmReportCommand}" Height="44" Margin="0,0,12,0" Background="#FF4CAF50" BorderBrush="#FF4CAF50" Foreground="White" Cursor="Hand" Visibility="{Binding ShowConfirmButton, Converter={StaticResource BooleanToVisibilityConverter}}" materialDesign:ButtonAssist.CornerRadius="8">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="CheckAll" Width="20" Height="20" Margin="0,0,8,0" />
+                        <TextBlock Text="Xác nhận chốt sổ" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding CancelReportCommand}" Height="44" Margin="0,0,12,0" Background="#FFE57373" BorderBrush="#FFE57373" Foreground="White" Cursor="Hand" Visibility="{Binding IsClassLocked, Converter={StaticResource BooleanToVisibilityConverter}}" materialDesign:ButtonAssist.CornerRadius="8">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="LockOpenVariantOutline" Width="20" Height="20" Margin="0,0,8,0" />
+                        <TextBlock Text="Hủy - Mở khóa sổ" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding GenerateReportCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Height="44" Cursor="Hand" materialDesign:ButtonAssist.CornerRadius="8">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="FileChartOutline" Width="20" Height="20" Margin="0,0,8,0" />
+                        <TextBlock Text="Xem báo cáo" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Background="White" CornerRadius="12" ClipToBounds="True" Padding="15" Visibility="{Binding IsReportGenerated, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
+            </Border.Effect>
+            <DataGrid x:Name="ReportDataGrid" 
+                      ItemsSource="{Binding ReportList}" 
+                      SelectedItem="{Binding SelectedReportItem}" 
+                      AutoGenerateColumns="False" 
+                      CanUserAddRows="False" 
+                      IsReadOnly="True" 
+                      HeadersVisibility="Column" 
+                      GridLinesVisibility="Horizontal" 
+                      Background="Transparent" 
+                      BorderThickness="0" 
+                      RowHeight="55" 
+                      FontSize="15">
+
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
+                        <Setter Property="Cursor" Value="Hand" />
+                    </Style>
+                </DataGrid.RowStyle>
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="STT" Binding="{Binding STT}" CanUserSort="False" Width="80">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Center" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Mã HS" Binding="{Binding StudentId}" Width="150" />
+                    <DataGridTextColumn Header="Họ và Tên học sinh" Binding="{Binding FullName}" Width="*" />
+
+                    <DataGridTemplateColumn Header="Xếp loại Học kỳ" Width="200">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Status}" FontWeight="Bold" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#1B5E20" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Status}" Value="Không đạt">
+                                                    <Setter Property="Foreground" Value="#D32F2F" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
     </Grid>
 </UserControl>

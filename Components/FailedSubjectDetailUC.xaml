@@ -1,0 +1,103 @@
+﻿<UserControl x:Class="WPF_Student_Management.Components.FailedSubjectDetailUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
+             Width="850" Height="450" Background="Transparent">
+
+    <UserControl.Resources>
+        <helpers:ScoreDisplayConverter x:Key="ScoreDisplayConverter" />
+    </UserControl.Resources>
+
+    <Border CornerRadius="16" Background="White" Margin="10" ClipToBounds="True">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.2" />
+        </Border.Effect>
+
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="{Binding StudentName, StringFormat='Chi tiết các môn chưa đạt: {0}'}" 
+                       FontSize="22" FontWeight="Bold" Foreground="#D32F2F" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+
+            <DataGrid Grid.Row="1" ItemsSource="{Binding FailedSubjectsList}" 
+                      AutoGenerateColumns="False" IsReadOnly="True" 
+                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                      RowHeight="45" FontSize="15" Background="Transparent"
+                      BorderThickness="0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Môn học" Binding="{Binding SubjectName}" Width="1.2*" />
+
+                    <DataGridTemplateColumn Header="Điểm Thường xuyên" Width="1.5*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                            <Binding Path="SubjectName" />
+                                            <Binding Path="RegularTestScore" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Điểm Giữa kỳ" Width="1.2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                            <Binding Path="SubjectName" />
+                                            <Binding Path="MidTermScore" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Điểm Cuối kỳ" Width="1.2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                            <Binding Path="SubjectName" />
+                                            <Binding Path="FinalTermScore" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Trung Bình" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock FontWeight="Bold" Foreground="#D32F2F" VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                            <Binding Path="SubjectName" />
+                                            <Binding Path="AverageScore" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Button Grid.Row="2" Content="ĐÓNG" 
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
+                    Style="{StaticResource MaterialDesignOutlinedButton}" 
+                    Margin="0,20,0,0" HorizontalAlignment="Center" Width="140" Height="40" FontSize="16"/>
+        </Grid>
+    </Border>
+</UserControl>

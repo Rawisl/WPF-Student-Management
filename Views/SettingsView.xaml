@@ -44,7 +44,8 @@
                 <Button Content="CẬP NHẬT MẬT KHẨU" 
                         Command="{Binding ChangePasswordCommand}" 
                         Style="{StaticResource PrimaryRoundedButton}" 
-                        Height="45" FontSize="16" FontWeight="Bold" Cursor="Hand"/>
+                        Height="45" FontSize="16" FontWeight="Bold" Cursor="Hand"
+                        IsDefault="True"/>
             </StackPanel>
         </materialDesign:Card>
     </Grid>

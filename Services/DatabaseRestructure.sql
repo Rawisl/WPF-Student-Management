@@ -87,6 +87,7 @@ CREATE TABLE Class (
     Grade INT NOT NULL,
     ClassSize INT DEFAULT 0,
     HomeroomTeacherID INT,
+    IsLocked BIT DEFAULT 0,
     CONSTRAINT CHK_Class_Grade CHECK (Grade IN (10, 11, 12)),
     CONSTRAINT FK_Class_Employee FOREIGN KEY (HomeroomTeacherID) REFERENCES Employee(EmployeeID)
 );
@@ -468,3 +469,40 @@ INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType,
 ('hs250015', 6, NULL, 'DropOut', N'Gia đình chuyển công tác ra nước ngoài', N'Đã xác nhận với phụ huynh', 'Executed', '2024-04-20 09:30:00'),
 ('hs250025', 8, 6, 'ClassTransfer', N'Không theo kịp chương trình nâng cao', N'Chuyển sang lớp 11A2', 'Executed', '2024-05-15 14:00:00'),
 ('hs250040', 12, NULL, 'DropOut', N'Lý do sức khỏe', NULL, 'Pending', NULL);
+
+
+--Data để test cho chức năng lập báo cáo của giáo viên Phạm Văn Cán
+
+-- 1. Xóa điểm cũ của lớp 10A1 (hs250001 đến hs250005) để tránh trùng lặp dữ liệu
+DELETE FROM Score WHERE StudentID IN ('hs250001', 'hs250002', 'hs250003', 'hs250004', 'hs250005');
+
+-- 2. Thêm điểm cho hs250001 (Giỏi - Pass toàn bộ)
+INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
+('hs250001', 1, 9.0, 9.0, 9.5), ('hs250001', 2, 8.5, 9.0, 9.0), ('hs250001', 3, 9.0, 8.5, 9.0),
+('hs250001', 4, 9.5, 9.5, 9.5), ('hs250001', 5, 8.0, 8.5, 8.0), ('hs250001', 6, 9.0, 9.0, 9.0),
+('hs250001', 7, 8.5, 8.5, 8.5), ('hs250001', 8, 10.0, 10.0, 10.0), ('hs250001', 9, 10.0, 10.0, 10.0);
+
+-- 3. Thêm điểm cho hs250002 (Khá - Pass toàn bộ)
+INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
+('hs250002', 1, 6.0, 6.5, 6.0), ('hs250002', 2, 7.0, 7.0, 7.5), ('hs250002', 3, 6.5, 6.5, 6.0),
+('hs250002', 4, 7.5, 8.0, 7.5), ('hs250002', 5, 6.0, 6.0, 6.5), ('hs250002', 6, 6.5, 7.0, 6.5),
+('hs250002', 7, 7.0, 6.5, 7.0), ('hs250002', 8, 10.0, 10.0, 10.0), ('hs250002', 9, 10.0, 10.0, 10.0);
+
+-- 4. Thêm điểm cho hs250003 (Trung Bình - Pass toàn bộ, điểm mấp mé 5.0)
+INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
+('hs250003', 1, 5.0, 5.5, 5.0), ('hs250003', 2, 5.5, 5.0, 5.5), ('hs250003', 3, 5.0, 5.0, 5.0),
+('hs250003', 4, 6.0, 5.5, 6.0), ('hs250003', 5, 5.0, 6.0, 5.5), ('hs250003', 6, 5.5, 5.5, 5.5),
+('hs250003', 7, 5.5, 5.0, 5.5), ('hs250003', 8, 10.0, 10.0, 10.0), ('hs250003', 9, 10.0, 10.0, 10.0);
+
+-- 5. Thêm điểm cho hs250004 (RỚT MÔN TOÁN, CÁC MÔN KHÁC ĐẠT CAO) -> Dùng để test DoD 1
+INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
+('hs250004', 1, 4.0, 4.5, 4.0), /* <-- Tạch môn Toán (Môn 1) */ 
+('hs250004', 2, 7.0, 7.5, 7.0), ('hs250004', 3, 6.5, 7.0, 6.5),
+('hs250004', 4, 8.0, 8.5, 8.0), ('hs250004', 5, 7.5, 7.0, 7.5), ('hs250004', 6, 6.0, 6.5, 6.0),
+('hs250004', 7, 6.5, 6.0, 6.5), ('hs250004', 8, 10.0, 10.0, 10.0), ('hs250004', 9, 10.0, 10.0, 10.0);
+
+-- 6. Thêm điểm cho hs250005 (Rớt 3 môn: Toán, Lý, Hóa) 
+INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
+('hs250005', 1, 3.0, 3.5, 3.0), ('hs250005', 2, 4.0, 4.5, 4.0), ('hs250005', 3, 3.5, 4.0, 3.5),
+('hs250005', 4, 6.0, 6.5, 6.0), ('hs250005', 5, 7.0, 7.5, 7.0), ('hs250005', 6, 5.5, 6.0, 5.5),
+('hs250005', 7, 6.5, 6.5, 6.5), ('hs250005', 8, 10.0, 10.0, 10.0), ('hs250005', 9, 10.0, 10.0, 10.0);
