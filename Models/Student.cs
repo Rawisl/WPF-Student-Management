@@ -160,6 +160,26 @@ namespace WPF_Student_Management.Models
             return students;
         }
 
+        // GET STUDENT AVERAGE GPA WITH ONLY STUDENT ID
+        public decimal GetOverallGPA()
+        {
+            // Check DatabaseIndex&Procedure.sql for related procedure definition
+            string query = "EXEC usp_GetStudentGPA @StudentID";
+
+            SqlParameter[] parameters = new SqlParameter[] {
+                new SqlParameter("@StudentID", this.StudentId)
+            };
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
+
+            if (dt != null && dt.Rows.Count > 0 && dt.Rows[0]["TotalGPA"] != DBNull.Value)
+            {
+                return Convert.ToDecimal(dt.Rows[0]["TotalGPA"]);
+            }
+
+            return 0; // Return 0 if no scores are found
+        }
+
         // CREATE
         public bool AddStudent()
         {

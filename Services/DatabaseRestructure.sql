@@ -256,7 +256,7 @@ END;
 GO
 GO
 
---- Mock Data Insertion (Optional)
+--- Mock Data Insertion 
 
 -- 1. Insert Roles (Implicit IDs: 1 to 6)
 INSERT INTO Role (RoleName) VALUES
@@ -279,15 +279,15 @@ INSERT INTO Parameter (ParameterName, Value) VALUES
 
 -- 3. Insert Subjects (Implicit IDs: 1 to 9)
 INSERT INTO Subject (SubjectName, GradeType, IsDeleted) VALUES
-(N'Toán', 'Score', 0),    -- 1
-(N'Lý', 'Score', 0),      -- 2
-(N'Hóa', 'Score', 0),     -- 3
-(N'Sinh', 'Score', 0),    -- 4
-(N'Sử', 'Score', 0),      -- 5
-(N'Địa', 'Score', 0),     -- 6
-(N'Văn', 'Score', 0),     -- 7
-(N'Đạo Đức', 'PassFail', 0), -- 8
-(N'Thể Dục', 'PassFail', 0); -- 9
+(N'Toán học', 'Score', 0),    -- 1
+(N'Vật Lý', 'Score', 0),      -- 2
+(N'Hóa học', 'Score', 0),     -- 3
+(N'Sinh học', 'Score', 0),    -- 4
+(N'Lịch sử', 'Score', 0),     -- 5
+(N'Địa lý', 'Score', 0),      -- 6
+(N'Ngữ Văn', 'Score', 0),     -- 7
+(N'Giáo dục công dân', 'PassFail', 0), -- 8
+(N'Giáo dục thể chất', 'PassFail', 0); -- 9
 
 -- 4. Insert Accounts (Implicit IDs: 1 to 54)
 -- Passwords are pre-hashed using SHA-256 for: admin123, principal123, staff123, teacher123, student123
@@ -363,7 +363,7 @@ INSERT INTO Employee (AccountID, FullName, Gender, Specialization, Email, HireDa
 (8, N'Bùi Văn Sinh', N'Nam', N'Sinh học', 'gvcn11a1@gmail.mock', '2021-09-01', N'Đồng Nai', '0901234567', '075090123457', 'Active'),
 (9, N'Đỗ Thị Sử', N'Nữ', N'Lịch sử', 'gvcn11a2@gmail.mock', '2016-09-01', N'Bình Dương', '0901234568', '074190123458', 'Active'),
 (10, N'Hồ Văn Địa', N'Nam', N'Địa lý', 'gvcn11a3@gmail.mock', '2015-09-01', N'Long An', '0901234569', '080090123459', 'Active'),
-(11, N'Ngô Thị Anh', N'Nữ', N'Ngoại ngữ', 'gvcn12a1@gmail.mock', '2018-09-01', N'Tiền Giang', '0901234570', '082190123460', 'Active'),
+(11, N'Ngô Thị Anh', N'Nữ', N'Ngữ Văn', 'gvcn12a1@gmail.mock', '2018-09-01', N'Tiền Giang', '0901234570', '082190123460', 'Active'),
 (12, N'Dương Văn Bách', N'Nam', N'Toán học', 'gvcn12a2@gmail.mock', '2019-09-01', N'Bến Tre', '0901234571', '083090123461', 'Active'),
 (13, N'Lý Thị Đức', N'Nữ', N'Giáo dục công dân', 'gvbm_dao_duc@gmail.mock', '2022-09-01', N'Vũng Tàu', '0901234572', '077190123462', 'Active'),
 (14, N'Mai Văn Lực', N'Nam', N'Giáo dục thể chất', 'gvbm_the_duc@gmail.mock', '2021-09-01', N'Tây Ninh', '0901234573', '072090123463', 'Active');
