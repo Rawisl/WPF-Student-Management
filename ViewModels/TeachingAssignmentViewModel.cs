@@ -1,6 +1,9 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.Input;
+using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -86,7 +89,7 @@ namespace WPF_Student_Management.ViewModels
 
             foreach (var subject in allSubjects)
             {
-                // LỌC GV THEO CHUYÊN MÔN: Sử dụng hàm thông dịch từ đồng nghĩa (Đã FIX lỗi Contains)
+                // LỌC GV THEO CHUYÊN MÔN: Do DB đã đồng nhất tên, hàm lọc sẽ chạy cực kỳ mượt
                 var matchedTeachers = allStaff.Where(t => IsTeacherMatchSubject(t.Specialization, subject.SubjectName)).ToList();
 
                 matchedTeachers.Insert(0, new Staff { StaffId = 0, FullName = "Trống" });
@@ -155,24 +158,8 @@ namespace WPF_Student_Management.ViewModels
             if (string.IsNullOrWhiteSpace(specialization) || string.IsNullOrWhiteSpace(subjectName))
                 return false;
 
-            specialization = specialization.ToLower().Trim();
-            subjectName = subjectName.ToLower().Trim();
-
-            // NẾU TÊN MÔN VÀ CHUYÊN MÔN GIỐNG NHAU Y ĐÚNG
-            if (specialization == subjectName) return true;
-
-            // MAP RẠCH RÒI TỪNG MÔN 1-1 ĐỂ KHÔNG BỊ DÍNH CHỮ "LÝ" (Vật Lý / Địa Lý / Quản lý)
-            if (subjectName == "toán" && specialization == "toán học") return true;
-            if (subjectName == "lý" && specialization == "vật lý") return true;
-            if (subjectName == "hóa" && specialization == "hóa học") return true;
-            if (subjectName == "sinh" && specialization == "sinh học") return true;
-            if (subjectName == "sử" && specialization == "lịch sử") return true;
-            if (subjectName == "địa" && specialization == "địa lý") return true;
-            if (subjectName == "văn" && specialization == "ngữ văn") return true;
-            if (subjectName == "đạo đức" && specialization == "giáo dục công dân") return true;
-            if (subjectName == "thể dục" && specialization == "giáo dục thể chất") return true;
-
-            return false;
+            // Chỉ cần so sánh trực tiếp, bỏ qua phân biệt hoa/thường và khoảng trắng thừa 2 đầu
+            return specialization.Trim().Equals(subjectName.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
