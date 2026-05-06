@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.SqlClient;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
@@ -29,10 +28,9 @@ namespace WPF_Student_Management.ViewModels
         public int STT { get; set; }
         public string StudentId { get; set; }
         public string FullName { get; set; }
-        public string Status { get; set; }
+        public string Status { get; set; } // Đạt / Không đạt
     }
 
-    // Class chứa dữ liệu chi tiết của các môn bị rớt
     public class FailedSubjectItem
     {
         public string SubjectName { get; set; }
@@ -106,7 +104,6 @@ namespace WPF_Student_Management.ViewModels
             set { _isClassLocked = value; OnPropertyChanged(); OnPropertyChanged(nameof(ShowConfirmButton)); }
         }
 
-        // Nút Xác nhận chốt sổ chỉ hiện khi Đã tạo báo cáo VÀ Lớp chưa bị khóa
         public bool ShowConfirmButton => IsReportGenerated && !IsClassLocked;
 
         private string _totalStudents;
@@ -122,11 +119,12 @@ namespace WPF_Student_Management.ViewModels
         public ICommand GenerateReportCommand { get; }
         public ICommand ConfirmReportCommand { get; }
         public ICommand CancelReportCommand { get; }
+
         public ICommand ViewDetailCommand { get; }
 
         public HomeroomDashboardViewModel()
         {
-            GenderList = new ObservableCollection<string> { "Tất cả", "Nam", "Nữ" };
+            GenderList = new ObservableCollection<string> { "Tất cả", "Nam", "Nữ" };    
 
             GenerateReportCommand = new RelayCommand(ExecuteGenerateReport, CanExecuteReportActions);
             ConfirmReportCommand = new RelayCommand(ExecuteConfirmReport, CanExecuteReportActions);
@@ -145,7 +143,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // Hàm kiểm tra điều kiện: Phải có ClassID (Tức là phải là GVCN của 1 lớp) thì mới được thao tác báo cáo
         private bool CanExecuteReportActions(object obj) => _currentClassId > 0;
 
         private void LoadHomeroomData()
@@ -163,7 +160,6 @@ namespace WPF_Student_Management.ViewModels
 
                 int currentUserId = CurrentUser.Instance.UserId;
 
-                // Kiểm tra xem User hiện tại có đúng là GVCN không
                 string roleQuery = @"
                     SELECT r.RoleName 
                     FROM Account a 
@@ -179,14 +175,12 @@ namespace WPF_Student_Management.ViewModels
                     return;
                 }
 
-                // Lấy danh sách học sinh và điểm trung bình
-                // LOGIC QUAN TRỌNG: Dùng CASE WHEN loại trừ đích danh 'Giáo dục thể chất' khỏi việc tính trung bình cộng
-                // Các môn khác (kể cả Giáo dục công dân) vẫn được tính trung bình như bình thường.
+                // Cập nhật lấy thêm ClassID và IsLocked
                 string query = @"
             SELECT 
                 c.ClassID, c.IsLocked,
                 s.StudentID, s.FullName, s.Gender, c.ClassName,
-                AVG(CASE WHEN sub.SubjectName <> N'Giáo dục thể chất' THEN sc.AverageScore ELSE NULL END) as OverallAverage,
+                AVG(sc.AverageScore) as OverallAverage,
                 COUNT(sc.SubjectID) as GradedCount,
                 (SELECT COUNT(*) FROM Subject WHERE IsDeleted = 0) as TotalSubjects
             FROM Student s
@@ -195,7 +189,6 @@ namespace WPF_Student_Management.ViewModels
             JOIN Employee e ON c.HomeroomTeacherID = e.EmployeeID
             JOIN Account a ON e.AccountID = a.AccountID
             LEFT JOIN Score sc ON s.StudentID = sc.StudentID
-            LEFT JOIN Subject sub ON sc.SubjectID = sub.SubjectID
             WHERE a.AccountID = @AccountID
             GROUP BY c.ClassID, c.IsLocked, s.StudentID, s.FullName, s.Gender, c.ClassName";
 
@@ -253,7 +246,7 @@ namespace WPF_Student_Management.ViewModels
                 DataTable dtParam = DatabaseHelper.ExecuteQuery(getPassingGradeQuery);
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
-                // Lọc Min Score (Điểm thấp nhất trong tất cả các môn) và Overall Average (Điểm TB bỏ qua môn Giáo dục thể chất) của từng học sinh
+                // Lọc Min Score của từng học sinh
                 string query = @"
                     DECLARE @TotalSubjects INT = (SELECT COUNT(*) FROM Subject WHERE IsDeleted = 0);
 
@@ -261,12 +254,10 @@ namespace WPF_Student_Management.ViewModels
                         s.StudentID, s.FullName,
                         COUNT(sc.SubjectID) AS GradedCount,
                         MIN(sc.AverageScore) AS MinScore,
-                        AVG(CASE WHEN sub.SubjectName <> N'Giáo dục thể chất' THEN sc.AverageScore ELSE NULL END) AS OverallAverage,
                         @TotalSubjects AS TotalSubjects
                     FROM Student s
                     JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
                     LEFT JOIN Score sc ON s.StudentID = sc.StudentID
-                    LEFT JOIN Subject sub ON sc.SubjectID = sub.SubjectID
                     WHERE cp.ClassID = @ClassID
                     GROUP BY s.StudentID, s.FullName";
 
@@ -281,7 +272,7 @@ namespace WPF_Student_Management.ViewModels
                     int gradedCount = Convert.ToInt32(row["GradedCount"]);
                     int totalSubjects = Convert.ToInt32(row["TotalSubjects"]);
 
-                    // BẮT LỖI TÍNH TOÀN VẸN DỮ LIỆU ĐIỂM: Nếu có học sinh chưa đủ điểm các môn thì chặn lại không cho lập báo cáo
+                    // BẮT LỖI TÍNH TOÀN VẸN DỮ LIỆU ĐIỂM
                     if (gradedCount < totalSubjects)
                     {
                         NotificationHelper.ShowError("Không thể lập báo cáo. Dữ liệu điểm của lớp chưa hoàn tất. Vui lòng đợi GVBM hoàn thiện điểm.");
@@ -289,13 +280,10 @@ namespace WPF_Student_Management.ViewModels
                         return;
                     }
 
-                    // Điểm thấp nhất của tất cả môn (để rớt Giáo dục thể chất < 5.0 là rớt cả kỳ)
                     decimal minScore = row["MinScore"] != DBNull.Value ? Convert.ToDecimal(row["MinScore"]) : 0;
-                    // Điểm trung bình chung (đã loại bỏ Giáo dục thể chất)
-                    decimal overallAverage = row["OverallAverage"] != DBNull.Value ? Convert.ToDecimal(row["OverallAverage"]) : 0;
 
-                    // KIỂM TRA KÉP: Đạt = Điểm TB >= 5.0 VÀ Không có bất kỳ môn nào < 5.0
-                    bool isPassed = (overallAverage >= passingGrade) && (minScore >= passingGrade);
+                    // Có 1 môn dưới điểm chuẩn (MinScore < Điểm chuẩn) -> RỚT 
+                    bool isPassed = minScore >= passingGrade;
 
                     if (isPassed) passCount++;
 
@@ -361,7 +349,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // Property hứng sự kiện click vào 1 dòng học sinh ở Bảng Danh sách chung (để xem chi tiết tất cả điểm)
         private HomeroomStudentGradeItem _selectedStudent;
         public HomeroomStudentGradeItem SelectedStudent
         {
@@ -374,6 +361,7 @@ namespace WPF_Student_Management.ViewModels
                 if (value != null)
                 {
                     ExecuteOpenDetail(value);
+
                     System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                     {
                         _selectedStudent = null;
@@ -383,7 +371,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // Property hứng sự kiện click vào 1 dòng học sinh ở Bảng Báo Cáo
         private ReportItem _selectedReportItem;
         public ReportItem SelectedReportItem
         {
@@ -397,7 +384,6 @@ namespace WPF_Student_Management.ViewModels
                 {
                     ExecuteViewDetail(value);
 
-                    // Delay reset lại null để người dùng có thể click lại chính dòng đó lần 2 nếu muốn
                     System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                     {
                         _selectedReportItem = null;
@@ -407,55 +393,57 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // Mở Dialog hiển thị bảng điểm chi tiết TẤT CẢ các môn
         private async void ExecuteOpenDetail(HomeroomStudentGradeItem student)
         {
             var detailVM = new StudentGradeDetailViewModel(student.StudentId, student.FullName);
+
             var detailView = new WPF_Student_Management.Components.StudentGradeDetailUC
             {
                 DataContext = detailVM
             };
+
             await MaterialDesignThemes.Wpf.DialogHost.Show(detailView, "RootDialog");
         }
 
-        // --- XỬ LÝ CLICK VÀO HỌC SINH TRONG BÁO CÁO ---
+        // --- XỬ LÝ CLICK ĐÚP VÀO HỌC SINH TRONG BÁO CÁO ---
         private async void ExecuteViewDetail(object obj)
         {
             if (obj is ReportItem selectedStudent)
             {
-                // Học sinh Đạt -> Bỏ qua không làm gì cả
-                if (selectedStudent.Status.Trim().Equals("Đạt", StringComparison.OrdinalIgnoreCase)) return;
+                if (selectedStudent.Status.Trim().Equals("Đạt", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
 
-                // Học sinh Không đạt -> Mở Dialog hiển thị các môn thi rớt
                 if (selectedStudent.Status.Trim().Equals("Không đạt", StringComparison.OrdinalIgnoreCase))
                 {
                     var failedList = GetFailedSubjectsFromDB(selectedStudent.StudentId);
+
                     var detailVM = new FailedSubjectViewModel
                     {
                         StudentName = selectedStudent.FullName,
                         FailedSubjectsList = new ObservableCollection<FailedSubjectItem>(failedList)
                     };
+
                     var detailUC = new WPF_Student_Management.Components.FailedSubjectDetailUC
                     {
                         DataContext = detailVM
                     };
+
                     await MaterialDesignThemes.Wpf.DialogHost.Show(detailUC, "RootDialog");
                 }
             }
         }
 
-        // Hàm truy vấn CSDL lấy ra danh sách các môn có điểm TB < Điểm chuẩn
         private List<FailedSubjectItem> GetFailedSubjectsFromDB(string studentId)
         {
             var list = new List<FailedSubjectItem>();
             try
             {
-                // Lấy điểm chuẩn
                 string paramQuery = "SELECT ISNULL((SELECT Value FROM Parameter WHERE ParameterName = 'NumPassingGrade'), 5.0) as PassingGrade";
                 DataTable dtParam = DatabaseHelper.ExecuteQuery(paramQuery);
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
-                // Lấy CẢ 4 CỘT ĐIỂM của môn rớt
                 string query = @"
                     SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore 
                     FROM Score sc
@@ -471,7 +459,6 @@ namespace WPF_Student_Management.ViewModels
                 DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
                 foreach (DataRow row in dt.Rows)
                 {
-                    // Đẩy dữ liệu thô ra UI, Converter (ScoreDisplayConverter) ở XAML sẽ tự lo việc đổi số thành chữ "Không đạt" cho môn Giáo dục thể chất
                     list.Add(new FailedSubjectItem
                     {
                         SubjectName = row["SubjectName"].ToString(),
@@ -492,6 +479,7 @@ namespace WPF_Student_Management.ViewModels
         private void FilterData()
         {
             if (_allStudents == null) return;
+
             var filtered = _allStudents.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(SearchText))
