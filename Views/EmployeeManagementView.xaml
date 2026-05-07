@@ -6,8 +6,8 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
              mc:Ignorable="d"
-             d:DesignHeight="650" d:DesignWidth="1100"
-             Background="#F5F6FA">
+             d:DesignHeight="650"
+             d:DesignWidth="1100">
 
     <UserControl.DataContext>
         <viewmodels:EmployeeManagementViewModel />
@@ -19,87 +19,152 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,20">
+        <Grid Grid.Row="0"
+              Margin="0,0,0,20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="Danh sách nhân viên" FontSize="28" FontWeight="Bold" Foreground="#1A237E" />
-                <TextBlock Text="Quản lý thông tin Giáo viên và Cán bộ nhân viên" FontSize="14" Foreground="#878A99" Margin="0,5,0,0" />
+            <StackPanel Grid.Column="0"
+                        VerticalAlignment="Center">
+                <TextBlock Text="Danh sách nhân viên"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#1A237E" />
+                <TextBlock Text="Quản lý thông tin Giáo viên và Cán bộ nhân viên"
+                           FontSize="14"
+                           Foreground="#878A99"
+                           Margin="0,5,0,0" />
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <Button Command="{Binding OpenAddDialogCommand}" Height="42" Padding="15,0,15,0" Style="{StaticResource PrimaryRoundedButton}" Cursor="Hand">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <materialDesign:PackIcon Kind="PlusBoxOutline" Width="20" Height="20" Margin="0,0,8,0" />
-                        <TextBlock Text="Tiếp nhận nhân viên" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+                <Button Command="{Binding OpenAddDialogCommand}"
+                        Height="42"
+                        Padding="15,0,15,0"
+                        Style="{StaticResource PrimaryRoundedButton}"
+                        Cursor="Hand">
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="PlusBoxOutline"
+                                                 Width="20"
+                                                 Height="20"
+                                                 Margin="0,0,8,0" />
+                        <TextBlock Text="Tiếp nhận nhân viên"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
             </StackPanel>
         </Grid>
 
-        <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="15">
+        <Border Grid.Row="1"
+                Background="White"
+                CornerRadius="12"
+                Padding="15">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
+                <DropShadowEffect BlurRadius="10"
+                                  ShadowDepth="1"
+                                  Color="#DDDDDD"
+                                  Opacity="0.5" />
             </Border.Effect>
 
-            <DataGrid ItemsSource="{Binding StaffList}" 
-                      AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-                      Background="White" BorderThickness="0"
-                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEEEEE"
-                      RowHeight="50" ColumnHeaderHeight="45">
+            <DataGrid ItemsSource="{Binding StaffList}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      IsReadOnly="True"
+                      Background="White"
+                      BorderThickness="0"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="#EEEEEE"
+                      RowHeight="50"
+                      ColumnHeaderHeight="45">
 
                 <DataGrid.Resources>
                     <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="FontWeight" Value="SemiBold"/>
-                        <Setter Property="Background" Value="#F8F9FA"/>
-                        <Setter Property="Padding" Value="10,0"/>
-                        <Setter Property="FontSize" Value="14"/>
+                        <Setter Property="FontWeight"
+                                Value="SemiBold" />
+                        <Setter Property="Background"
+                                Value="#F8F9FA" />
+                        <Setter Property="Padding"
+                                Value="10,0" />
+                        <Setter Property="FontSize"
+                                Value="14" />
                     </Style>
                     <Style TargetType="DataGridCell">
-                        <Setter Property="Padding" Value="10,0"/>
-                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                        <Setter Property="FontSize" Value="14"/>
+                        <Setter Property="Padding"
+                                Value="10,0" />
+                        <Setter Property="VerticalContentAlignment"
+                                Value="Center" />
+                        <Setter Property="FontSize"
+                                Value="14" />
                     </Style>
                 </DataGrid.Resources>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Mã NV" Binding="{Binding StaffId}" Width="80"/>
-                    <DataGridTextColumn Header="Họ và Tên" Binding="{Binding FullName}" Width="*"/>
-                    <DataGridTextColumn Header="Giới tính" Binding="{Binding Gender}" Width="100"/>
-                    <DataGridTextColumn Header="Chuyên môn" Binding="{Binding Specialization}" Width="150"/>
-                    <DataGridTextColumn Header="SĐT" Binding="{Binding PhoneNumber}" Width="130"/>
-                    <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status}" Width="100"/>
+                    <DataGridTextColumn Header="Mã NV"
+                                        Binding="{Binding StaffId}"
+                                        Width="80" />
+                    <DataGridTextColumn Header="Họ và Tên"
+                                        Binding="{Binding FullName}"
+                                        Width="*" />
+                    <DataGridTextColumn Header="Giới tính"
+                                        Binding="{Binding Gender}"
+                                        Width="100" />
+                    <DataGridTextColumn Header="Chuyên môn"
+                                        Binding="{Binding Specialization}"
+                                        Width="150" />
+                    <DataGridTextColumn Header="SĐT"
+                                        Binding="{Binding PhoneNumber}"
+                                        Width="130" />
+                    <DataGridTextColumn Header="Trạng thái"
+                                        Binding="{Binding Status}"
+                                        Width="100" />
 
-                    <DataGridTemplateColumn Header="Hành động" Width="120">
+                    <DataGridTemplateColumn Header="Hành động"
+                                            Width="120">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Center">
 
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel">
-                                            <Setter Property="Visibility" Value="Hidden" />
+                                            <Setter Property="Visibility"
+                                                    Value="Hidden" />
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
-                                                    <Setter Property="Visibility" Value="Visible" />
+                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}"
+                                                             Value="True">
+                                                    <Setter Property="Visibility"
+                                                            Value="Visible" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
 
-                                    <Button Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
-                        CommandParameter="{Binding}"
-                        Style="{StaticResource MaterialDesignIconButton}" 
-                        ToolTip="Chỉnh sửa" Width="35" Height="35" Foreground="#1565C0" Cursor="Hand">
+                                    <Button Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="Chỉnh sửa"
+                                            Width="35"
+                                            Height="35"
+                                            Foreground="#1565C0"
+                                            Cursor="Hand">
                                         <materialDesign:PackIcon Kind="PencilOutline" />
                                     </Button>
 
-                                    <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
-                        CommandParameter="{Binding}"
-                        Style="{StaticResource MaterialDesignIconButton}" 
-                        ToolTip="Xóa" Width="35" Height="35" Foreground="#E53935" Cursor="Hand" Margin="5,0,0,0">
+                                    <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="Xóa"
+                                            Width="35"
+                                            Height="35"
+                                            Foreground="#E53935"
+                                            Cursor="Hand"
+                                            Margin="5,0,0,0">
                                         <materialDesign:PackIcon Kind="TrashCanOutline" />
                                     </Button>
 

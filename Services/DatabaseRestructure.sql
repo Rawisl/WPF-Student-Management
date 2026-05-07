@@ -1,4 +1,6 @@
 ﻿-- Cleanup: Drop tables in reverse order of dependencies
+DROP TABLE IF EXISTS ClassReport;
+DROP TABLE IF EXISTS SubjectReport;
 DROP TABLE IF EXISTS Application;
 DROP TABLE IF EXISTS Score;
 DROP TABLE IF EXISTS TeachingAssignment;
@@ -78,7 +80,7 @@ CREATE TABLE Subject (
     SubjectID INT IDENTITY(1,1) PRIMARY KEY,
     SubjectName NVARCHAR(100) NOT NULL,
     GradeType VARCHAR(50) NOT NULL, 
-    IsDeleted BIT DEFAULT 0,
+    IsDeleted BIT DEFAULT 0
 );
 
 CREATE TABLE Class (
@@ -87,7 +89,7 @@ CREATE TABLE Class (
     Grade INT NOT NULL,
     ClassSize INT DEFAULT 0,
     HomeroomTeacherID INT,
-    IsLocked BIT DEFAULT 0,
+    AcademicYear NVARCHAR(50) DEFAULT '2025-2026' NOT NULL, -- [MỚI THÊM]
     CONSTRAINT CHK_Class_Grade CHECK (Grade IN (10, 11, 12)),
     CONSTRAINT FK_Class_Employee FOREIGN KEY (HomeroomTeacherID) REFERENCES Employee(EmployeeID)
 );
@@ -105,7 +107,9 @@ CREATE TABLE TeachingAssignment (
     EmployeeID INT,
     ClassID INT,
     SubjectID INT,
-    CONSTRAINT PK_TeachingAssignment PRIMARY KEY (EmployeeID, ClassID, SubjectID),
+    Semester NVARCHAR(50) DEFAULT N'Học kỳ 1' NOT NULL,      -- [MỚI THÊM]
+    AcademicYear NVARCHAR(50) DEFAULT '2025-2026' NOT NULL, -- [MỚI THÊM]
+    CONSTRAINT PK_TeachingAssignment PRIMARY KEY (EmployeeID, ClassID, SubjectID, Semester, AcademicYear), -- [ĐÃ SỬA KHÓA CHÍNH]
     CONSTRAINT FK_TeachingAssignment_Employee FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID),
     CONSTRAINT FK_TeachingAssignment_Class FOREIGN KEY (ClassID) REFERENCES Class(ClassID),
     CONSTRAINT FK_TeachingAssignment_Subject FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID)
@@ -115,6 +119,8 @@ CREATE TABLE Score (
     ScoreID INT IDENTITY(1,1) PRIMARY KEY,
     StudentID VARCHAR(10) NOT NULL,
     SubjectID INT NOT NULL,
+    Semester NVARCHAR(50) DEFAULT N'Học kỳ 1' NOT NULL,      -- [MỚI THÊM]
+    AcademicYear NVARCHAR(50) DEFAULT '2025-2026' NOT NULL, -- [MỚI THÊM]
     RegularTestScore DECIMAL(5,2),
     MidTermScore DECIMAL(5,2),
     FinalTermScore DECIMAL(5,2),
@@ -139,7 +145,43 @@ CREATE TABLE Application (
     CONSTRAINT FK_Application_Employee FOREIGN KEY (CreatedByTeacherID) REFERENCES Employee(EmployeeID),
     CONSTRAINT FK_Application_Class FOREIGN KEY (NewClassID) REFERENCES Class(ClassID)
 );
+CREATE TABLE SubjectReport (
+    SubjectReportID INT IDENTITY(1,1) PRIMARY KEY,
+    ClassID INT NOT NULL,
+    SubjectID INT NOT NULL,
+    Semester NVARCHAR(50) NOT NULL,
+    AcademicYear NVARCHAR(50) NOT NULL,
+    
+    TotalStudents INT NOT NULL,
+    PassedStudents INT NOT NULL,
+    PassRate DECIMAL(5,2) NOT NULL,
+    
+    IsLocked BIT DEFAULT 1, 
+    CreatedByTeacherID INT NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    
+    CONSTRAINT UQ_SubjectReport UNIQUE (ClassID, SubjectID, Semester, AcademicYear),
+    CONSTRAINT FK_SubjectReport_Class FOREIGN KEY (ClassID) REFERENCES Class(ClassID),
+    CONSTRAINT FK_SubjectReport_Subject FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID),
+    CONSTRAINT FK_SubjectReport_Employee FOREIGN KEY (CreatedByTeacherID) REFERENCES Employee(EmployeeID)
+);
 
+CREATE TABLE ClassReport (
+    ClassReportID INT IDENTITY(1,1) PRIMARY KEY,
+    ClassID INT NOT NULL,
+    Semester NVARCHAR(50) NOT NULL,
+    AcademicYear NVARCHAR(50) NOT NULL,
+    
+    TotalStudents INT NOT NULL,
+    
+    IsLocked BIT DEFAULT 1,
+    CreatedByTeacherID INT NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    
+    CONSTRAINT UQ_ClassReport UNIQUE (ClassID, Semester, AcademicYear),
+    CONSTRAINT FK_ClassReport_Class FOREIGN KEY (ClassID) REFERENCES Class(ClassID),
+    CONSTRAINT FK_ClassReport_Employee FOREIGN KEY (CreatedByTeacherID) REFERENCES Employee(EmployeeID)
+);
 -- Triggers initialization ----------------------------------------
 
 -- Trigger to verify Homeroom Teacher role is exactly GVCN

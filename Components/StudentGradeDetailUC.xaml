@@ -3,7 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
-             Width="850" Height="550" Background="Transparent">
+             Width="850"
+             Height="550"
+             Background="Transparent">
 
 
     <UserControl.Resources>
@@ -22,23 +24,32 @@
 
         <Grid Margin="20">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="{Binding StudentName, StringFormat='Chi tiết điểm: {0}'}" 
-                       FontSize="24" FontWeight="Bold" Foreground="#1A237E" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Row="0"
+                       Text="{Binding StudentName, StringFormat='Chi tiết điểm: {0}'}"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="#1A237E"
+                       Margin="0,0,0,20"
+                       HorizontalAlignment="Center" />
 
-            <DataGrid Grid.Row="1" ItemsSource="{Binding ScoreList}" 
-                      AutoGenerateColumns="False" IsReadOnly="True" 
-                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                      RowHeight="45" FontSize="15" Background="Transparent"
-                      BorderThickness="0">
+            <DataGrid Grid.Row="1"
+                      ItemsSource="{Binding ScoreList}"
+                      Cursor="Hand"
+                      Style="{StaticResource GlobalDataGridStyle}"
+                      CellStyle="{StaticResource GlobalDataGridCellStyle}"
+                      FontSize="15">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Môn học" Binding="{Binding SubjectName}" Width="1.2*"/>
+                    <DataGridTextColumn Header="Môn học"
+                                        Binding="{Binding SubjectName}"
+                                        Width="1.2*" />
 
-                    <DataGridTemplateColumn Header="Điểm Thường xuyên" Width="1.5*">
+                    <DataGridTemplateColumn Header="Điểm Thường xuyên"
+                                            Width="1.5*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock VerticalAlignment="Center">
@@ -53,7 +64,8 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Điểm Giữa kỳ" Width="1.2*">
+                    <DataGridTemplateColumn Header="Điểm Giữa kỳ"
+                                            Width="1.2*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock VerticalAlignment="Center">
@@ -68,7 +80,8 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Điểm Cuối kỳ" Width="1.2*">
+                    <DataGridTemplateColumn Header="Điểm Cuối kỳ"
+                                            Width="1.2*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock VerticalAlignment="Center">
@@ -83,10 +96,13 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Trung Bình" Width="*">
+                    <DataGridTemplateColumn Header="Trung Bình"
+                                            Width="*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock VerticalAlignment="Center" FontWeight="Bold" Foreground="#E65100">
+                                <TextBlock VerticalAlignment="Center"
+                                           FontWeight="Bold"
+                                           Foreground="#E65100">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
                                             <Binding Path="SubjectName" />
@@ -101,10 +117,15 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            <Button Grid.Row="2" Content="ĐÓNG" 
-                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
-                    Style="{StaticResource MaterialDesignOutlinedButton}" 
-                    Margin="0,20,0,0" HorizontalAlignment="Center" Width="140" Height="40" FontSize="16"/>
+            <Button Grid.Row="2"
+                    Content="ĐÓNG"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Margin="0,20,0,0"
+                    HorizontalAlignment="Center"
+                    Width="140"
+                    Height="40"
+                    FontSize="16" />
         </Grid>
     </Border>
 </UserControl>

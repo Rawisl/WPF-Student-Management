@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,6 +22,11 @@ namespace WPF_Student_Management.ViewModels
 
     public partial class ClassRosterViewModel : ObservableObject
     {
+        // --- BỔ SUNG: QUẢN LÝ NĂM HỌC HIỆN TẠI ---
+        [ObservableProperty]
+        private string _currentAcademicYear = "2025-2026";
+        // -----------------------------------------
+
         [ObservableProperty]
         private ObservableCollection<SelectableStudentItem> _currentClassStudents;
 
@@ -139,7 +146,6 @@ namespace WPF_Student_Management.ViewModels
         //Check điều kiện để Enable/Disable nút "+ Thêm học sinh"
         private bool CanOpenAddStudent()
         {
-            // Tương lai: Thêm điều kiện && !string.IsNullOrEmpty(_selectedClass)
             return CurrentClassStudents != null && CurrentClassStudents.Count < _maxClassSize;
         }
 
@@ -151,8 +157,8 @@ namespace WPF_Student_Management.ViewModels
 
             try
             {
-                //Kéo danh sách học sinh chưa có lớp từ CSDL
-                var bovoStudents = Student.GetUnassignedStudents();
+                // SỬA LỖI COMPILER: Kéo danh sách học sinh chưa có lớp của NĂM HỌC HIỆN TẠI
+                var bovoStudents = Student.GetUnassignedStudents(CurrentAcademicYear);
 
                 //Đổ data vào kho chứa của Popup
                 foreach (var hs in bovoStudents)
@@ -258,8 +264,8 @@ namespace WPF_Student_Management.ViewModels
 
             //Load danh sách học sinh của cái Lớp vừa chọn
             LoadStudentsForSelectedClass();
-
         }
+
         partial void OnSelectedGradeChanged(string value)
         {
             if (string.IsNullOrEmpty(value)) return;
@@ -283,7 +289,6 @@ namespace WPF_Student_Management.ViewModels
             SelectedClass = null;
         }
 
-
         public void RefreshData()
         {
             // 1. Reset trắng ComboBox và Grid
@@ -295,8 +300,8 @@ namespace WPF_Student_Management.ViewModels
             // 2. Kéo lại Quy định sĩ số (đề phòng vừa sửa bên tab Cài đặt)
             LoadRegulations();
 
-            // 3. Kéo mẻ lưới mới TOÀN BỘ LỚP từ DB (đề phòng vừa thêm lớp mới)
-            _allClassesFromDb = Class.GetAllClasses();
+            // 3. SỬA LỖI LOGIC: Kéo mẻ lưới mới từ DB, nhưng CHỈ LẤY LỚP CỦA NĂM HỌC HIỆN TẠI
+            _allClassesFromDb = Class.GetAllClasses().Where(c => c.AcademicYear == CurrentAcademicYear).ToList();
 
             // 4. Lọc lại danh sách Khối đổ lên ComboBox
             var distinctGrades = _allClassesFromDb.Select(c => c.Grade.ToString()).Distinct().OrderBy(g => g).ToList();

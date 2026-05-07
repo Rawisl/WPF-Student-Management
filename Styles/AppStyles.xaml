@@ -461,5 +461,119 @@
             </Trigger>
         </Style.Triggers>
     </Style>
-    
+
+    <!-- STYLE 1: NỬA VIÊN THUỐC BÊN TRÁI -->
+    <Style x:Key="SegmentedLeftTabStyle"
+           TargetType="TabItem">
+        <Setter Property="MinHeight"
+                Value="45" />
+        <Setter Property="Margin"
+                Value="0" />
+        <Setter Property="Padding"
+                Value="0" />
+
+        <!-- FIX BUG STRETCH: Trả lại Stretch cho View con bên dưới dãn hết màn hình -->
+        <Setter Property="HorizontalContentAlignment"
+                Value="Stretch" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Stretch" />
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="PillBorder"
+                            Background="Transparent"
+                            BorderBrush="#1A237E"
+                            BorderThickness="1.5,1.5,0.75,1.5"
+                            CornerRadius="22.5,0,0,22.5"
+                            Cursor="Hand">
+
+                        <!-- FIX BUG TEXT: Ép cứng chữ ở Header phải nằm Center -->
+                        <ContentPresenter ContentSource="Header"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!-- Giữ nguyên phần Triggers cũ của bro -->
+                        <Trigger Property="IsSelected"
+                                 Value="True">
+                            <Setter TargetName="PillBorder"
+                                    Property="Background"
+                                    Value="#1A237E" />
+                            <Setter Property="Foreground"
+                                    Value="White" />
+                        </Trigger>
+                        <Trigger Property="IsSelected"
+                                 Value="False">
+                            <Setter TargetName="PillBorder"
+                                    Property="Background"
+                                    Value="Transparent" />
+                            <Setter Property="Foreground"
+                                    Value="#1A237E" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- STYLE 2: NỬA VIÊN THUỐC BÊN PHẢI -->
+    <Style x:Key="SegmentedRightTabStyle"
+           TargetType="TabItem">
+        <Setter Property="MinHeight"
+                Value="45" />
+        <Setter Property="Margin"
+                Value="0" />
+        <Setter Property="Padding"
+                Value="0" />
+
+        <!-- FIX BUG STRETCH: Trả lại Stretch -->
+        <Setter Property="HorizontalContentAlignment"
+                Value="Stretch" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Stretch" />
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="PillBorder"
+                            Background="Transparent"
+                            BorderBrush="#1A237E"
+                            BorderThickness="0.75,1.5,1.5,1.5"
+                            CornerRadius="0,22.5,22.5,0"
+                            Cursor="Hand">
+
+                        <!-- FIX BUG TEXT: Ép cứng Center -->
+                        <ContentPresenter ContentSource="Header"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!-- Giữ nguyên phần Triggers cũ của bro -->
+                        <Trigger Property="IsSelected"
+                                 Value="True">
+                            <Setter TargetName="PillBorder"
+                                    Property="Background"
+                                    Value="#1A237E" />
+                            <Setter Property="Foreground"
+                                    Value="White" />
+                            <Setter Property="Panel.ZIndex"
+                                    Value="1" />
+                        </Trigger>
+                        <Trigger Property="IsSelected"
+                                 Value="False">
+                            <Setter TargetName="PillBorder"
+                                    Property="Background"
+                                    Value="Transparent" />
+                            <Setter Property="Foreground"
+                                    Value="#1A237E" />
+                            <Setter Property="Panel.ZIndex"
+                                    Value="0" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

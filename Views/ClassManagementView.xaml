@@ -79,9 +79,9 @@
                     </StackPanel>
                 </Button>
             </StackPanel>
-            
+
         </Grid>
-        
+
         <Border Grid.Row="1"
                 Background="White"
                 CornerRadius="12"

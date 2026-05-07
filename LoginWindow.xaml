@@ -7,6 +7,7 @@
         xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:components="clr-namespace:WPF_Student_Management.Components"
+        xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
         mc:Ignorable="d"
         Title="Đăng Nhập"
         Height="450"
@@ -68,12 +69,80 @@
                              Margin="0,0,0,20"
                              FontSize="16" />
 
-                    <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
-                             materialDesign:HintAssist.Hint="Mật khẩu"
-                             FontFamily="Password"
-                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                             Margin="0,0,0,30"
-                             FontSize="16" />
+                    <Grid Margin="0,0,0,30">
+                        <PasswordBox helpers:PasswordHelper.Attach="True"
+                                     helpers:PasswordHelper.Password="{Binding Password}"
+                                     materialDesign:HintAssist.Hint="Mật khẩu"
+                                     Padding="0,0,30,0"
+                                     FontSize="16">
+                            <PasswordBox.Style>
+                                <Style TargetType="PasswordBox"
+                                       BasedOn="{StaticResource MaterialDesignFloatingHintPasswordBox}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChecked, ElementName=ToggleLoginPwd}"
+                                                     Value="True">
+                                            <Setter Property="Visibility"
+                                                    Value="Hidden" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </PasswordBox.Style>
+                        </PasswordBox>
+
+                        <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                                 materialDesign:HintAssist.Hint="Mật khẩu"
+                                 Padding="0,0,30,0"
+                                 FontSize="16">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox"
+                                       BasedOn="{StaticResource MaterialDesignFloatingHintTextBox}">
+                                    <Setter Property="Visibility"
+                                            Value="Hidden" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChecked, ElementName=ToggleLoginPwd}"
+                                                     Value="True">
+                                            <Setter Property="Visibility"
+                                                    Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+
+                        <ToggleButton x:Name="ToggleLoginPwd"
+                                      Width="30"
+                                      Height="30"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Bottom"
+                                      Margin="0,0,0,2"
+                                      Cursor="Hand"
+                                      ToolTip="Ẩn/Hiện mật khẩu">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="Transparent">
+                                        <materialDesign:PackIcon x:Name="Icon"
+                                                                 Kind="EyeOutline"
+                                                                 Foreground="#878A99"
+                                                                 Width="22"
+                                                                 Height="22"
+                                                                 HorizontalAlignment="Center"
+                                                                 VerticalAlignment="Center" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked"
+                                                 Value="True">
+                                            <Setter TargetName="Icon"
+                                                    Property="Kind"
+                                                    Value="EyeOffOutline" />
+                                            <Setter TargetName="Icon"
+                                                    Property="Foreground"
+                                                    Value="#2962FF" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+                    </Grid>
 
                     <Button Content="ĐĂNG NHẬP"
                             Command="{Binding LoginCommand}"

@@ -145,5 +145,127 @@ namespace WPF_Student_Management.Helpers
                 }
             }
         }
+        // ====================================================================
+        // --- 5. THUỘC TÍNH RÀNG BUỘC TỰ ĐỘNG LÀM TRÒN ĐIỂM THEO CHUẨN BGD ---
+        // ====================================================================
+        public static readonly DependencyProperty IsBgdGradeOnlyProperty =
+            DependencyProperty.RegisterAttached("IsBgdGradeOnly", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnIsBgdGradeOnlyChanged));
+
+        public static void SetIsBgdGradeOnly(UIElement element, bool value) => element.SetValue(IsBgdGradeOnlyProperty, value);
+        public static bool GetIsBgdGradeOnly(UIElement element) => (bool)element.GetValue(IsBgdGradeOnlyProperty);
+
+        private static void OnIsBgdGradeOnlyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is TextBox textBox)
+            {
+                if ((bool)e.NewValue)
+                {
+                    textBox.PreviewTextInput += BlockNonDecimalGrade;
+                    DataObject.AddPastingHandler(textBox, OnPasteGrade);
+                    textBox.LostFocus += FormatBgdGrade; // Khi click ra chỗ khác thì tự làm tròn
+                }
+                else
+                {
+                    textBox.PreviewTextInput -= BlockNonDecimalGrade;
+                    DataObject.RemovePastingHandler(textBox, OnPasteGrade);
+                    textBox.LostFocus -= FormatBgdGrade;
+                }
+            }
+        }
+
+        private static void BlockNonDecimalGrade(object sender, TextCompositionEventArgs e)
+        {
+            // Cho phép nhập số, dấu chấm và dấu phẩy
+            Regex regex = new Regex("[^0-9.,]+");
+            if (regex.IsMatch(e.Text))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            // Chỉ cho phép tồn tại tối đa 1 dấu thập phân (chấm hoặc phẩy)
+            if (sender is TextBox textBox && (e.Text == "." || e.Text == ","))
+            {
+                if (textBox.Text.Contains(".") || textBox.Text.Contains(","))
+                    e.Handled = true;
+            }
+        }
+
+        private static void OnPasteGrade(object sender, DataObjectPastingEventArgs e)
+        {
+            if (e.DataObject.GetDataPresent(typeof(string)))
+            {
+                string text = (string)e.DataObject.GetData(typeof(string));
+                Regex regex = new Regex("[^0-9.,]+");
+                if (regex.IsMatch(text))
+                {
+                    e.CancelCommand();
+                }
+            }
+        }
+
+        private static void FormatBgdGrade(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                if (string.IsNullOrWhiteSpace(textBox.Text)) return;
+
+                // Chuẩn hóa dấu phẩy (VN) thành dấu chấm (Quốc tế) để Parse không bị lỗi
+                string input = textBox.Text.Replace(',', '.');
+
+                if (double.TryParse(input, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double score))
+                {
+                    // 1. Chặn khoảng điểm từ 0 -> 10
+                    if (score < 0) score = 0;
+                    if (score > 10) score = 10;
+
+                    // 2. LÀM TRÒN CHUẨN BỘ GIÁO DỤC (AwayFromZero)
+                    // (Ví dụ: 7.24 -> 7.2 | 7.25 -> 7.3)
+                    score = Math.Round(score, 1, MidpointRounding.AwayFromZero);
+
+                    // 3. Gán lại vào TextBox (Giữ hiển thị chuẩn quốc tế với dấu chấm)
+                    textBox.Text = score.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    // Nếu nhập linh tinh không parse được -> tự xóa trắng
+                    textBox.Text = "";
+                }
+            }
+        }
+
+        // ====================================================================
+        // --- 6. TỰ ĐỘNG BÔI ĐEN TEXT KHI Ô ĐƯỢC CHỌN (CHUẨN EXCEL) ---
+        // ====================================================================
+        public static readonly DependencyProperty SelectAllOnFocusProperty =
+            DependencyProperty.RegisterAttached("SelectAllOnFocus", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnSelectAllOnFocusChanged));
+
+        public static void SetSelectAllOnFocus(UIElement element, bool value) => element.SetValue(SelectAllOnFocusProperty, value);
+        public static bool GetSelectAllOnFocus(UIElement element) => (bool)element.GetValue(SelectAllOnFocusProperty);
+
+        private static void OnSelectAllOnFocusChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is TextBox textBox)
+            {
+                if ((bool)e.NewValue)
+                {
+                    textBox.GotKeyboardFocus += TextBox_GotKeyboardFocus;
+                }
+                else
+                {
+                    textBox.GotKeyboardFocus -= TextBox_GotKeyboardFocus;
+                }
+            }
+        }
+
+        private static void TextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                // Phải dùng Dispatcher để đợi WPF render xong mới bôi đen được
+                textBox.Dispatcher.BeginInvoke(new Action(() => textBox.SelectAll()));
+            }
+        }
+
     }
 }

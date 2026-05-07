@@ -87,14 +87,14 @@ namespace WPF_Student_Management.Models
                            "WHERE AccountID = @AccountID";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@AccountID", this.AccountId),
-                new SqlParameter("@RoleID", this.RoleId),
-                new SqlParameter("@Username", this.Username),
-                // Hash the password inline before saving
-                new SqlParameter("@PasswordHash", PasswordHasher.HashPassword(this.PasswordHash)),
-                new SqlParameter("@IsRequiredChangePassword", this.IsRequiredChangePassword),
-                new SqlParameter("@IsActive", this.IsActive)
-            };
+            new SqlParameter("@AccountID", this.AccountId),
+            new SqlParameter("@RoleID", this.RoleId),
+            new SqlParameter("@Username", this.Username),
+            // BỎ GỌI HÀM HASH! Đẩy trực tiếp giá trị hiện tại xuống
+            new SqlParameter("@PasswordHash", this.PasswordHash),
+            new SqlParameter("@IsRequiredChangePassword", this.IsRequiredChangePassword),
+            new SqlParameter("@IsActive", this.IsActive)
+        };
 
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
@@ -132,7 +132,11 @@ namespace WPF_Student_Management.Models
                     AccountId = Convert.ToInt32(row["AccountID"]),
                     Username = row["Username"].ToString() ?? "",
                     PasswordHash = row["PasswordHash"].ToString() ?? "", // Compare hashes, not raw passwords
-                    RoleId = Convert.ToInt32(row["RoleID"])
+                    RoleId = Convert.ToInt32(row["RoleID"]),
+
+                    //THÊM 2 DÒNG NÀY VÀO ĐỂ UI CÓ THÔNG TIN XỬ LÝ:
+                    IsRequiredChangePassword = Convert.ToBoolean(row["IsRequiredChangePassword"]),
+                    IsActive = Convert.ToBoolean(row["IsActive"])
                 };
             }
 

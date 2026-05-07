@@ -14,6 +14,12 @@ namespace WPF_Student_Management.Models
         public int ScoreId { get; set; }
         public required string StudentId { get; set; }
         public int SubjectId { get; set; }
+
+        // --- BỔ SUNG CHIỀU THỜI GIAN (BẮT BUỘC ĐỂ SCALE) ---
+        public string Semester { get; set; } = "Học kỳ 1";
+        public string AcademicYear { get; set; } = "2025-2026";
+        // ---------------------------------------------------
+
         public decimal? RegularTestScore { get; set; }
         public decimal? MidTermScore { get; set; }
         public decimal? FinalTermScore { get; set; }
@@ -34,6 +40,11 @@ namespace WPF_Student_Management.Models
                     ScoreId = Convert.ToInt32(row["ScoreID"]),
                     StudentId = row["StudentID"].ToString() ?? "",
                     SubjectId = Convert.ToInt32(row["SubjectID"]),
+
+                    // Lấy Semester và AcademicYear từ DB
+                    Semester = row["Semester"] != DBNull.Value ? row["Semester"].ToString()! : "Học kỳ 1",
+                    AcademicYear = row["AcademicYear"] != DBNull.Value ? row["AcademicYear"].ToString()! : "2025-2026",
+
                     RegularTestScore = row["RegularTestScore"] == DBNull.Value ? null : Convert.ToDecimal(row["RegularTestScore"]),
                     MidTermScore = row["MidTermScore"] == DBNull.Value ? null : Convert.ToDecimal(row["MidTermScore"]),
                     FinalTermScore = row["FinalTermScore"] == DBNull.Value ? null : Convert.ToDecimal(row["FinalTermScore"]),
@@ -48,12 +59,14 @@ namespace WPF_Student_Management.Models
         public bool AddScore()
         {
             // AverageScore is calculated via SQL Trigger, so it is omitted from INSERT
-            string query = "INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) " +
-                           "VALUES (@StudentID, @SubjectID, @RegularTestScore, @MidTermScore, @FinalTermScore)";
+            string query = "INSERT INTO Score (StudentID, SubjectID, Semester, AcademicYear, RegularTestScore, MidTermScore, FinalTermScore) " +
+                           "VALUES (@StudentID, @SubjectID, @Semester, @AcademicYear, @RegularTestScore, @MidTermScore, @FinalTermScore)";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@StudentID", this.StudentId),
                 new SqlParameter("@SubjectID", this.SubjectId),
+                new SqlParameter("@Semester", this.Semester),
+                new SqlParameter("@AcademicYear", this.AcademicYear),
                 new SqlParameter("@RegularTestScore", this.RegularTestScore ?? (object)DBNull.Value),
                 new SqlParameter("@MidTermScore", this.MidTermScore ?? (object)DBNull.Value),
                 new SqlParameter("@FinalTermScore", this.FinalTermScore ?? (object)DBNull.Value)
@@ -67,6 +80,7 @@ namespace WPF_Student_Management.Models
         {
             // AverageScore is calculated via SQL Trigger, so it is omitted from UPDATE
             string query = "UPDATE Score SET StudentID = @StudentID, SubjectID = @SubjectID, " +
+                           "Semester = @Semester, AcademicYear = @AcademicYear, " + // BỔ SUNG UPDATE THỜI GIAN
                            "RegularTestScore = @RegularTestScore, MidTermScore = @MidTermScore, FinalTermScore = @FinalTermScore " +
                            "WHERE ScoreID = @ScoreID";
 
@@ -74,6 +88,8 @@ namespace WPF_Student_Management.Models
                 new SqlParameter("@ScoreID", this.ScoreId),
                 new SqlParameter("@StudentID", this.StudentId),
                 new SqlParameter("@SubjectID", this.SubjectId),
+                new SqlParameter("@Semester", this.Semester),
+                new SqlParameter("@AcademicYear", this.AcademicYear),
                 new SqlParameter("@RegularTestScore", this.RegularTestScore ?? (object)DBNull.Value),
                 new SqlParameter("@MidTermScore", this.MidTermScore ?? (object)DBNull.Value),
                 new SqlParameter("@FinalTermScore", this.FinalTermScore ?? (object)DBNull.Value)

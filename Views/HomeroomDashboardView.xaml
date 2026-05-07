@@ -1,14 +1,14 @@
 ﻿<UserControl x:Class="WPF_Student_Management.Views.HomeroomDashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
              xmlns:components="clr-namespace:WPF_Student_Management.Components"
-             mc:Ignorable="d" 
-             d:DesignHeight="700" d:DesignWidth="1000"
-             Background="#F8F9FA">
+             mc:Ignorable="d"
+             d:DesignHeight="700"
+             d:DesignWidth="1000">
 
     <UserControl.DataContext>
         <viewmodels:HomeroomDashboardViewModel />
@@ -20,59 +20,106 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="Bảng điều khiển Lớp chủ nhiệm" FontSize="28" FontWeight="Bold" Foreground="#1A237E" />
-            <TextBlock Text="{Binding ClassTitle}" FontSize="15" Foreground="#878A99" Margin="0,5,0,0" FontWeight="SemiBold" />
-        </StackPanel>
+        <Grid Grid.Row="0"
+              Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-        <TabControl Grid.Row="1" 
-                    Style="{StaticResource MaterialDesignTabControl}" 
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Bảng điều khiển Lớp chủ nhiệm"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#1A237E" />
+                <TextBlock Text="{Binding ClassTitle}"
+                           FontSize="15"
+                           Foreground="#878A99"
+                           Margin="0,5,0,0"
+                           FontWeight="SemiBold" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+
+                <StackPanel Orientation="Vertical"
+                            Margin="0,0,20,0">
+                    <TextBlock Text="Năm học:"
+                               Foreground="Black"
+                               FontWeight="Bold"
+                               FontSize="15"
+                               Margin="5,0,0,5" />
+                    <ComboBox SelectedValue="{Binding CurrentAcademicYear}"
+                              SelectedValuePath="Content"
+                              Width="130"
+                              Height="42"
+                              FontSize="15"
+                              VerticalContentAlignment="Center"
+                              FontWeight="SemiBold">
+                        <ComboBoxItem Content="2025-2026" />
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Học kỳ:"
+                               Foreground="Black"
+                               FontWeight="Bold"
+                               FontSize="15"
+                               Margin="5,0,0,5" />
+                    <ComboBox SelectedValue="{Binding CurrentSemester}"
+                              SelectedValuePath="Content"
+                              Width="120"
+                              Height="42"
+                              FontSize="15"
+                              VerticalContentAlignment="Center"
+                              FontWeight="SemiBold">
+                        <ComboBoxItem Content="Học kỳ 1" />
+                        <ComboBoxItem Content="Học kỳ 2" />
+                    </ComboBox>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <TabControl Grid.Row="1"
                     Background="Transparent"
                     BorderThickness="0"
-                    d:SelectedIndex="0">
+                    Padding="0"
+                    SelectedIndex="0"
+                    VerticalContentAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch">
 
-            <TabControl.Resources>
-                <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#673AB7"/>
-            </TabControl.Resources>
+            <TabControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1"
+                                 Columns="2" />
+                </ItemsPanelTemplate>
+            </TabControl.ItemsPanel>
 
-            <TabItem>
+            <TabItem Style="{StaticResource SegmentedLeftTabStyle}">
                 <TabItem.Header>
-                    <Grid Width="380">
-                        <TextBlock Text="Điểm quá trình" 
-                                   FontSize="17" 
-                                   FontWeight="SemiBold" 
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                    </Grid>
+                    <TextBlock Text="Nhập bảng điểm"
+                               FontSize="17"
+                               FontWeight="SemiBold" />
                 </TabItem.Header>
 
-                <materialDesign:Card Margin="0,15,0,0" 
-                                     Padding="15" 
-                                     UniformCornerRadius="12" 
-                                     materialDesign:ElevationAssist.Elevation="Dp2"
-                                     Background="White">
-                    <components:AcademicConductUC DataContext="{Binding}" />
-                </materialDesign:Card>
+                <components:AcademicConductUC DataContext="{Binding}"
+                                              VerticalAlignment="Stretch"
+                                              HorizontalAlignment="Stretch"
+                                              Margin="0,20,0,0" />
             </TabItem>
 
-            <TabItem>
+            <TabItem Style="{StaticResource SegmentedRightTabStyle}">
                 <TabItem.Header>
-                    <Grid Width="380">
-                        <TextBlock Text="Tổng kết học kỳ" 
-                                   FontSize="17" 
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                    </Grid>
+                    <TextBlock Text="Tổng kết học kỳ"
+                               FontSize="17"
+                               FontWeight="SemiBold"/>
                 </TabItem.Header>
 
-                <materialDesign:Card Margin="0,15,0,0" 
-                                     Padding="15" 
-                                     UniformCornerRadius="12" 
-                                     materialDesign:ElevationAssist.Elevation="Dp2"
-                                     Background="White">
-                    <components:TermSummaryUC DataContext="{Binding}" />
-                </materialDesign:Card>
+                <components:TermSummaryUC DataContext="{Binding}"
+                                          VerticalAlignment="Stretch"
+                                          HorizontalAlignment="Stretch"
+                                          Margin="0,20,0,0" />
             </TabItem>
         </TabControl>
     </Grid>

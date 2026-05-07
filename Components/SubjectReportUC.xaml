@@ -8,21 +8,14 @@
              d:DesignHeight="450"
              d:DesignWidth="800"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
-    <Grid>
+    <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="Báo cáo môn học"
-                   FontSize="24"
-                   FontWeight="Bold"
-                   Margin="0,0,0,20" />
-
-        <Border Grid.Row="1"
+        <Border Grid.Row="0"
                 Background="White"
                 CornerRadius="8"
                 Padding="20"
@@ -36,55 +29,35 @@
 
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.7*" />
-                    <ColumnDefinition Width="0.7*" />
-                    <ColumnDefinition Width="1.25*" />
-                    <ColumnDefinition Width="0.9*" />
+                    <ColumnDefinition Width="1.5*" />
+                    <ColumnDefinition Width="1*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0"
-                            Margin="0,0,20,0">
-                    <TextBlock Text="Năm học:"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,5"
-                               Foreground="Gray" />
-                    <ComboBox Height="35"
-                              ItemsSource="{Binding DanhSachNamHocReport}" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="1"
-                            Margin="0,0,20,0">
-                    <TextBlock Text="Học kỳ:"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,5"
-                               Foreground="Gray" />
-                    <ComboBox Height="35"
-                              ItemsSource="{Binding DanhSachHocKyReport}" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="2"
                             Margin="0,0,20,0">
                     <TextBlock Text="Môn học:"
                                FontWeight="SemiBold"
                                Margin="0,0,0,5"
                                Foreground="Gray" />
                     <ComboBox Height="35"
-                              ItemsSource="{Binding DanhSachMonReport}" />
+                              ItemsSource="{Binding Subjects}"
+                              SelectedItem="{Binding SelectedSubject}" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="3"
+                <StackPanel Grid.Column="1"
                             Margin="0,0,20,0">
                     <TextBlock Text="Lớp:"
                                FontWeight="SemiBold"
                                Margin="0,0,0,5"
                                Foreground="Gray" />
                     <ComboBox Height="35"
-                              ItemsSource="{Binding DanhSachHocKyReport}" />
+                              ItemsSource="{Binding Classes}"
+                              SelectedItem="{Binding SelectedClass}" />
                 </StackPanel>
 
                 <Button Content="Xem Báo Cáo"
-                        Grid.Column="4"
+                        Grid.Column="2"
                         Margin="5,0,0,0"
                         Command="{Binding GenerateReportCommand}"
                         Style="{StaticResource PrimaryRoundedButton}"
@@ -93,7 +66,7 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="2"
+        <Border Grid.Row="1"
                 Background="White"
                 CornerRadius="8"
                 Padding="20"
@@ -112,7 +85,8 @@
                 <TextBlock Text="Thống kê theo lớp"
                            FontSize="16"
                            FontWeight="Bold"
-                           Margin="0,0,0,15" />
+                           Margin="0,0,0,15"
+                           Foreground="Black" />
 
                 <DataGrid Grid.Row="1"
                           AutoGenerateColumns="False"
@@ -124,23 +98,23 @@
                           SelectedItem="{Binding SelectedReportRow}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="STT"
-                                            Binding="{Binding STT}"
+                                            Binding="{Binding OrderNumber}"
                                             IsReadOnly="True"
                                             Width="60" />
                         <DataGridTextColumn Header="Lớp"
-                                            Binding="{Binding TenLop}"
+                                            Binding="{Binding ClassName}"
                                             IsReadOnly="True"
                                             Width="*" />
                         <DataGridTextColumn Header="Sĩ số"
-                                            Binding="{Binding SiSo}"
+                                            Binding="{Binding TotalStudents}"
                                             IsReadOnly="True"
                                             Width="100" />
                         <DataGridTextColumn Header="Số lượng Đạt"
-                                            Binding="{Binding SoLuongDat}"
+                                            Binding="{Binding PassedCount}"
                                             IsReadOnly="True"
                                             Width="120" />
                         <DataGridTextColumn Header="Tỷ lệ (%)"
-                                            Binding="{Binding TyLeDat, StringFormat={}{0:F2}%}"
+                                            Binding="{Binding PassRate, StringFormat={}{0:F2}%}"
                                             IsReadOnly="True"
                                             Width="120"
                                             Foreground="Green"
@@ -150,7 +124,7 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="3"
+        <Border Grid.Row="2"
                 Background="White"
                 CornerRadius="8"
                 Padding="20"
@@ -166,10 +140,11 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Text="{Binding SelectedReportRow.TenLop, StringFormat='Danh sách chi tiết lớp: {0}'}"
+                <TextBlock Text="{Binding SelectedReportRow.ClassName, StringFormat='Danh sách chi tiết lớp: {0}'}"
                            FontSize="16"
                            FontWeight="Bold"
-                           Margin="0,0,0,15" />
+                           Margin="0,0,0,15"
+                           Foreground="Black" />
 
                 <DataGrid Grid.Row="1"
                           AutoGenerateColumns="False"
@@ -177,24 +152,43 @@
                           Background="Transparent"
                           BorderThickness="0"
                           RowHeight="40"
-                          ItemsSource="{Binding DanhSachHocSinhChiTiet}">
+                          ItemsSource="{Binding DetailedStudentList}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="STT"
-                                            Binding="{Binding STT}"
+                                            Binding="{Binding OrderNumber}"
                                             IsReadOnly="True"
                                             Width="60" />
                         <DataGridTextColumn Header="Họ và tên"
-                                            Binding="{Binding HoTen}"
+                                            Binding="{Binding FullName}"
                                             IsReadOnly="True"
                                             Width="*" />
                         <DataGridTextColumn Header="Điểm TB"
-                                            Binding="{Binding DiemTB}"
+                                            Binding="{Binding AverageScore, StringFormat={}{0:F1}}"
                                             IsReadOnly="True"
                                             Width="100" />
                         <DataGridTextColumn Header="Kết quả"
-                                            Binding="{Binding KetQua}"
+                                            Binding="{Binding Result}"
                                             IsReadOnly="True"
-                                            Width="120" />
+                                            Width="120">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight"
+                                            Value="SemiBold" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Result}"
+                                                     Value="Không đạt">
+                                            <Setter Property="Foreground"
+                                                    Value="#D32F2F" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Result}"
+                                                     Value="Đạt">
+                                            <Setter Property="Foreground"
+                                                    Value="#1B5E20" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

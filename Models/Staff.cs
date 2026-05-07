@@ -160,7 +160,8 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        public static List<Staff> GetAvailableTeachers()
+        // SỬA LẠI: Thêm tham số academicYear để lọc theo năm học
+        public static List<Staff> GetAvailableTeachers(string academicYear)
         {
             List<Staff> staffList = new List<Staff>();
 
@@ -171,10 +172,15 @@ namespace WPF_Student_Management.Models
             AND e.EmployeeID NOT IN (
             SELECT HomeroomTeacherID 
             FROM Class 
-            WHERE HomeroomTeacherID IS NOT NULL
+            WHERE HomeroomTeacherID IS NOT NULL 
+            AND AcademicYear = @AcademicYear -- [THÊM ĐIỀU KIỆN NÀY]
             )";
 
-            DataTable data = DatabaseHelper.ExecuteQuery(query);
+            SqlParameter[] parameters = new SqlParameter[] {
+            new SqlParameter("@AcademicYear", academicYear)
+        };
+
+            DataTable data = DatabaseHelper.ExecuteQuery(query, parameters);
 
             foreach (DataRow row in data.Rows)
             {
@@ -271,7 +277,7 @@ namespace WPF_Student_Management.Models
         // Hàm phụ trợ: Tạo Password mặc định
         private string GenerateStaffPassword(string fullName, string? phone)
         {
-            string unsignedName = TextHelper.RemoveSignForVietnameseString(fullName).ToLower();
+            string unsignedName = TextHelper.RemoveSignForVietnameseString(fullName).ToLower(); 
             string[] parts = unsignedName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             string firstName = parts[parts.Length - 1];
 

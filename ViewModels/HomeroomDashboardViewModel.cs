@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using WPF_Student_Management.Helpers;
+using System.Collections.Generic;
 
 namespace WPF_Student_Management.ViewModels
 {
@@ -22,7 +23,6 @@ namespace WPF_Student_Management.ViewModels
         public string AverageScore { get; set; }
     }
 
-    // Class hiển thị cho Tab Báo cáo tổng kết
     public class ReportItem
     {
         public int STT { get; set; }
@@ -48,6 +48,22 @@ namespace WPF_Student_Management.ViewModels
 
     public class HomeroomDashboardViewModel : INotifyPropertyChanged
     {
+        // --- BỔ SUNG: BIẾN KIỂM SOÁT THỜI GIAN ---
+        private string _currentSemester = "Học kỳ 1";
+        public string CurrentSemester
+        {
+            get => _currentSemester;
+            set { _currentSemester = value; OnPropertyChanged(); LoadHomeroomData(); }
+        }
+
+        private string _currentAcademicYear = "2025-2026";
+        public string CurrentAcademicYear
+        {
+            get => _currentAcademicYear;
+            set { _currentAcademicYear = value; OnPropertyChanged(); LoadHomeroomData(); }
+        }
+        // ----------------------------------------
+
         private ObservableCollection<HomeroomStudentGradeItem> _allStudents;
 
         private ObservableCollection<HomeroomStudentGradeItem> _displayStudents;
@@ -80,8 +96,8 @@ namespace WPF_Student_Management.ViewModels
             set { _classTitle = value; OnPropertyChanged(); }
         }
 
-        // --- CÁC BIẾN & PROPERTY PHỤC VỤ BÁO CÁO (DOD 1 & 2) ---
         private int _currentClassId = 0;
+        private int _currentTeacherId = 0; // Thêm biến lưu ID giáo viên để cắm vào Report
 
         private ObservableCollection<ReportItem> _reportList;
         public ObservableCollection<ReportItem> ReportList
@@ -119,12 +135,11 @@ namespace WPF_Student_Management.ViewModels
         public ICommand GenerateReportCommand { get; }
         public ICommand ConfirmReportCommand { get; }
         public ICommand CancelReportCommand { get; }
-
         public ICommand ViewDetailCommand { get; }
 
         public HomeroomDashboardViewModel()
         {
-            GenderList = new ObservableCollection<string> { "Tất cả", "Nam", "Nữ" };    
+            GenderList = new ObservableCollection<string> { "Tất cả", "Nam", "Nữ" };
 
             GenerateReportCommand = new RelayCommand(ExecuteGenerateReport, CanExecuteReportActions);
             ConfirmReportCommand = new RelayCommand(ExecuteConfirmReport, CanExecuteReportActions);
@@ -148,6 +163,8 @@ namespace WPF_Student_Management.ViewModels
         private void LoadHomeroomData()
         {
             _allStudents = new ObservableCollection<HomeroomStudentGradeItem>();
+            ReportList = null;
+            IsReportGenerated = false;
 
             try
             {
@@ -175,31 +192,39 @@ namespace WPF_Student_Management.ViewModels
                     return;
                 }
 
-                // Cập nhật lấy thêm ClassID và IsLocked
+                // SỬA: Đếm TotalSubjects dựa trên TeachingAssignment của Lớp đó trong Học kỳ/Năm học hiện tại
                 string query = @"
             SELECT 
-                c.ClassID, c.IsLocked,
+                c.ClassID, e.EmployeeID, ISNULL(cr.IsLocked, 0) AS IsLocked,
                 s.StudentID, s.FullName, s.Gender, c.ClassName,
-                AVG(sc.AverageScore) as OverallAverage,
+                AVG(CASE WHEN sub.SubjectName <> N'Giáo dục thể chất' THEN sc.AverageScore ELSE NULL END) as OverallAverage,
                 COUNT(sc.SubjectID) as GradedCount,
-                (SELECT COUNT(*) FROM Subject WHERE IsDeleted = 0) as TotalSubjects
+                (SELECT COUNT(DISTINCT SubjectID) FROM TeachingAssignment 
+                 WHERE ClassID = c.ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear) as TotalSubjects
             FROM Student s
             JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
             JOIN Class c ON cp.ClassID = c.ClassID
             JOIN Employee e ON c.HomeroomTeacherID = e.EmployeeID
             JOIN Account a ON e.AccountID = a.AccountID
-            LEFT JOIN Score sc ON s.StudentID = sc.StudentID
-            WHERE a.AccountID = @AccountID
-            GROUP BY c.ClassID, c.IsLocked, s.StudentID, s.FullName, s.Gender, c.ClassName";
+            LEFT JOIN ClassReport cr ON c.ClassID = cr.ClassID AND cr.Semester = @Semester AND cr.AcademicYear = @AcademicYear
+            LEFT JOIN Score sc ON s.StudentID = sc.StudentID AND sc.Semester = @Semester AND sc.AcademicYear = @AcademicYear
+            LEFT JOIN Subject sub ON sc.SubjectID = sub.SubjectID
+            WHERE a.AccountID = @AccountID AND c.AcademicYear = @AcademicYear
+            GROUP BY c.ClassID, e.EmployeeID, cr.IsLocked, s.StudentID, s.FullName, s.Gender, c.ClassName";
 
-                SqlParameter[] parameters = { new SqlParameter("@AccountID", currentUserId) };
+                SqlParameter[] parameters = {
+                    new SqlParameter("@AccountID", currentUserId),
+                    new SqlParameter("@Semester", CurrentSemester),
+                    new SqlParameter("@AcademicYear", CurrentAcademicYear)
+                };
                 DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
 
                 if (dt.Rows.Count > 0)
                 {
                     _currentClassId = Convert.ToInt32(dt.Rows[0]["ClassID"]);
-                    IsClassLocked = dt.Rows[0]["IsLocked"] != DBNull.Value && Convert.ToBoolean(dt.Rows[0]["IsLocked"]);
-                    ClassTitle = $"Danh sách học tập lớp {dt.Rows[0]["ClassName"]}";
+                    _currentTeacherId = Convert.ToInt32(dt.Rows[0]["EmployeeID"]);
+                    IsClassLocked = Convert.ToBoolean(dt.Rows[0]["IsLocked"]);
+                    ClassTitle = $"Danh sách học tập lớp {dt.Rows[0]["ClassName"]} - {CurrentSemester}";
 
                     int stt = 1;
                     foreach (DataRow row in dt.Rows)
@@ -208,7 +233,8 @@ namespace WPF_Student_Management.ViewModels
                         int totalSubjects = Convert.ToInt32(row["TotalSubjects"]);
 
                         string scoreStr;
-                        if (gradedCount == 0) scoreStr = "Chưa có điểm";
+                        if (totalSubjects == 0) scoreStr = "Chưa phân công môn"; // Handle trường hợp chưa phân công
+                        else if (gradedCount == 0) scoreStr = "Chưa có điểm";
                         else if (gradedCount < totalSubjects) scoreStr = "Thiếu điểm môn";
                         else scoreStr = row["OverallAverage"] != DBNull.Value ? Convert.ToDecimal(row["OverallAverage"]).ToString("0.0") : "Chưa có điểm";
 
@@ -225,7 +251,7 @@ namespace WPF_Student_Management.ViewModels
                 }
                 else
                 {
-                    ClassTitle = "Tài khoản này hiện chưa được phân công chủ nhiệm lớp nào.";
+                    ClassTitle = "Tài khoản này hiện chưa được phân công chủ nhiệm lớp nào trong năm học này.";
                 }
 
                 FilterData();
@@ -236,32 +262,38 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- XÉT DUYỆT ĐẠT/KHÔNG ĐẠT ---
         private void ExecuteGenerateReport(object obj)
         {
             try
             {
-                // Lấy điểm chuẩn quy định từ bảng Parameter (Mặc định 5.0)
                 string getPassingGradeQuery = "SELECT ISNULL((SELECT Value FROM Parameter WHERE ParameterName = 'NumPassingGrade'), 5.0) as PassingGrade";
                 DataTable dtParam = DatabaseHelper.ExecuteQuery(getPassingGradeQuery);
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
-                // Lọc Min Score của từng học sinh
+                // SỬA: Tính TotalSubjects chuẩn xác từ TeachingAssignment
                 string query = @"
-                    DECLARE @TotalSubjects INT = (SELECT COUNT(*) FROM Subject WHERE IsDeleted = 0);
+                    DECLARE @TotalSubjects INT = (SELECT COUNT(DISTINCT SubjectID) FROM TeachingAssignment 
+                                                  WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear);
 
                     SELECT 
                         s.StudentID, s.FullName,
                         COUNT(sc.SubjectID) AS GradedCount,
                         MIN(sc.AverageScore) AS MinScore,
+                        AVG(CASE WHEN sub.SubjectName <> N'Giáo dục thể chất' THEN sc.AverageScore ELSE NULL END) AS OverallAverage,
                         @TotalSubjects AS TotalSubjects
                     FROM Student s
                     JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
-                    LEFT JOIN Score sc ON s.StudentID = sc.StudentID
+                    LEFT JOIN Score sc ON s.StudentID = sc.StudentID AND sc.Semester = @Semester AND sc.AcademicYear = @AcademicYear
+                    LEFT JOIN Subject sub ON sc.SubjectID = sub.SubjectID
                     WHERE cp.ClassID = @ClassID
                     GROUP BY s.StudentID, s.FullName";
 
-                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@ClassID", _currentClassId) });
+                SqlParameter[] parameters = {
+                    new SqlParameter("@ClassID", _currentClassId),
+                    new SqlParameter("@Semester", CurrentSemester),
+                    new SqlParameter("@AcademicYear", CurrentAcademicYear)
+                };
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
 
                 var tempList = new ObservableCollection<ReportItem>();
                 int passCount = 0;
@@ -270,9 +302,17 @@ namespace WPF_Student_Management.ViewModels
                 foreach (DataRow row in dt.Rows)
                 {
                     int gradedCount = Convert.ToInt32(row["GradedCount"]);
-                    int totalSubjects = Convert.ToInt32(row["TotalSubjects"]);
 
-                    // BẮT LỖI TÍNH TOÀN VẸN DỮ LIỆU ĐIỂM
+                    // Xử lý an toàn nếu NULL (trường hợp lớp chưa phân công môn nào)
+                    int totalSubjects = row["TotalSubjects"] != DBNull.Value ? Convert.ToInt32(row["TotalSubjects"]) : 0;
+
+                    if (totalSubjects == 0)
+                    {
+                        NotificationHelper.ShowError("Lớp này chưa được phân công môn học nào! Không thể lập báo cáo.");
+                        IsReportGenerated = false;
+                        return;
+                    }
+
                     if (gradedCount < totalSubjects)
                     {
                         NotificationHelper.ShowError("Không thể lập báo cáo. Dữ liệu điểm của lớp chưa hoàn tất. Vui lòng đợi GVBM hoàn thiện điểm.");
@@ -281,10 +321,9 @@ namespace WPF_Student_Management.ViewModels
                     }
 
                     decimal minScore = row["MinScore"] != DBNull.Value ? Convert.ToDecimal(row["MinScore"]) : 0;
+                    decimal overallAverage = row["OverallAverage"] != DBNull.Value ? Convert.ToDecimal(row["OverallAverage"]) : 0;
 
-                    // Có 1 môn dưới điểm chuẩn (MinScore < Điểm chuẩn) -> RỚT 
-                    bool isPassed = minScore >= passingGrade;
-
+                    bool isPassed = (overallAverage >= passingGrade) && (minScore >= passingGrade);
                     if (isPassed) passCount++;
 
                     tempList.Add(new ReportItem
@@ -309,18 +348,38 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- KHÓA SỔ ---
         private void ExecuteConfirmReport(object obj)
         {
             try
             {
-                string query = "UPDATE Class SET IsLocked = 1 WHERE ClassID = @ClassID";
-                int rows = DatabaseHelper.ExecuteNonQuery(query, new[] { new SqlParameter("@ClassID", _currentClassId) });
+                // SỬA LOGIC: Insert hoặc Update vào bảng ClassReport (Không chọc vào bảng Class nữa)
+                string query = @"
+                IF EXISTS (SELECT 1 FROM ClassReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear)
+                BEGIN
+                    UPDATE ClassReport 
+                    SET IsLocked = 1, TotalStudents = @TotalStudents 
+                    WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO ClassReport (ClassID, Semester, AcademicYear, TotalStudents, IsLocked, CreatedByTeacherID, CreatedAt)
+                    VALUES (@ClassID, @Semester, @AcademicYear, @TotalStudents, 1, @TeacherID, GETDATE())
+                END";
+
+                SqlParameter[] parameters = {
+                    new SqlParameter("@ClassID", _currentClassId),
+                    new SqlParameter("@Semester", CurrentSemester),
+                    new SqlParameter("@AcademicYear", CurrentAcademicYear),
+                    new SqlParameter("@TotalStudents", int.Parse(TotalStudents)),
+                    new SqlParameter("@TeacherID", _currentTeacherId)
+                };
+
+                int rows = DatabaseHelper.ExecuteNonQuery(query, parameters);
 
                 if (rows > 0)
                 {
                     IsClassLocked = true;
-                    NotificationHelper.ShowSuccess("Đã xác nhận báo cáo và KHÓA SỔ thành công! Giáo viên bộ môn sẽ không thể sửa điểm nữa.");
+                    NotificationHelper.ShowSuccess("Đã xác nhận báo cáo và KHÓA SỔ thành công! Giáo viên bộ môn sẽ không thể sửa điểm của kỳ này nữa.");
                 }
             }
             catch (Exception ex)
@@ -329,13 +388,20 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- MỞ KHÓA SỔ ---
         private void ExecuteCancelReport(object obj)
         {
             try
             {
-                string query = "UPDATE Class SET IsLocked = 0 WHERE ClassID = @ClassID";
-                int rows = DatabaseHelper.ExecuteNonQuery(query, new[] { new SqlParameter("@ClassID", _currentClassId) });
+                // SỬA LOGIC: Mở khóa trên bảng ClassReport
+                string query = "UPDATE ClassReport SET IsLocked = 0 WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";
+
+                SqlParameter[] parameters = {
+                    new SqlParameter("@ClassID", _currentClassId),
+                    new SqlParameter("@Semester", CurrentSemester),
+                    new SqlParameter("@AcademicYear", CurrentAcademicYear)
+                };
+
+                int rows = DatabaseHelper.ExecuteNonQuery(query, parameters);
 
                 if (rows > 0)
                 {
@@ -395,7 +461,7 @@ namespace WPF_Student_Management.ViewModels
 
         private async void ExecuteOpenDetail(HomeroomStudentGradeItem student)
         {
-            var detailVM = new StudentGradeDetailViewModel(student.StudentId, student.FullName);
+            var detailVM = new StudentGradeDetailViewModel(student.StudentId, student.FullName, CurrentSemester, CurrentAcademicYear);
 
             var detailView = new WPF_Student_Management.Components.StudentGradeDetailUC
             {
@@ -405,15 +471,11 @@ namespace WPF_Student_Management.ViewModels
             await MaterialDesignThemes.Wpf.DialogHost.Show(detailView, "RootDialog");
         }
 
-        // --- XỬ LÝ CLICK ĐÚP VÀO HỌC SINH TRONG BÁO CÁO ---
         private async void ExecuteViewDetail(object obj)
         {
             if (obj is ReportItem selectedStudent)
             {
-                if (selectedStudent.Status.Trim().Equals("Đạt", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
+                if (selectedStudent.Status.Trim().Equals("Đạt", StringComparison.OrdinalIgnoreCase)) return;
 
                 if (selectedStudent.Status.Trim().Equals("Không đạt", StringComparison.OrdinalIgnoreCase))
                 {
@@ -444,16 +506,21 @@ namespace WPF_Student_Management.ViewModels
                 DataTable dtParam = DatabaseHelper.ExecuteQuery(paramQuery);
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
+                // SỬA CÂU QUERY: Thêm bộ lọc Semester và AcademicYear
                 string query = @"
                     SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore 
                     FROM Score sc
                     JOIN Subject sub ON sc.SubjectID = sub.SubjectID
                     WHERE sc.StudentID = @StudentID 
-                      AND sc.AverageScore < @PassingGrade";
+                      AND sc.AverageScore < @PassingGrade
+                      AND sc.Semester = @Semester 
+                      AND sc.AcademicYear = @AcademicYear";
 
                 SqlParameter[] parameters = {
                     new SqlParameter("@StudentID", studentId),
-                    new SqlParameter("@PassingGrade", passingGrade)
+                    new SqlParameter("@PassingGrade", passingGrade),
+                    new SqlParameter("@Semester", CurrentSemester),
+                    new SqlParameter("@AcademicYear", CurrentAcademicYear)
                 };
 
                 DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);

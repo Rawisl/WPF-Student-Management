@@ -6,25 +6,19 @@
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
              mc:Ignorable="d"
              d:DesignHeight="450"
-             d:DesignWidth="800"
+             d:DesignWidth="1000"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers">
+             xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
+             VerticalAlignment="Stretch"
+             HorizontalAlignment="Stretch">
 
-    <Grid Background="#F5F6FA"
-          Margin="20">
+    <Grid VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="Nhập bảng điểm môn"
-                   FontSize="24"
-                   FontWeight="Bold"
-                   Margin="0,0,0,20" />
-
-        <Border Grid.Row="1"
+        <Border Grid.Row="0"
                 Background="White"
                 CornerRadius="8"
                 Padding="20"
@@ -38,67 +32,51 @@
 
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.7*" />
-                    <ColumnDefinition Width="0.7*" />
-                    <ColumnDefinition Width="1.25*" />
-                    <ColumnDefinition Width="0.9*" />
+                    <ColumnDefinition Width="200" />
+                    <!--Chiều dài cbb môn học-->
+                    <ColumnDefinition Width="150" />
+                    <!--Chiều dài cbb lớp-->
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0"
-                            Margin="0,0,20,0">
-                    <TextBlock Text="Năm học:"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,5"
-                               Foreground="Gray" />
-                    <ComboBox Height="35"
-                              ItemsSource="{Binding DanhSachNamHocReport}" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="1"
-                            Margin="0,0,20,0">
-                    <TextBlock Text="Học kỳ:"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,5"
-                               Foreground="Gray" />
-                    <ComboBox Height="35"
-                              ItemsSource="{Binding DanhSachHocKyReport}" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="2"
                             Margin="0,0,20,0">
                     <TextBlock Text="Môn học:"
                                FontWeight="SemiBold"
                                Margin="0,0,0,5"
                                Foreground="Gray" />
                     <ComboBox Height="35"
-                              ItemsSource="{Binding DanhSachMonReport}" />
+                              ItemsSource="{Binding Subjects}"
+                              SelectedItem="{Binding SelectedSubject}" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="3"
+                <StackPanel Grid.Column="1"
                             Margin="0,0,20,0">
                     <TextBlock Text="Lớp:"
                                FontWeight="SemiBold"
                                Margin="0,0,0,5"
                                Foreground="Gray" />
                     <ComboBox Height="35"
-                              ItemsSource="{Binding DanhSachHocKyReport}" />
+                              ItemsSource="{Binding Classes}"
+                              SelectedItem="{Binding SelectedClass}" />
                 </StackPanel>
 
                 <Button Content="Lấy danh sách"
-                        Grid.Column="4"
+                        Grid.Column="2"
                         Margin="5,0,0,0"
-                        Command="{Binding GenerateReportCommand}"
+                        Command="{Binding LoadGradeDataCommand}"
                         Style="{StaticResource PrimaryRoundedButton}"
-                        VerticalAlignment="Bottom">
+                        VerticalAlignment="Bottom"
+                        HorizontalAlignment="Right">
                 </Button>
             </Grid>
         </Border>
 
-        <Border Grid.Row="2"
+        <Border Grid.Row="1"
                 Background="White"
                 CornerRadius="8"
-                Padding="20">
+                Padding="20"
+                VerticalAlignment="Stretch">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10"
                                   ShadowDepth="1"
@@ -106,7 +84,7 @@
                                   Opacity="0.5" />
             </Border.Effect>
 
-            <Grid>
+            <Grid VerticalAlignment="Stretch">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -114,74 +92,161 @@
 
                 <Grid Grid.Row="0"
                       Margin="0,0,0,15">
-                    <TextBlock Text="Nhập điểm môn Toán - Lớp 10A1 - Học kỳ 1"
+                    <TextBlock Text="{Binding GradebookTitle}"
                                FontSize="16"
                                FontWeight="Bold"
-                               VerticalAlignment="Center" />
-                    <Button Content="Lưu bảng điểm"
-                            Background="#00B894"
-                            Foreground="White"
-                            HorizontalAlignment="Right"
-                            Height="40"
-                            Width="150"
-                            Cursor="Hand"
-                            Command="{Binding SaveGradeDataCommand}"
-                            Style="{StaticResource PrimaryRoundedButton}">
-                    </Button>
+                               VerticalAlignment="Center"
+                               Foreground="Black" />
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,15,0">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSaveVisible}"
+                                                     Value="Collapsed">
+                                            <Setter Property="Visibility"
+                                                    Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <materialDesign:PackIcon Kind="Lock"
+                                                     Foreground="#D32F2F"
+                                                     Width="20"
+                                                     Height="20"
+                                                     Margin="0,0,5,0"
+                                                     VerticalAlignment="Center" />
+                            <TextBlock Text="ĐIỂM ĐÃ BỊ KHÓA"
+                                       Foreground="#D32F2F"
+                                       FontWeight="Bold"
+                                       FontSize="15"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <Button Content="Lưu bảng điểm"
+                                Visibility="{Binding IsSaveVisible}"
+                                Background="#00B894"
+                                Height="40"
+                                Width="155"
+                                Command="{Binding SaveGradeDataCommand}"
+                                Style="{StaticResource PrimaryRoundedButton}">
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
                 <DataGrid Grid.Row="1"
                           AutoGenerateColumns="False"
-                          ItemsSource="{Binding DanhSachHocSinh}"
+                          ItemsSource="{Binding StudentGrades}"
+                          helpers:DataGridHelper.EnableFastEntry="True"
                           CanUserAddRows="False"
-                          Background="Transparent"
-                          BorderThickness="0"
-                          RowHeight="50"
-                          ColumnHeaderHeight="45"
-                          GridLinesVisibility="None"
-                          HeadersVisibility="Column"
                           SelectionMode="Single"
-                          SelectionUnit="FullRow">
+                          SelectionUnit="FullRow"
+                          VerticalAlignment="Stretch"
+                          HorizontalAlignment="Stretch"
+                          Style="{StaticResource GlobalDataGridStyle}"
+                          CellStyle="{StaticResource GlobalDataGridCellStyle}"
+                          FontSize="15">
                     <DataGrid.Columns>
+
                         <DataGridTextColumn Header="STT"
                                             Binding="{Binding OrdinalNumber}"
                                             IsReadOnly="True"
-                                            Width="80" />
+                                            Width="60"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}" />
 
                         <DataGridTextColumn Header="Họ và tên"
                                             Binding="{Binding FullName}"
                                             IsReadOnly="True"
-                                            Width="*" />
+                                            Width="*"
+                                            HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock"
+                                       BasedOn="{StaticResource GlobalLeftElementStyle}">
+                                    <Setter Property="FontWeight"
+                                            Value="SemiBold" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Điểm 15'"
-                                            Binding="{Binding Diem15Phut}"
+                        <DataGridTextColumn Header="Điểm Thường xuyên"
+                                            Binding="{Binding RegularScore, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
                                             IsReadOnly="False"
-                                            Width="120">
+                                            Width="175"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}">
                             <DataGridTextColumn.EditingElementStyle>
                                 <Style TargetType="TextBox">
-                                    <Setter Property="helpers:TextBoxHelper.IsDecimalOnly"
+                                    <Setter Property="helpers:TextBoxHelper.IsBgdGradeOnly"
                                             Value="True" />
+                                    <Setter Property="helpers:TextBoxHelper.SelectAllOnFocus"
+                                            Value="True" />
+                                    <Setter Property="HorizontalContentAlignment"
+                                            Value="Center" />
                                 </Style>
                             </DataGridTextColumn.EditingElementStyle>
                         </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Điểm 1 tiết"
-                                            Binding="{Binding Diem1Tiet}"
+                        <DataGridTextColumn Header="Điểm Giữa kỳ"
+                                            Binding="{Binding MidSemScore, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
                                             IsReadOnly="False"
-                                            Width="120">
+                                            Width="130"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}">
                             <DataGridTextColumn.EditingElementStyle>
                                 <Style TargetType="TextBox">
-                                    <Setter Property="helpers:TextBoxHelper.IsDecimalOnly"
+                                    <Setter Property="helpers:TextBoxHelper.IsBgdGradeOnly"
                                             Value="True" />
+                                    <Setter Property="helpers:TextBoxHelper.SelectAllOnFocus"
+                                            Value="True" />
+                                    <Setter Property="HorizontalContentAlignment"
+                                            Value="Center" />
                                 </Style>
                             </DataGridTextColumn.EditingElementStyle>
                         </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Điểm TB"
-                                            Binding="{Binding DiemTB,StringFormat={}{0:F1}}"
+                        <DataGridTextColumn Header="Điểm Cuối kỳ"
+                                            Binding="{Binding FinalScore, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
+                                            IsReadOnly="False"
+                                            Width="130"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}">
+                            <DataGridTextColumn.EditingElementStyle>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="helpers:TextBoxHelper.IsBgdGradeOnly"
+                                            Value="True" />
+                                    <Setter Property="helpers:TextBoxHelper.SelectAllOnFocus"
+                                            Value="True" />
+                                    <Setter Property="HorizontalContentAlignment"
+                                            Value="Center" />
+                                </Style>
+                            </DataGridTextColumn.EditingElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Trung bình"
+                                            Binding="{Binding AverageScore, StringFormat={}{0:F1}}"
                                             IsReadOnly="True"
-                                            Width="120"
-                                            Foreground="Gray" />
+                                            Width="110"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock"
+                                       BasedOn="{StaticResource GlobalCenterElementStyle}">
+                                    <Setter Property="Foreground"
+                                            Value="Gray" />
+                                    <Setter Property="FontWeight"
+                                            Value="SemiBold" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
                     </DataGrid.Columns>
                 </DataGrid>
 
