@@ -12,57 +12,115 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:components="clr-namespace:WPF_Student_Management.Components">
 
-    <Grid Margin="20" Background="#F8F9FA">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-        <TabControl Style="{StaticResource MaterialDesignTabControl}"
+        <Grid Grid.Row="0"
+              Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0"
+                        VerticalAlignment="Center">
+                <TextBlock Text="Quản lý Điểm &amp; Báo cáo Môn học"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#1A237E" />
+
+                <TextBlock Text="Theo dõi tiến độ, nhập điểm và xuất báo cáo định kỳ."
+                           FontSize="14"
+                           Foreground="#878A99"
+                           Margin="0,5,0,0" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+
+                <StackPanel Orientation="Vertical"
+                            Margin="0,0,20,0">
+                    <TextBlock Text="Năm học:"
+                               Foreground="Black"
+                               FontWeight="Bold"
+                               FontSize="15"
+                               Margin="5,0,0,5" />
+                    <ComboBox SelectedValue="{Binding SelectedAcademicYear}"
+                              SelectedValuePath="Content"
+                              Width="130"
+                              Height="42"
+                              FontSize="15"
+                              VerticalContentAlignment="Center"
+                              FontWeight="SemiBold">
+                        <ComboBoxItem Content="2025-2026" />
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Học kỳ:"
+                               Foreground="Black"
+                               FontWeight="Bold"
+                               FontSize="15"
+                               Margin="5,0,0,5" />
+                    <ComboBox SelectedValue="{Binding SelectedSemester}"
+                              SelectedValuePath="Content"
+                              Width="120"
+                              Height="42"
+                              FontSize="15"
+                              VerticalContentAlignment="Center"
+                              FontWeight="SemiBold">
+                        <ComboBoxItem Content="Học kỳ 1" />
+                        <ComboBoxItem Content="Học kỳ 2" />
+                    </ComboBox>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <TabControl Grid.Row="1"
                     Background="Transparent"
                     BorderThickness="0"
-                    SelectedIndex="0">
+                    Padding="0"
+                    SelectedIndex="0"
+                    VerticalContentAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch">
 
-            <TabControl.Resources>
-                <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#673AB7"/>
-            </TabControl.Resources>
+            <TabControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1"
+                                 Columns="2" />
+                </ItemsPanelTemplate>
+            </TabControl.ItemsPanel>
 
-            <TabItem>
+            <TabItem Style="{StaticResource SegmentedLeftTabStyle}">
                 <TabItem.Header>
-                    <Grid Width="380">
-                        <TextBlock Text="Nhập bảng điểm" 
-                                   FontSize="17" 
-                                   FontWeight="SemiBold" 
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                    </Grid>
+                    <TextBlock Text="Nhập bảng điểm"
+                               FontSize="17"
+                               FontWeight="SemiBold" />
                 </TabItem.Header>
 
-                <materialDesign:Card Margin="0,15,0,0" 
-                                     Padding="15" 
-                                     UniformCornerRadius="12" 
-                                     materialDesign:ElevationAssist.Elevation="Dp2"
-                                     Background="White">
-                    <components:GradeEntryUC DataContext="{Binding}" />
-                </materialDesign:Card>
+                <components:GradeEntryUC DataContext="{Binding}"
+                                         VerticalAlignment="Stretch"
+                                         HorizontalAlignment="Stretch"
+                                         Margin="0,20,0,0" />
             </TabItem>
 
-            <TabItem>
+            <TabItem Style="{StaticResource SegmentedRightTabStyle}">
                 <TabItem.Header>
-                    <Grid Width="380">
-                        <TextBlock Text="Báo cáo tổng kết môn" 
-                                   FontSize="17" 
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                    </Grid>
+                    <TextBlock Text="Báo cáo tổng kết môn"
+                               FontSize="17"
+                               FontWeight="SemiBold" />
                 </TabItem.Header>
 
-                <materialDesign:Card Margin="0,15,0,0" 
-                                     Padding="15" 
-                                     UniformCornerRadius="12" 
-                                     materialDesign:ElevationAssist.Elevation="Dp2"
-                                     Background="White">
-                    <components:SubjectReportUC DataContext="{Binding}" />
-                </materialDesign:Card>
+                <components:SubjectReportUC DataContext="{Binding}"
+                                            VerticalAlignment="Stretch"
+                                            HorizontalAlignment="Stretch"
+                                            Margin="0,20,0,0" />
             </TabItem>
-
         </TabControl>
+
     </Grid>
 </UserControl>

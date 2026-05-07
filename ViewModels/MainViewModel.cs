@@ -45,23 +45,52 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private void Navigate(object destinationViewModel)
         {
-            // 1. KIỂM TRA CHỐT CHẶN
-            // Nếu trang hiện tại ĐANG LÀ trang Cài Đặt (BM6) VÀ Cờ Dirty đang bật
-            if (CurrentView is RegulationSettingsViewModel RegulationSettingsVM && RegulationSettingsVM.HasUnsavedChanges)
+            // 1. KIỂM TRA CHỐT CHẶN TỪ MÀN HÌNH QUY ĐỊNH
+            if (CurrentView is RegulationSettingsViewModel regVM)
             {
-                //Bật Cảnh báo
-                bool isConfirmSwitchTab = NotificationHelper.ShowConfirm("Bạn có thay đổi chưa lưu! Xác nhận rời đi và mất dữ liệu?");
+                if (regVM.HasUnsavedChanges)
+                {
+                    bool isConfirmSwitchTab = NotificationHelper.ShowConfirm("Bạn có thay đổi chưa lưu! Xác nhận rời đi và mất dữ liệu?");
+                    if (!isConfirmSwitchTab) return; // Chọn Hủy thì ở lại
+                }
 
-                if (!isConfirmSwitchTab) return; // Nếu chọn Hủy thì ở lại
-                RegulationSettingsVM.LoadDataFromDatabase();
+                // LUÔN LUÔN REFRESH: Cho dù có thay đổi hay không, cứ rời đi là nạp lại DB để dọn sạch
+                regVM.LoadDataFromDatabase();
             }
 
-            // 2. NẾU AN TOÀN -> THỰC HIỆN CHUYỂN TRANG
+            // 2. KIỂM TRA CHỐT CHẶN TỪ MÀN HÌNH NHẬP ĐIỂM
+            if (CurrentView is SubjectGradebookViewModel gradebookVM)
+            {
+                if (gradebookVM.HasUnsavedChanges)
+                {
+                    bool isConfirmSwitchTab = NotificationHelper.ShowConfirm("Màn hình Nhập điểm đang có dữ liệu chưa lưu!\nNếu chuyển sang màn hình khác, điểm sẽ bị mất. Bạn có chắc chắn muốn thoát không?");
+                    if (!isConfirmSwitchTab) return; // Chọn Hủy thì ở lại nhập tiếp
+                }
+
+                // LUÔN LUÔN REFRESH: Cứ rời đi là dọn sạch ComboBox và DataGrid
+                gradebookVM.RefreshData();
+            }
+
+            // 3. NẾU AN TOÀN -> THỰC HIỆN CHUYỂN TRANG
             CurrentView = destinationViewModel;
         }
 
         private void ExecuteLogout(object obj)
         {
+            // --- BẢO VỆ DỮ LIỆU TRƯỚC KHI ĐĂNG XUẤT ---
+            if (CurrentView is RegulationSettingsViewModel regVM && regVM.HasUnsavedChanges)
+            {
+                bool confirm = NotificationHelper.ShowConfirm("Bạn có quy định chưa lưu! Vẫn muốn đăng xuất?");
+                if (!confirm) return;
+            }
+
+            if (CurrentView is SubjectGradebookViewModel gradebookVM && gradebookVM.HasUnsavedChanges)
+            {
+                bool confirm = NotificationHelper.ShowConfirm("Bạn có điểm chưa lưu! Vẫn muốn đăng xuất?");
+                if (!confirm) return;
+            }
+            // ------------------------------------------
+
             // Xóa thông tin đăng nhập trong Singleton
             CurrentUser.Instance.Logout();
 

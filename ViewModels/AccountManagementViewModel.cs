@@ -1,19 +1,18 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.ObjectModel;
-using System.Data;
-using System.Windows;
-using System.Windows.Input;
-using WPF_Student_Management.Models;
-using WPF_Student_Management.Helpers;
 using System.ComponentModel;
+using System.Data;
 using System.Runtime.CompilerServices;
-using Microsoft.Data.SqlClient;
+using System.Windows.Input;
+using WPF_Student_Management.Helpers;
+using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
     public class AccountManagementViewModel : INotifyPropertyChanged
     {
-        // Danh sách hiển thị trên bảng
+        // --- PROPETIES ---
         private ObservableCollection<Staff> _staffList;
         public ObservableCollection<Staff> StaffList
         {
@@ -21,15 +20,18 @@ namespace WPF_Student_Management.ViewModels
             set { _staffList = value; OnPropertyChanged(); }
         }
 
-        // Nhân viên đang được chọn để chỉnh sửa
         private Staff _selectedStaff;
         public Staff SelectedStaff
         {
             get => _selectedStaff;
-            set { _selectedStaff = value; OnPropertyChanged(); UpdateAccountInfo(); }
+            set
+            {
+                _selectedStaff = value;
+                OnPropertyChanged();
+                UpdateAccountInfo();
+            }
         }
 
-        // Danh sách Role để chọn (GVBM, GVCN...)
         public ObservableCollection<Role> RoleList { get; set; }
 
         private int _selectedRoleId;
@@ -46,9 +48,11 @@ namespace WPF_Student_Management.ViewModels
             set { _username = value; OnPropertyChanged(); }
         }
 
+        // --- COMMANDS ---
         public ICommand LoadCommand { get; }
         public ICommand SaveAccountCommand { get; }
 
+        // --- CONSTRUCTOR ---
         public AccountManagementViewModel()
         {
             LoadCommand = new RelayCommand(p => ExecuteLoad());
@@ -57,32 +61,32 @@ namespace WPF_Student_Management.ViewModels
             ExecuteLoad();
         }
 
+        // --- METHODS ---
         private void ExecuteLoad()
         {
-            // Tải danh sách nhân viên
             StaffList = new ObservableCollection<Staff>(Staff.GetAllStaff());
-            // Tải danh sách Role từ DB
             RoleList = new ObservableCollection<Role>(Role.GetAllRoles());
         }
 
         private void UpdateAccountInfo()
         {
-            if (SelectedStaff == null) return;
+            if (SelectedStaff == null)
+            {
+                Username = "";
+                return;
+            }
 
-            // Tìm thông tin account hiện tại của nhân viên này trong DB
-            string query = "SELECT Username, RoleID FROM Account WHERE AccountID = @AccID";
+            // Đồng bộ RoleID từ Staff sang UI Dropdown
+            SelectedRoleId = SelectedStaff.RoleId;
+
+            // Tìm Username của Account này để hiển thị lên TextBlock/TextBox
+            string query = "SELECT Username FROM Account WHERE AccountID = @AccID";
             SqlParameter[] param = { new SqlParameter("@AccID", SelectedStaff.AccountId) };
             DataTable dt = DatabaseHelper.ExecuteQuery(query, param);
 
             if (dt.Rows.Count > 0)
             {
-                Username = dt.Rows[0]["Username"].ToString();
-                SelectedRoleId = Convert.ToInt32(dt.Rows[0]["RoleID"]);
-            }
-            else
-            {
-                Username = ""; // Chưa có tài khoản
-                SelectedRoleId = 4; // Mặc định là GVBM
+                Username = dt.Rows[0]["Username"].ToString() ?? "";
             }
         }
 
@@ -90,39 +94,37 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                // Kiểm tra xem nhân viên đã có account chưa
-                string checkQuery = "SELECT COUNT(*) FROM Account WHERE AccountID = @AccID";
-                SqlParameter[] checkParam = { new SqlParameter("@AccID", SelectedStaff.AccountId) };
-                int exists = (int)DatabaseHelper.ExecuteQuery(checkQuery, checkParam).Rows[0][0];
+                // Bảng Employee bắt buộc có AccountID (NOT NULL). 
+                // Do đó, ta chỉ cần duy nhất logic UPDATE RoleID.
+                string updateQuery = "UPDATE Account SET RoleID = @RoleID WHERE AccountID = @AccID";
 
-                if (exists > 0)
+                SqlParameter[] updateParams = {
+                    new SqlParameter("@RoleID", SelectedRoleId),
+                    new SqlParameter("@AccID", SelectedStaff.AccountId)
+                };
+
+                if (DatabaseHelper.ExecuteNonQuery(updateQuery, updateParams) > 0)
                 {
-                    // UPDATE: ĐÁP ỨNG DoD - Cập nhật Role (Ví dụ chuyển sang GVCN)
-                    string updateQuery = "UPDATE Account SET RoleID = @RoleID WHERE AccountID = @AccID";
-                    SqlParameter[] updateParams = {
-                        new SqlParameter("@RoleID", SelectedRoleId),
-                        new SqlParameter("@AccID", SelectedStaff.AccountId)
-                    };
-                    DatabaseHelper.ExecuteNonQuery(updateQuery, updateParams);
+                    NotificationHelper.ShowConfirm("Cập nhật phân quyền thành công!");
+
+                    // Cập nhật lại Object local để UI ko bị lag
+                    SelectedStaff.RoleId = SelectedRoleId;
+
+                    // Reload lại Grid để đảm bảo đồng bộ
+                    ExecuteLoad();
                 }
                 else
                 {
-                    // INSERT: Cấp mới tài khoản (Username mặc định là NationalID)
-                    // Dùng PasswordHasher đã có của nhóm
-                    string hashedDefaultPass = PasswordHasher.HashPassword("123456");
-
-                    // Bạn cần viết thêm logic INSERT Account ở đây...
+                    NotificationHelper.ShowError("Không tìm thấy tài khoản để cập nhật!");
                 }
-
-                NotificationHelper.ShowConfirm("Cập nhật tài khoản thành công!");
-                ExecuteLoad();
             }
             catch (Exception ex)
             {
-                NotificationHelper.ShowError("Lỗi: " + ex.Message);
+                NotificationHelper.ShowError("Lỗi hệ thống: " + ex.Message);
             }
         }
 
+        // --- INOTIFYPROPERTYCHANGED ---
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

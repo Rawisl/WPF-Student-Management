@@ -33,6 +33,32 @@ namespace WPF_Student_Management.ViewModels
 
     public class TeachingAssignmentViewModel : INotifyPropertyChanged
     {
+        // --- ĐÃ SỬA: Đổi tên biến khớp với Binding UI và gắn lệnh làm mới ---
+        private string _selectedSemester = "Học kỳ 1";
+        public string SelectedSemester
+        {
+            get => _selectedSemester;
+            set
+            {
+                _selectedSemester = value;
+                OnPropertyChanged();
+                LoadAssignmentsForClass(); // Đổi học kỳ -> load lại phân công
+            }
+        }
+
+        private string _selectedAcademicYear = "2025-2026";
+        public string SelectedAcademicYear
+        {
+            get => _selectedAcademicYear;
+            set
+            {
+                _selectedAcademicYear = value;
+                OnPropertyChanged();
+                LoadClassesForYear(); // Đổi năm học -> load lại danh sách lớp mới
+            }
+        }
+        // ----------------------------------------
+
         // ComboBox chọn Lớp
         private ObservableCollection<Class> _classList;
         public ObservableCollection<Class> ClassList
@@ -45,7 +71,12 @@ namespace WPF_Student_Management.ViewModels
         public Class SelectedClass
         {
             get => _selectedClass;
-            set { _selectedClass = value; OnPropertyChanged(); LoadAssignmentsForClass(); }
+            set
+            {
+                _selectedClass = value;
+                OnPropertyChanged();
+                LoadAssignmentsForClass();
+            }
         }
 
         // Bảng phân công hiển thị trên UI
@@ -61,13 +92,18 @@ namespace WPF_Student_Management.ViewModels
         public TeachingAssignmentViewModel()
         {
             SaveCommand = new RelayCommand(p => ExecuteSave(), p => SelectedClass != null);
-            LoadInitialData();
+            LoadClassesForYear();
         }
 
-        private void LoadInitialData()
+        // SỬA: Tách hàm load lớp riêng để gọi lại khi đổi năm học
+        private void LoadClassesForYear()
         {
-            // Tải toàn bộ danh sách lớp đưa lên ComboBox
-            ClassList = new ObservableCollection<Class>(Class.GetAllClasses());
+            var classes = Class.GetAllClasses().Where(c => c.AcademicYear == SelectedAcademicYear).ToList();
+            ClassList = new ObservableCollection<Class>(classes);
+
+            // Xóa lựa chọn cũ và dọn dẹp bảng phân công
+            SelectedClass = null;
+            AssignmentList = null;
         }
 
         private void LoadAssignmentsForClass()
@@ -80,13 +116,18 @@ namespace WPF_Student_Management.ViewModels
 
             var allSubjects = Subject.GetAllSubjects();
             var allStaff = Staff.GetAllStaff();
-            var currentAssignments = TeachingAssignment.GetAllAssignments().Where(a => a.ClassId == SelectedClass.ClassId).ToList();
+
+            // ĐÃ CHUẨN: Lọc theo Học kỳ và Năm học được chọn trên UI
+            var currentAssignments = TeachingAssignment.GetAllAssignments()
+                                    .Where(a => a.ClassId == SelectedClass.ClassId
+                                             && a.Semester == SelectedSemester
+                                             && a.AcademicYear == SelectedAcademicYear).ToList();
 
             var list = new ObservableCollection<AssignmentDisplayItem>();
 
             foreach (var subject in allSubjects)
             {
-                // LỌC GV THEO CHUYÊN MÔN: Sử dụng hàm thông dịch từ đồng nghĩa (Đã FIX lỗi Contains)
+                // LỌC GV THEO CHUYÊN MÔN: Sử dụng hàm thông dịch từ đồng nghĩa
                 var matchedTeachers = allStaff.Where(t => IsTeacherMatchSubject(t.Specialization, subject.SubjectName)).ToList();
 
                 matchedTeachers.Insert(0, new Staff { StaffId = 0, FullName = "Trống" });
@@ -121,9 +162,13 @@ namespace WPF_Student_Management.ViewModels
             {
                 if (SelectedClass == null) return;
 
-                // Xóa toàn bộ phân công cũ của lớp này trước
-                string deleteQuery = "DELETE FROM TeachingAssignment WHERE ClassID = @ClassID";
-                DatabaseHelper.ExecuteNonQuery(deleteQuery, new[] { new Microsoft.Data.SqlClient.SqlParameter("@ClassID", SelectedClass.ClassId) });
+                // Xóa toàn bộ phân công cũ của lớp này TRONG HỌC KỲ VÀ NĂM HỌC HIỆN TẠI
+                string deleteQuery = "DELETE FROM TeachingAssignment WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";
+                DatabaseHelper.ExecuteNonQuery(deleteQuery, new[] {
+                    new Microsoft.Data.SqlClient.SqlParameter("@ClassID", SelectedClass.ClassId),
+                    new Microsoft.Data.SqlClient.SqlParameter("@Semester", SelectedSemester),
+                    new Microsoft.Data.SqlClient.SqlParameter("@AcademicYear", SelectedAcademicYear)
+                });
 
                 // Insert lại những môn đã được chọn giáo viên
                 foreach (var item in AssignmentList)
@@ -135,7 +180,9 @@ namespace WPF_Student_Management.ViewModels
                         {
                             ClassId = SelectedClass.ClassId,
                             SubjectId = item.SubjectId,
-                            StaffId = item.SelectedTeacherId.Value
+                            StaffId = item.SelectedTeacherId.Value,
+                            Semester = SelectedSemester,         // Lấy từ UI
+                            AcademicYear = SelectedAcademicYear  // Lấy từ UI
                         };
                         newAssign.AddAssignment();
                     }
@@ -149,30 +196,12 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // HÀM KIỂM TRA ĐƯỢC ĐẶT ĐÚNG VỊ TRÍ TRONG CLASS
         private bool IsTeacherMatchSubject(string specialization, string subjectName)
         {
             if (string.IsNullOrWhiteSpace(specialization) || string.IsNullOrWhiteSpace(subjectName))
                 return false;
 
-            specialization = specialization.ToLower().Trim();
-            subjectName = subjectName.ToLower().Trim();
-
-            // NẾU TÊN MÔN VÀ CHUYÊN MÔN GIỐNG NHAU Y ĐÚNG
-            if (specialization == subjectName) return true;
-
-            // MAP RẠCH RÒI TỪNG MÔN 1-1 ĐỂ KHÔNG BỊ DÍNH CHỮ "LÝ" (Vật Lý / Địa Lý / Quản lý)
-            if (subjectName == "toán" && specialization == "toán học") return true;
-            if (subjectName == "lý" && specialization == "vật lý") return true;
-            if (subjectName == "hóa" && specialization == "hóa học") return true;
-            if (subjectName == "sinh" && specialization == "sinh học") return true;
-            if (subjectName == "sử" && specialization == "lịch sử") return true;
-            if (subjectName == "địa" && specialization == "địa lý") return true;
-            if (subjectName == "văn" && specialization == "ngữ văn") return true;
-            if (subjectName == "đạo đức" && specialization == "giáo dục công dân") return true;
-            if (subjectName == "thể dục" && specialization == "giáo dục thể chất") return true;
-
-            return false;
+            return specialization.Trim().Equals(subjectName.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

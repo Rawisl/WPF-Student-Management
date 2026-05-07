@@ -321,19 +321,26 @@ namespace WPF_Student_Management.Models
             return null; // Thất bại
         }
 
-        // TÌM HỌC SINH CHƯA ĐƯỢC XẾP LỚP 
-        public static List<Student> GetUnassignedStudents()
+        // SỬA LẠI: Thêm tham số academicYear để lọc theo năm học cụ thể
+        public static List<Student> GetUnassignedStudents(string academicYear)
         {
             List<Student> students = new List<Student>();
 
-            // Dùng LEFT JOIN và lọc những đứa có ClassID bị NULL
+            // Tìm những học sinh KHÔNG CÓ MẶT trong danh sách xếp lớp của NĂM HỌC HIỆN TẠI
             string query = @"
-                SELECT s.* 
-                FROM Student s
-                LEFT JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
-                WHERE cp.ClassID IS NULL";
+            SELECT * FROM Student 
+            WHERE Status = 'Active' AND StudentID NOT IN (
+            SELECT cp.StudentID 
+            FROM ClassPlacement cp
+            JOIN Class c ON cp.ClassID = c.ClassID
+            WHERE c.AcademicYear = @AcademicYear
+            )";
 
-            DataTable data = DatabaseHelper.ExecuteQuery(query);
+            SqlParameter[] parameters = new SqlParameter[] {
+            new SqlParameter("@AcademicYear", academicYear)
+        };
+
+            DataTable data = DatabaseHelper.ExecuteQuery(query, parameters);
 
             foreach (DataRow row in data.Rows)
             {

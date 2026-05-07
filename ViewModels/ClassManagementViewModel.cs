@@ -14,10 +14,16 @@ namespace WPF_Student_Management.ViewModels
 {
     public partial class ClassManagementViewModel : ObservableObject
     {
-        // Sĩ số tối đa mặc định (đề phòng lỗi mất kết nối DB khi load quy định)
+        // Sĩ số tối đa mặc định
         private static int _maxClassSize = 40;
 
-        // Lớp Data Transfer Object (DTO) phục vụ riêng cho hiển thị UI và Binding
+        // --- BỔ SUNG: QUẢN LÝ NĂM HỌC HIỆN TẠI ---
+        // (Trong thực tế, cái này có thể lấy từ cấu hình hệ thống chung, tạm thời ta gán mặc định)
+        [ObservableProperty]
+        private string _currentAcademicYear = "2025-2026";
+        // -----------------------------------------
+
+        // Lớp Data Transfer Object (DTO)
         public partial class ClassItemUI : ObservableObject
         {
             [ObservableProperty]
@@ -40,9 +46,13 @@ namespace WPF_Student_Management.ViewModels
             [ObservableProperty]
             private string _homeroomTeacherName = string.Empty;
 
+            // --- BỔ SUNG THUỘC TÍNH NĂM HỌC ĐỂ UI CÓ THỂ HIỂN THỊ ---
+            [ObservableProperty]
+            private string _academicYear = string.Empty;
+
             public string StatusText => ClassSize >= _maxClassSize ? "Đầy" : (ClassSize == 0 ? "Trống" : "Còn chỗ");
 
-            // Xử lý format tên lớp hiển thị (VD: Lớp số "10A1" viết dính, lớp chữ "10 Tin" viết cách)
+            // Xử lý format tên lớp hiển thị
             public string DisplayClassName
             {
                 get
@@ -65,12 +75,11 @@ namespace WPF_Student_Management.ViewModels
         public partial class SelectableClassItem : ObservableObject
         {
             [ObservableProperty]
-            private bool _isSelected = true; //Mặc định checked hết
+            private bool _isSelected = true;
 
             public ClassItemUI ClassInfo { get; set; }
         }
 
-        // Biến lưu danh sách lớp rỗng hiển thị lên Dialog
         [ObservableProperty]
         private ObservableCollection<SelectableClassItem> _emptyClassesToTrash = new();
 
@@ -122,10 +131,13 @@ namespace WPF_Student_Management.ViewModels
                         Grade = Convert.ToInt32(row["Grade"]),
                         ClassSize = Convert.ToInt32(row["ClassSize"]),
                         HomeroomTeacherId = row["HomeroomTeacherID"] == DBNull.Value ? null : Convert.ToInt32(row["HomeroomTeacherID"]),
-                        HomeroomTeacherName = row["TeacherName"] == DBNull.Value ? "Chưa phân công" : row["TeacherName"].ToString()
+                        HomeroomTeacherName = row["TeacherName"] == DBNull.Value ? "Chưa phân công" : row["TeacherName"].ToString(),
+                        // Map thêm cột AcademicYear từ DB lên
+                        AcademicYear = row["AcademicYear"] != DBNull.Value ? row["AcademicYear"].ToString()! : CurrentAcademicYear
                     });
                 }
 
+                // Tùy chọn: Nếu bro chỉ muốn hiển thị lớp của năm học HIỆN TẠI, thì dùng thêm .Where(c => c.AcademicYear == CurrentAcademicYear)
                 ClassList = tempCollection;
             }
             catch (Exception ex)
@@ -157,9 +169,9 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private async Task CreateClass()
         {
-            var teachers = Staff.GetAvailableTeachers();
+            // SỬA LỖI COMPILER: Truyền CurrentAcademicYear vào hàm tìm GVCN rảnh
+            var teachers = Staff.GetAvailableTeachers(CurrentAcademicYear);
 
-            // Chèn Dummy Item (StaffId = -1) để hỗ trợ thao tác bỏ trống GVCN
             teachers.Insert(0, new Staff { StaffId = -1, FullName = "-- Trống (Không chọn) --" });
 
             AvailableTeachers = new ObservableCollection<Staff>(teachers);
@@ -178,7 +190,6 @@ namespace WPF_Student_Management.ViewModels
             string finalSuffix = "";
             string selectedGradeStr = Grade.ToString();
 
-            // Validate và bóc tách tiền tố khối
             if (input.Length >= 2 && char.IsDigit(input[0]) && char.IsDigit(input[1]))
             {
                 string inputGrade = input.Substring(0, 2);
@@ -194,45 +205,40 @@ namespace WPF_Student_Management.ViewModels
                 finalSuffix = input;
             }
 
-            // Chặn tên lớp rỗng hoặc chỉ chứa số
             if (string.IsNullOrWhiteSpace(finalSuffix) || finalSuffix.All(char.IsDigit))
             {
                 NotificationHelper.ShowError("Tên định danh lớp không được để trống hoặc chỉ chứa số (VD hợp lệ: A1, Tin, Lý...)");
                 return;
             }
 
-            // Chuẩn hóa định dạng: Ký tự đầu viết hoa, phần còn lại viết thường (VD: a7 -> A7, lý -> Lý)
             string formattedSuffix = char.ToUpper(finalSuffix[0]) + finalSuffix.Substring(1).ToLower();
             string fullClassName = $"{selectedGradeStr}{formattedSuffix}";
 
-            if (ClassList.Any(c => c.ClassName.Equals(fullClassName, StringComparison.OrdinalIgnoreCase)))
+            // Chặn trùng tên trong CÙNG 1 NĂM HỌC
+            if (ClassList.Any(c => c.AcademicYear == CurrentAcademicYear && c.ClassName.Equals(fullClassName, StringComparison.OrdinalIgnoreCase)))
             {
-                NotificationHelper.ShowError($"Lớp '{fullClassName}' đã tồn tại!");
+                NotificationHelper.ShowError($"Lớp '{fullClassName}' năm học {CurrentAcademicYear} đã tồn tại!");
                 return;
             }
 
-            // Xử lý id giáo viên nếu người dùng chọn tùy chọn bỏ trống (Dummy Item -1)
             int? finalTeacherId = (SelectedTeacher == null || SelectedTeacher.StaffId == -1) ? null : SelectedTeacher.StaffId;
-            string finalTeacherName = (SelectedTeacher == null || SelectedTeacher.StaffId == -1) ? "Chưa phân công" : SelectedTeacher.FullName;
 
             try
             {
-                //Tạo object không cần gán ClassId nữa (để DB tự lo)
                 Class newClass = new Class
                 {
                     ClassName = fullClassName,
                     Grade = Grade,
                     ClassSize = 0,
-                    HomeroomTeacherId = finalTeacherId
+                    HomeroomTeacherId = finalTeacherId,
+                    // THÊM: Gán năm học hiện tại lúc tạo lớp
+                    AcademicYear = CurrentAcademicYear
                 };
 
-                //Lưu xuống CSDL
                 if (newClass.AddClass())
                 {
                     NotificationHelper.ShowSuccess("Lập danh sách lớp thành công!");
-                    CancelAddClass(); // Đóng Pop-up và xóa form
-
-                    //Kéo lại mẻ lưới từ DB để UI nhận được ClassId thật do DB tự sinh
+                    CancelAddClass();
                     LoadClassesFromDatabase();
                 }
                 else
@@ -263,10 +269,10 @@ namespace WPF_Student_Management.ViewModels
             if (selectedClass == null) return;
             _editingClass = selectedClass;
 
-            var teachers = Staff.GetAvailableTeachers();
+            // Truyền năm học của lớp đang edit để lấy đúng danh sách GVCN
+            var teachers = Staff.GetAvailableTeachers(selectedClass.AcademicYear);
             teachers.Insert(0, new Staff { StaffId = -1, FullName = "-- Trống (Bỏ phân công) --" });
 
-            // Bổ sung GVCN hiện tại vào danh sách để giữ được Select state trên ComboBox
             if (selectedClass.HomeroomTeacherId.HasValue)
             {
                 teachers.Add(new Staff
@@ -279,7 +285,6 @@ namespace WPF_Student_Management.ViewModels
             AvailableTeachers = new ObservableCollection<Staff>(teachers);
             Grade = selectedClass.Grade;
 
-            // Tách tiền tố khối để hiển thị phần hậu tố lên TextBox
             string gradeStr = Grade.ToString();
             NewClassName = selectedClass.ClassName.StartsWith(gradeStr)
                            ? selectedClass.ClassName.Substring(gradeStr.Length)
@@ -309,8 +314,8 @@ namespace WPF_Student_Management.ViewModels
             string formattedSuffix = char.ToUpper(finalSuffix[0]) + finalSuffix.Substring(1).ToLower();
             string fullClassName = $"{Grade}{formattedSuffix}";
 
-            // Kiểm tra trùng tên (Bỏ qua chính lớp đang được sửa)
-            if (ClassList.Any(c => c.ClassId != _editingClass.ClassId && c.ClassName.Equals(fullClassName, StringComparison.OrdinalIgnoreCase)))
+            // Kiểm tra trùng tên trong cùng Năm học
+            if (ClassList.Any(c => c.ClassId != _editingClass.ClassId && c.AcademicYear == _editingClass.AcademicYear && c.ClassName.Equals(fullClassName, StringComparison.OrdinalIgnoreCase)))
             {
                 NotificationHelper.ShowError($"Lớp '{fullClassName}' đã tồn tại!");
                 return;
@@ -327,7 +332,9 @@ namespace WPF_Student_Management.ViewModels
                     ClassName = fullClassName,
                     Grade = Grade,
                     ClassSize = _editingClass.ClassSize,
-                    HomeroomTeacherId = finalTeacherId
+                    HomeroomTeacherId = finalTeacherId,
+                    // Giữ nguyên năm học của lớp đang Edit
+                    AcademicYear = _editingClass.AcademicYear
                 };
 
                 if (updateClass.UpdateClass())
@@ -365,7 +372,6 @@ namespace WPF_Student_Management.ViewModels
         {
             if (selectedClass == null) return;
 
-            // Quy định: Chỉ cho phép xóa lớp khi sĩ số trống
             if (selectedClass.ClassSize > 0)
             {
                 NotificationHelper.ShowError($"Lớp '{selectedClass.ClassName}' đang có {selectedClass.ClassSize} học sinh. Không thể xóa!");
@@ -390,43 +396,31 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-
-        // Lệnh Quét lớp rỗng
         [RelayCommand]
         private async Task ScanEmptyClasses()
         {
-            // 1. Tìm tất cả lớp có ClassSize == 0
             var emptyClasses = ClassList.Where(c => c.ClassSize == 0).ToList();
 
-            // 2. Exception: Không có lớp nào
             if (!emptyClasses.Any())
             {
                 NotificationHelper.ShowWarning("Không có lớp rỗng nào để xóa.");
                 return;
             }
 
-            // 3. Đổ dữ liệu vào list của Dialog (Bọc nó vào SelectableClassItem)
             EmptyClassesToTrash.Clear();
             foreach (var cls in emptyClasses)
             {
                 EmptyClassesToTrash.Add(new SelectableClassItem { ClassInfo = cls });
             }
 
-            // 4. Mở Custom Dialog
             var dialog = new Components.BatchDeleteEmptyClassesDialog { DataContext = this };
             await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialog");
         }
 
-        // Lệnh Xác nhận Xóa
         [RelayCommand]
         private void ConfirmBatchDelete()
         {
-            // Lọc ra những lớp mà user tick CheckBox
             var classesToDelete = EmptyClassesToTrash.Where(x => x.IsSelected).Select(x => x.ClassInfo).ToList();
-
-            bool isConfirm = NotificationHelper.ShowConfirm( $"Bạn có chắc chắn muốn xóa '{classesToDelete.Count()}' lớp không?\n" + "Các lớp học đã chọn sẽ bị xóa hoàn toàn khỏi hệ thống và không thể hoàn tác!");
-
-            if (!isConfirm) return;
 
             if (!classesToDelete.Any())
             {
@@ -434,14 +428,17 @@ namespace WPF_Student_Management.ViewModels
                 return;
             }
 
+            bool isConfirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa '{classesToDelete.Count()}' lớp không?\n" + "Các lớp học đã chọn sẽ bị xóa hoàn toàn khỏi hệ thống và không thể hoàn tác!");
+
+            if (!isConfirm) return;
+
             int successCount = 0;
 
-            // Chạy vòng lặp xóa từng lớp dưới DB
             foreach (var cls in classesToDelete)
             {
-                if (Class.DeleteClass(cls.ClassId)) // Tận dụng lại hàm DeleteClass có sẵn của bro
+                if (Class.DeleteClass(cls.ClassId))
                 {
-                    ClassList.Remove(cls); // Xóa khỏi UI
+                    ClassList.Remove(cls);
                     successCount++;
                 }
             }

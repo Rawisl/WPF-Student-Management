@@ -13,7 +13,7 @@ namespace WPF_Student_Management.Helpers
 
             string lowerSubject = subjectName.Trim().ToLower();
 
-            if (lowerSubject.Contains("thể dục") || lowerSubject.Contains("đạo đức"))
+            if (lowerSubject.Contains("giáo dục thể chất"))
             {
                 return score >= PASSING_SCORE ? "Đạt" : "Không đạt";
             }

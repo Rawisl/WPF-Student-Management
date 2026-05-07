@@ -37,8 +37,7 @@
                                 Binding="{Binding DisplayClassName}"
                                 Width="*"
                                 IsReadOnly="True"
-                                HeaderStyle="{StaticResource GlobalLeftHeaderStyle}"
-                                >
+                                HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
                 <DataGridTextColumn.ElementStyle>
                     <Style TargetType="TextBlock"
                            BasedOn="{StaticResource GlobalLeftElementStyle}">
@@ -46,7 +45,14 @@
                                 Value="SemiBold" />
                     </Style>
                 </DataGridTextColumn.ElementStyle>
+            </DataGridTextColumn>
 
+            <DataGridTextColumn Header="Năm học"
+                                Binding="{Binding AcademicYear}"
+                                Width="120"
+                                IsReadOnly="True"
+                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                ElementStyle="{StaticResource GlobalCenterElementStyle}">
             </DataGridTextColumn>
 
             <DataGridTextColumn Header="GVCN"
@@ -140,7 +146,7 @@
                                     Height="35"
                                     Padding="0"
                                     Cursor="Hand"
-                                    ToolTip="Xóa học sinh">
+                                    ToolTip="Xóa lớp học">
                                 <materialDesign:PackIcon Kind="TrashCanOutline"
                                                          Width="22"
                                                          Height="22"
@@ -153,7 +159,5 @@
             </DataGridTemplateColumn>
         </DataGrid.Columns>
 
-
     </DataGrid>
 </UserControl>
-

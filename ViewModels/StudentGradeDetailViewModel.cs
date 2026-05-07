@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Runtime.CompilerServices;
-using Microsoft.Data.SqlClient;
 using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.ViewModels
@@ -22,32 +22,40 @@ namespace WPF_Student_Management.ViewModels
         public string StudentName { get; set; }
         public ObservableCollection<GradeDetailItem> ScoreList { get; set; }
 
-        // Nhận ID và Tên học sinh từ màn hình danh sách truyền sang
-        public StudentGradeDetailViewModel(string studentId, string studentName)
+        // SỬA: Nhận thêm Semester và AcademicYear
+        public StudentGradeDetailViewModel(string studentId, string studentName, string semester, string academicYear)
         {
-            StudentName = studentName;
-            LoadScores(studentId);
+            StudentName = studentName + $" ({semester} - {academicYear})"; // Thêm dòng này để tiêu đề UI rõ ràng hơn
+            LoadScores(studentId, semester, academicYear);
         }
 
-        private void LoadScores(string studentId)
+        private void LoadScores(string studentId, string semester, string academicYear)
         {
             ScoreList = new ObservableCollection<GradeDetailItem>();
 
-            // Lấy tất cả môn học đang hoạt động, LEFT JOIN sang bảng điểm của học sinh này
+            // SỬA: Thêm điều kiện lọc Semester và AcademicYear vào JOIN
             string query = @"
                 SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore
                 FROM Subject sub
-                LEFT JOIN Score sc ON sub.SubjectID = sc.SubjectID AND sc.StudentID = @StudentID
+                LEFT JOIN Score sc ON sub.SubjectID = sc.SubjectID 
+                                  AND sc.StudentID = @StudentID 
+                                  AND sc.Semester = @Semester 
+                                  AND sc.AcademicYear = @AcademicYear
                 WHERE sub.IsDeleted = 0";
 
-            var dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@StudentID", studentId) });
+            var parameters = new[] {
+                new SqlParameter("@StudentID", studentId),
+                new SqlParameter("@Semester", semester),
+                new SqlParameter("@AcademicYear", academicYear)
+            };
+
+            var dt = DatabaseHelper.ExecuteQuery(query, parameters);
 
             foreach (DataRow row in dt.Rows)
             {
                 ScoreList.Add(new GradeDetailItem
                 {
                     SubjectName = row["SubjectName"].ToString(),
-                    // Nếu chưa có điểm (NULL) thì hiển thị dấu gạch ngang "-"
                     RegularScore = row["RegularTestScore"] != DBNull.Value ? Convert.ToDecimal(row["RegularTestScore"]).ToString("0.0") : "-",
                     MidTermScore = row["MidTermScore"] != DBNull.Value ? Convert.ToDecimal(row["MidTermScore"]).ToString("0.0") : "-",
                     FinalTermScore = row["FinalTermScore"] != DBNull.Value ? Convert.ToDecimal(row["FinalTermScore"]).ToString("0.0") : "-",
