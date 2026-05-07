@@ -266,21 +266,49 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
+                // BƯỚC 1: KIỂM TRA ĐIỀU KIỆN TIÊN QUYẾT - TẤT CẢ MÔN PHẢI ĐƯỢC GVBM CHỐT SỔ!
+                string checkLockQuery = @"
+                    DECLARE @TotalAssigned INT = (SELECT COUNT(DISTINCT SubjectID) FROM TeachingAssignment WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear);
+                    DECLARE @TotalLocked INT = (SELECT COUNT(*) FROM SubjectReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear AND IsLocked = 1);
+                    SELECT @TotalAssigned AS TotalAssigned, @TotalLocked AS TotalLocked;";
+
+                SqlParameter[] lockParams = {
+                    new SqlParameter("@ClassID", _currentClassId),
+                    new SqlParameter("@Semester", CurrentSemester),
+                    new SqlParameter("@AcademicYear", CurrentAcademicYear)
+                };
+
+                DataTable dtCheck = DatabaseHelper.ExecuteQuery(checkLockQuery, lockParams);
+                if (dtCheck.Rows.Count > 0)
+                {
+                    int totalAssigned = Convert.ToInt32(dtCheck.Rows[0]["TotalAssigned"]);
+                    int totalLocked = Convert.ToInt32(dtCheck.Rows[0]["TotalLocked"]);
+
+                    if (totalAssigned == 0)
+                    {
+                        NotificationHelper.ShowError("Lớp này chưa được phân công môn học nào! Không thể lập báo cáo.");
+                        IsReportGenerated = false;
+                        return;
+                    }
+
+                    if (totalLocked < totalAssigned)
+                    {
+                        NotificationHelper.ShowError($"Chưa thể lập báo cáo! Tình trạng: {totalLocked}/{totalAssigned} môn đã được GVBM lập báo cáo.");
+                        IsReportGenerated = false;
+                        return;
+                    }
+                }
+
+                // BƯỚC 2: TIẾN HÀNH TÍNH TOÁN BÁO CÁO KHI ĐÃ ĐỦ ĐIỀU KIỆN
                 string getPassingGradeQuery = "SELECT ISNULL((SELECT Value FROM Parameter WHERE ParameterName = 'NumPassingGrade'), 5.0) as PassingGrade";
                 DataTable dtParam = DatabaseHelper.ExecuteQuery(getPassingGradeQuery);
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
-                // SỬA: Tính TotalSubjects chuẩn xác từ TeachingAssignment
                 string query = @"
-                    DECLARE @TotalSubjects INT = (SELECT COUNT(DISTINCT SubjectID) FROM TeachingAssignment 
-                                                  WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear);
-
                     SELECT 
                         s.StudentID, s.FullName,
-                        COUNT(sc.SubjectID) AS GradedCount,
                         MIN(sc.AverageScore) AS MinScore,
-                        AVG(CASE WHEN sub.SubjectName <> N'Giáo dục thể chất' THEN sc.AverageScore ELSE NULL END) AS OverallAverage,
-                        @TotalSubjects AS TotalSubjects
+                        AVG(CASE WHEN sub.SubjectName <> N'Giáo dục thể chất' THEN sc.AverageScore ELSE NULL END) AS OverallAverage
                     FROM Student s
                     JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
                     LEFT JOIN Score sc ON s.StudentID = sc.StudentID AND sc.Semester = @Semester AND sc.AcademicYear = @AcademicYear
@@ -301,28 +329,10 @@ namespace WPF_Student_Management.ViewModels
 
                 foreach (DataRow row in dt.Rows)
                 {
-                    int gradedCount = Convert.ToInt32(row["GradedCount"]);
-
-                    // Xử lý an toàn nếu NULL (trường hợp lớp chưa phân công môn nào)
-                    int totalSubjects = row["TotalSubjects"] != DBNull.Value ? Convert.ToInt32(row["TotalSubjects"]) : 0;
-
-                    if (totalSubjects == 0)
-                    {
-                        NotificationHelper.ShowError("Lớp này chưa được phân công môn học nào! Không thể lập báo cáo.");
-                        IsReportGenerated = false;
-                        return;
-                    }
-
-                    if (gradedCount < totalSubjects)
-                    {
-                        NotificationHelper.ShowError("Không thể lập báo cáo. Dữ liệu điểm của lớp chưa hoàn tất. Vui lòng đợi GVBM hoàn thiện điểm.");
-                        IsReportGenerated = false;
-                        return;
-                    }
-
                     decimal minScore = row["MinScore"] != DBNull.Value ? Convert.ToDecimal(row["MinScore"]) : 0;
                     decimal overallAverage = row["OverallAverage"] != DBNull.Value ? Convert.ToDecimal(row["OverallAverage"]) : 0;
 
+                    // KIỂM TRA KÉP: Đạt = Điểm TB >= Điểm chuẩn VÀ Không có môn nào bị liệt (< Điểm chuẩn)
                     bool isPassed = (overallAverage >= passingGrade) && (minScore >= passingGrade);
                     if (isPassed) passCount++;
 

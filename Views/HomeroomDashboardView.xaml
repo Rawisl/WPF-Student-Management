@@ -14,6 +14,164 @@
         <viewmodels:HomeroomDashboardViewModel />
     </UserControl.DataContext>
 
+    <UserControl.Resources>
+        <Style x:Key="SegmentedLeftTabStyle"
+               TargetType="TabItem">
+            <Setter Property="MinHeight"
+                    Value="45" />
+            <Setter Property="Margin"
+                    Value="0" />
+            <Setter Property="Padding"
+                    Value="0" />
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch" />
+            <Setter Property="VerticalContentAlignment"
+                    Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="PillBorder"
+                                Background="Transparent"
+                                BorderBrush="#1A237E"
+                                BorderThickness="1.5,1.5,0.75,1.5"
+                                CornerRadius="22.5,0,0,22.5"
+                                Cursor="Hand">
+                            <ContentPresenter ContentSource="Header"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected"
+                                     Value="True">
+                                <Setter TargetName="PillBorder"
+                                        Property="Background"
+                                        Value="#1A237E" />
+                                <Setter Property="Foreground"
+                                        Value="White" />
+                                <Setter Property="Panel.ZIndex"
+                                        Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsSelected"
+                                     Value="False">
+                                <Setter TargetName="PillBorder"
+                                        Property="Background"
+                                        Value="Transparent" />
+                                <Setter Property="Foreground"
+                                        Value="#1A237E" />
+                                <Setter Property="Panel.ZIndex"
+                                        Value="0" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SegmentedMiddleTabStyle"
+               TargetType="TabItem">
+            <Setter Property="MinHeight"
+                    Value="45" />
+            <Setter Property="Margin"
+                    Value="0" />
+            <Setter Property="Padding"
+                    Value="0" />
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch" />
+            <Setter Property="VerticalContentAlignment"
+                    Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="PillBorder"
+                                Background="Transparent"
+                                BorderBrush="#1A237E"
+                                BorderThickness="0.75,1.5,0.75,1.5"
+                                CornerRadius="0"
+                                Cursor="Hand">
+                            <ContentPresenter ContentSource="Header"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected"
+                                     Value="True">
+                                <Setter TargetName="PillBorder"
+                                        Property="Background"
+                                        Value="#1A237E" />
+                                <Setter Property="Foreground"
+                                        Value="White" />
+                                <Setter Property="Panel.ZIndex"
+                                        Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsSelected"
+                                     Value="False">
+                                <Setter TargetName="PillBorder"
+                                        Property="Background"
+                                        Value="Transparent" />
+                                <Setter Property="Foreground"
+                                        Value="#1A237E" />
+                                <Setter Property="Panel.ZIndex"
+                                        Value="0" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SegmentedRightTabStyle"
+               TargetType="TabItem">
+            <Setter Property="MinHeight"
+                    Value="45" />
+            <Setter Property="Margin"
+                    Value="0" />
+            <Setter Property="Padding"
+                    Value="0" />
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch" />
+            <Setter Property="VerticalContentAlignment"
+                    Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="PillBorder"
+                                Background="Transparent"
+                                BorderBrush="#1A237E"
+                                BorderThickness="0.75,1.5,1.5,1.5"
+                                CornerRadius="0,22.5,22.5,0"
+                                Cursor="Hand">
+                            <ContentPresenter ContentSource="Header"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected"
+                                     Value="True">
+                                <Setter TargetName="PillBorder"
+                                        Property="Background"
+                                        Value="#1A237E" />
+                                <Setter Property="Foreground"
+                                        Value="White" />
+                                <Setter Property="Panel.ZIndex"
+                                        Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsSelected"
+                                     Value="False">
+                                <Setter TargetName="PillBorder"
+                                        Property="Background"
+                                        Value="Transparent" />
+                                <Setter Property="Foreground"
+                                        Value="#1A237E" />
+                                <Setter Property="Panel.ZIndex"
+                                        Value="0" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -42,7 +200,6 @@
             <StackPanel Grid.Column="1"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
-
                 <StackPanel Orientation="Vertical"
                             Margin="0,0,20,0">
                     <TextBlock Text="Năm học:"
@@ -60,7 +217,6 @@
                         <ComboBoxItem Content="2025-2026" />
                     </ComboBox>
                 </StackPanel>
-
                 <StackPanel Orientation="Vertical">
                     <TextBlock Text="Học kỳ:"
                                Foreground="Black"
@@ -88,21 +244,34 @@
                     SelectedIndex="0"
                     VerticalContentAlignment="Stretch"
                     HorizontalContentAlignment="Stretch">
-
             <TabControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <UniformGrid Rows="1"
-                                 Columns="2" />
+                                 Columns="3" />
                 </ItemsPanelTemplate>
             </TabControl.ItemsPanel>
 
             <TabItem Style="{StaticResource SegmentedLeftTabStyle}">
                 <TabItem.Header>
-                    <TextBlock Text="Nhập bảng điểm"
+                    <TextBlock Text="Danh sách học sinh"
                                FontSize="17"
                                FontWeight="SemiBold" />
                 </TabItem.Header>
+                <Grid Margin="0,20,0,0">
+                    <TextBlock Text="[Khu vực UC Danh sách học sinh sẽ nằm ở đây]"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="20"
+                               Foreground="Gray" />
+                </Grid>
+            </TabItem>
 
+            <TabItem Style="{StaticResource SegmentedMiddleTabStyle}">
+                <TabItem.Header>
+                    <TextBlock Text="Bảng điểm"
+                               FontSize="17"
+                               FontWeight="SemiBold" />
+                </TabItem.Header>
                 <components:AcademicConductUC DataContext="{Binding}"
                                               VerticalAlignment="Stretch"
                                               HorizontalAlignment="Stretch"
@@ -113,14 +282,14 @@
                 <TabItem.Header>
                     <TextBlock Text="Tổng kết học kỳ"
                                FontSize="17"
-                               FontWeight="SemiBold"/>
+                               FontWeight="SemiBold" />
                 </TabItem.Header>
-
                 <components:TermSummaryUC DataContext="{Binding}"
                                           VerticalAlignment="Stretch"
                                           HorizontalAlignment="Stretch"
                                           Margin="0,20,0,0" />
             </TabItem>
+
         </TabControl>
     </Grid>
 </UserControl>
