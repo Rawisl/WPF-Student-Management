@@ -128,6 +128,12 @@ namespace WPF_Student_Management.ViewModels
                 }
                 else
                 {
+                    if (CurrentStaff.AccountId == CurrentUser.Instance.UserId && CurrentStaff.Status == "Inactive")
+                    {
+                        NotificationHelper.ShowError("Hành động bị từ chối!\nBạn không thể chuyển trạng thái sang Inactive cho tài khoản đang đăng nhập.");
+                        return;
+                    }
+
                     // CẬP NHẬT THÔNG TIN CHO NHÂN VIÊN ĐÃ CÓ
                     isSuccess = CurrentStaff.UpdateStaff();
                     if (isSuccess) NotificationHelper.ShowSuccess("Cập nhật thông tin thành công!");
