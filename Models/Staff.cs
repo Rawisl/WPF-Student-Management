@@ -114,6 +114,8 @@ namespace WPF_Student_Management.Models
 
         public bool UpdateStaff()
         {
+            int isActive = (this.Status == "Active") ? 1 : 0;
+
             string query = @"
             BEGIN TRAN;
             BEGIN TRY
@@ -123,7 +125,8 @@ namespace WPF_Student_Management.Models
                     PhoneNumber = @PhoneNumber, NationalID = @NationalID, Status = @Status 
                 WHERE EmployeeID = @EmployeeID;
 
-                UPDATE Account SET RoleID = @RoleID WHERE AccountID = @AccountID;
+                -- ĐÃ SỬA: Cập nhật thêm cột IsActive cho bảng Account
+                UPDATE Account SET RoleID = @RoleID, IsActive = @IsActive WHERE AccountID = @AccountID;
 
                 COMMIT TRAN;
             END TRY
@@ -133,19 +136,20 @@ namespace WPF_Student_Management.Models
             END CATCH";
 
             SqlParameter[] parameters = new SqlParameter[] {
-            new SqlParameter("@EmployeeID", this.StaffId),
-            new SqlParameter("@AccountID", this.AccountId),
-            new SqlParameter("@FullName", this.FullName),
-            new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),
-            new SqlParameter("@Specialization", this.Specialization ?? (object)DBNull.Value),
-            new SqlParameter("@Email", this.Email ?? (object)DBNull.Value),
-            new SqlParameter("@HireDate", this.HireDate ?? (object)DBNull.Value),
-            new SqlParameter("@HometownAddress", this.HometownAddress ?? (object)DBNull.Value),
-            new SqlParameter("@PhoneNumber", this.PhoneNumber ?? (object)DBNull.Value),
-            new SqlParameter("@NationalID", this.NationalId ?? (object)DBNull.Value),
-            new SqlParameter("@Status", this.Status ?? (object)DBNull.Value),
-            new SqlParameter("@RoleID", this.RoleId)
-        };
+                new SqlParameter("@EmployeeID", this.StaffId),
+                new SqlParameter("@AccountID", this.AccountId),
+                new SqlParameter("@FullName", this.FullName),
+                new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),
+                new SqlParameter("@Specialization", this.Specialization ?? (object)DBNull.Value),
+                new SqlParameter("@Email", this.Email ?? (object)DBNull.Value),
+                new SqlParameter("@HireDate", this.HireDate ?? (object)DBNull.Value),
+                new SqlParameter("@HometownAddress", this.HometownAddress ?? (object)DBNull.Value),
+                new SqlParameter("@PhoneNumber", this.PhoneNumber ?? (object)DBNull.Value),
+                new SqlParameter("@NationalID", this.NationalId ?? (object)DBNull.Value),
+                new SqlParameter("@Status", this.Status ?? (object)DBNull.Value),
+                new SqlParameter("@RoleID", this.RoleId),
+                new SqlParameter("@IsActive", isActive)
+            };
 
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
@@ -160,7 +164,7 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        // SỬA LẠI: Thêm tham số academicYear để lọc theo năm học
+        //Thêm tham số academicYear để lọc theo năm học
         public static List<Staff> GetAvailableTeachers(string academicYear)
         {
             List<Staff> staffList = new List<Staff>();
@@ -204,6 +208,8 @@ namespace WPF_Student_Management.Models
 
         public (string Username, string Password)? ReceiveNewStaff()
         {
+            int isActive = (this.Status == "Active") ? 1 : 0;
+
             string username = GenerateStaffUsername(this.FullName);
             string rawPassword = GenerateStaffPassword(this.FullName, this.PhoneNumber);
             string hashedPassword = PasswordHasher.HashPassword(rawPassword);
@@ -211,8 +217,9 @@ namespace WPF_Student_Management.Models
             string query = @"
         BEGIN TRAN;
         BEGIN TRY
+            -- ĐÃ SỬA: Đổi số 1 thành @IsActive để nó nhận trạng thái từ UI
             INSERT INTO Account (RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive)
-            VALUES (4, @Username, @PasswordHash, 1, 1);
+            VALUES (4, @Username, @PasswordHash, 1, @IsActive);
             
             DECLARE @NewAccID INT = SCOPE_IDENTITY();
 
@@ -239,7 +246,8 @@ namespace WPF_Student_Management.Models
                 new SqlParameter("@HometownAddress", this.HometownAddress ?? (object)DBNull.Value),
                 new SqlParameter("@PhoneNumber", this.PhoneNumber ?? (object)DBNull.Value),
                 new SqlParameter("@NationalID", this.NationalId ?? (object)DBNull.Value),
-                new SqlParameter("@Status", "Active")
+                new SqlParameter("@Status", this.Status ?? "Active"),
+                new SqlParameter("@IsActive", isActive)
             };
 
             DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);

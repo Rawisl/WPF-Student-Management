@@ -115,7 +115,7 @@ namespace WPF_Student_Management.Models
             string hashedAttempt = PasswordHasher.HashPassword(rawPassword);
 
             // Search for a matching username AND matching hash in the DB
-            string query = "SELECT * FROM Account WHERE Username = @Username AND PasswordHash = @PasswordHash AND IsActive = 1";
+            string query = "SELECT * FROM Account WHERE Username = @Username AND PasswordHash = @PasswordHash";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@Username", username),
