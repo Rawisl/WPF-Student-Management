@@ -5,6 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
@@ -122,6 +123,45 @@ namespace WPF_Student_Management.ViewModels
         private double _midCoef = 2.0;
         private double _finCoef = 3.0;
 
+        // --- CÁC BIẾN KIỂM SOÁT TRẠNG THÁI KHÓA SỔ ---
+
+        //Biến tổng hợp trạng thái Read-Only cho bảng điểm
+        public bool IsGradebookReadOnly => IsSubjectLocked || IsClassLockedByGVCN;
+
+        private bool _isSubjectLocked;
+        public bool IsSubjectLocked
+        {
+            get => _isSubjectLocked;
+            set
+            {
+                SetProperty(ref _isSubjectLocked, value);
+                OnPropertyChanged(nameof(ShowSubjectLockedWarning));
+                OnPropertyChanged(nameof(ShowSubjectConfirmButton));
+                OnPropertyChanged(nameof(ShowSubjectCancelButton));
+                OnPropertyChanged(nameof(IsGradebookReadOnly));
+            }
+        }
+
+        private bool _isClassLockedByGVCN;
+        public bool IsClassLockedByGVCN
+        {
+            get => _isClassLockedByGVCN;
+            set
+            {
+                SetProperty(ref _isClassLockedByGVCN, value);
+                OnPropertyChanged(nameof(ShowSubjectLockedWarning));
+                OnPropertyChanged(nameof(ShowSubjectConfirmButton));
+                OnPropertyChanged(nameof(ShowSubjectCancelButton));
+                OnPropertyChanged(nameof(IsGradebookReadOnly));
+            }
+        }
+
+        // Logic ẩn hiện các nút trên UI
+        public bool ShowSubjectLockedWarning => IsSubjectLocked && !IsClassLockedByGVCN;
+        public bool ShowSubjectConfirmButton => ReportData.Count > 0 && !IsSubjectLocked && !IsClassLockedByGVCN;
+        public bool ShowSubjectCancelButton => IsSubjectLocked && !IsClassLockedByGVCN;
+
+
         // Bẫy sự kiện khi đổi Năm học / Học kỳ -> Reset lại bảng điểm
         partial void OnSelectedAcademicYearChanged(string value) => RefreshData();
         partial void OnSelectedSemesterChanged(string value) => RefreshData();
@@ -156,8 +196,15 @@ namespace WPF_Student_Management.ViewModels
 
                 Classes.Clear();
                 StudentGrades.Clear();
+                ReportData.Clear(); // Dọn bảng báo cáo khi đổi môn
+                DetailedStudentList.Clear();
+
                 GradebookTitle = "Vui lòng chọn Lớp học";
                 IsSaveVisible = Visibility.Hidden;
+
+                // Mặc định tắt khóa sổ cho đến khi load dữ liệu thực
+                IsSubjectLocked = false;
+                IsClassLockedByGVCN = false;
 
                 LoadClassesForSubject(value);
             }
@@ -192,8 +239,15 @@ namespace WPF_Student_Management.ViewModels
                 LoadGradeDataCommand.NotifyCanExecuteChanged();
 
                 StudentGrades.Clear();
+                ReportData.Clear(); // Dọn bảng báo cáo khi đổi lớp
+                DetailedStudentList.Clear();
+
                 IsSaveVisible = Visibility.Hidden;
                 GradebookTitle = value != null ? "Vui lòng bấm 'Lấy danh sách'" : "Vui lòng chọn Lớp học";
+
+                // Mặc định tắt khóa sổ cho đến khi load dữ liệu thực
+                IsSubjectLocked = false;
+                IsClassLockedByGVCN = false;
             }
         }
 
@@ -208,7 +262,6 @@ namespace WPF_Student_Management.ViewModels
             Subjects.Clear();
             if (CurrentUser.Instance == null) return;
 
-            // SỬA: Lọc môn học theo Học kỳ và Năm học hiện tại
             string query = @"
                 SELECT DISTINCT s.SubjectID, s.SubjectName 
                 FROM TeachingAssignment ta
@@ -236,7 +289,6 @@ namespace WPF_Student_Management.ViewModels
         {
             if (subject == null || CurrentUser.Instance == null) return;
 
-            // SỬA: Lọc lớp học theo Học kỳ và Năm học hiện tại
             string query = @"
                 SELECT DISTINCT c.ClassID, c.ClassName 
                 FROM TeachingAssignment ta
@@ -284,6 +336,43 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
+        // BỔ SUNG HÀM KIỂM TRA KHÓA SỔ TỔNG HỢP
+        private void CheckLockStatus()
+        {
+            if (SelectedClass == null || SelectedSubject == null) return;
+
+            try
+            {
+                // Check GVCN khóa
+                string classLockQuery = "SELECT IsLocked FROM ClassReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";
+                SqlParameter[] classParams = {
+                    new SqlParameter("@ClassID", SelectedClass.Id),
+                    new SqlParameter("@Semester", SelectedSemester),
+                    new SqlParameter("@AcademicYear", SelectedAcademicYear)
+                };
+                DataTable dtClass = DatabaseHelper.ExecuteQuery(classLockQuery, classParams);
+                IsClassLockedByGVCN = dtClass.Rows.Count > 0 && dtClass.Rows[0]["IsLocked"] != DBNull.Value && Convert.ToBoolean(dtClass.Rows[0]["IsLocked"]);
+
+                // Check GVBM khóa môn
+                string subjectLockQuery = "SELECT IsLocked FROM SubjectReport WHERE ClassID = @ClassID AND SubjectID = @SubjectID AND Semester = @Semester AND AcademicYear = @AcademicYear";
+                SqlParameter[] subjectParams = {
+                    new SqlParameter("@ClassID", SelectedClass.Id),
+                    new SqlParameter("@SubjectID", SelectedSubject.Id),
+                    new SqlParameter("@Semester", SelectedSemester),
+                    new SqlParameter("@AcademicYear", SelectedAcademicYear)
+                };
+                DataTable dtSubject = DatabaseHelper.ExecuteQuery(subjectLockQuery, subjectParams);
+                IsSubjectLocked = dtSubject.Rows.Count > 0 && dtSubject.Rows[0]["IsLocked"] != DBNull.Value && Convert.ToBoolean(dtSubject.Rows[0]["IsLocked"]);
+
+                // Cập nhật hiển thị nút Lưu Điểm
+                IsSaveVisible = (IsClassLockedByGVCN || IsSubjectLocked) ? Visibility.Collapsed : Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi kiểm tra trạng thái khóa sổ: " + ex.Message);
+            }
+        }
+
         private bool CanLoadGradeData()
         {
             return SelectedClass != null && SelectedSubject != null;
@@ -303,30 +392,19 @@ namespace WPF_Student_Management.ViewModels
                 LoadCoefficients();
                 StudentGrades.Clear();
 
-                // SỬA: Kiểm tra khóa sổ từ bảng ClassReport (Khóa theo Học Kỳ/Năm học)
-                string lockQuery = "SELECT IsLocked FROM ClassReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";
-                SqlParameter[] lockParams = {
-                    new SqlParameter("@ClassID", SelectedClass.Id),
-                    new SqlParameter("@Semester", SelectedSemester),
-                    new SqlParameter("@AcademicYear", SelectedAcademicYear)
-                };
-                DataTable dtLock = DatabaseHelper.ExecuteQuery(lockQuery, lockParams);
+                CheckLockStatus(); // Gọi hàm kiểm tra khóa sổ
 
-                bool isLocked = dtLock.Rows.Count > 0 && dtLock.Rows[0]["IsLocked"] != DBNull.Value && Convert.ToBoolean(dtLock.Rows[0]["IsLocked"]);
-
-                if (isLocked)
+                if (IsClassLockedByGVCN)
                 {
-                    IsSaveVisible = Visibility.Collapsed;
                     NotificationHelper.ShowWarning("Lớp này đã được GVCN lập báo cáo tổng kết!\nBạn chỉ có quyền xem, không thể sửa điểm.");
                 }
-                else
+                else if (IsSubjectLocked)
                 {
-                    IsSaveVisible = Visibility.Visible;
+                    NotificationHelper.ShowWarning("Bạn đã chốt sổ môn này rồi!\nHãy mở khóa môn nếu muốn tiếp tục sửa điểm.");
                 }
 
                 GradebookTitle = $"Nhập điểm môn {SelectedSubject.Name} - Lớp {SelectedClass.Name} ({SelectedSemester} - {SelectedAcademicYear})";
 
-                // SỬA: Join bảng Score bám theo Semester và AcademicYear
                 string sqlQuery = @"
                     SELECT 
                         s.StudentID, s.FullName, sc.ScoreID,
@@ -392,19 +470,11 @@ namespace WPF_Student_Management.ViewModels
         {
             if (StudentGrades.Count == 0) return;
 
-            // Check khóa sổ một lần nữa đề phòng rủi ro Concurrency
-            string lockQuery = "SELECT IsLocked FROM ClassReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";
-            SqlParameter[] lockParams = {
-                new SqlParameter("@ClassID", SelectedClass.Id),
-                new SqlParameter("@Semester", SelectedSemester),
-                new SqlParameter("@AcademicYear", SelectedAcademicYear)
-            };
-            DataTable dtLock = DatabaseHelper.ExecuteQuery(lockQuery, lockParams);
-
-            if (dtLock.Rows.Count > 0 && Convert.ToBoolean(dtLock.Rows[0]["IsLocked"]))
+            // Kiểm tra kép trước khi lưu
+            CheckLockStatus();
+            if (IsClassLockedByGVCN || IsSubjectLocked)
             {
-                IsSaveVisible = Visibility.Collapsed;
-                NotificationHelper.ShowError("Hành động bị từ chối! Lớp này đã được GVCN lập báo cáo chốt sổ.");
+                NotificationHelper.ShowError("Hành động bị từ chối! Bảng điểm này đang trong trạng thái bị khóa.");
                 return;
             }
 
@@ -414,7 +484,6 @@ namespace WPF_Student_Management.ViewModels
             {
                 if (!hs.RegularScore.HasValue && !hs.MidSemScore.HasValue && !hs.FinalScore.HasValue) continue;
 
-                // SỬA: Lệnh MERGE check đầy đủ 4 key (StudentID, SubjectID, Semester, AcademicYear)
                 string mergeQuery = @"
                     MERGE Score AS target
                     USING (SELECT @StudentID AS StudentID, @SubjectID AS SubjectID, @Semester AS Semester, @AcademicYear AS AcademicYear) AS source
@@ -462,6 +531,10 @@ namespace WPF_Student_Management.ViewModels
         public void RefreshData()
         {
             StudentGrades.Clear();
+            ReportData.Clear();
+            DetailedStudentList.Clear();
+            IsSubjectLocked = false;
+            IsClassLockedByGVCN = false;
 
             SelectedSubject = null;
             SelectedClass = null;
@@ -479,13 +552,17 @@ namespace WPF_Student_Management.ViewModels
         // === KHU VỰC LOGIC BÁO CÁO MÔN HỌC (SUBJECT REPORT) ===
         // ====================================================================
 
-        public class SubjectReportRow
+        public partial class SubjectReportRow : ObservableObject
         {
-            public int OrderNumber { get; set; }
-            public string ClassName { get; set; }
-            public int TotalStudents { get; set; }
-            public int PassedCount { get; set; }
-            public double PassRate { get; set; }
+            [ObservableProperty] private int _orderNumber;
+            [ObservableProperty] private int _classId;
+            [ObservableProperty] private string _className;
+            [ObservableProperty] private int _totalStudents;
+            [ObservableProperty] private int _passedCount;
+            [ObservableProperty] private double _passRate;
+            [ObservableProperty] private bool _isMissingScores;
+            [ObservableProperty] private bool _isSubjectLocked;
+            [ObservableProperty] private bool _isClassLockedByGVCN;
         }
 
         public class SubjectReportDetailRow
@@ -503,9 +580,9 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private void GenerateReport()
         {
-            if (SelectedSubject == null || SelectedClass == null)
+            if (SelectedSubject == null)
             {
-                NotificationHelper.ShowWarning("Vui lòng chọn Môn học và Lớp để xem báo cáo!");
+                NotificationHelper.ShowWarning("Vui lòng chọn Môn học để xem báo cáo!");
                 return;
             }
 
@@ -514,16 +591,126 @@ namespace WPF_Student_Management.ViewModels
                 ReportData.Clear();
                 DetailedStudentList.Clear();
 
-                // 1. Lấy quy định "Điểm Đạt" từ hệ thống (Mặc định 5.0 nếu không có)
                 double passingGrade = 5.0;
                 DataTable dtParam = DatabaseHelper.ExecuteQuery("SELECT Value FROM Parameter WHERE ParameterName = 'NumPassingGrade'");
                 if (dtParam.Rows.Count > 0) passingGrade = Convert.ToDouble(dtParam.Rows[0]["Value"]);
 
-                // Đảm bảo lấy hệ số mới nhất
                 LoadCoefficients();
                 double totalCoef = _regCoef + _midCoef + _finCoef;
 
-                // 2. Lấy dữ liệu điểm của lớp bám theo Học kỳ và Năm học
+                int orderNumber = 1;
+
+                // Vòng lặp quét TẤT CẢ CÁC LỚP mà giáo viên dạy môn này
+                foreach (var cls in Classes)
+                {
+                    bool isClassLocked = false;
+                    bool isSubjectLocked = false;
+                    bool isMissing = false;
+
+                    // 1. Kiểm tra trạng thái khóa sổ của Lớp này
+                    string classLockQuery = "SELECT IsLocked FROM ClassReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";
+                    DataTable dtClassLock = DatabaseHelper.ExecuteQuery(classLockQuery, new[] {
+                        new SqlParameter("@ClassID", cls.Id), new SqlParameter("@Semester", SelectedSemester), new SqlParameter("@AcademicYear", SelectedAcademicYear)
+                    });
+                    if (dtClassLock.Rows.Count > 0 && dtClassLock.Rows[0]["IsLocked"] != DBNull.Value) isClassLocked = Convert.ToBoolean(dtClassLock.Rows[0]["IsLocked"]);
+
+                    string subjectLockQuery = "SELECT IsLocked FROM SubjectReport WHERE ClassID = @ClassID AND SubjectID = @SubjectID AND Semester = @Semester AND AcademicYear = @AcademicYear";
+                    DataTable dtSubjectLock = DatabaseHelper.ExecuteQuery(subjectLockQuery, new[] {
+                        new SqlParameter("@ClassID", cls.Id), new SqlParameter("@SubjectID", SelectedSubject.Id), new SqlParameter("@Semester", SelectedSemester), new SqlParameter("@AcademicYear", SelectedAcademicYear)
+                    });
+                    if (dtSubjectLock.Rows.Count > 0 && dtSubjectLock.Rows[0]["IsLocked"] != DBNull.Value) isSubjectLocked = Convert.ToBoolean(dtSubjectLock.Rows[0]["IsLocked"]);
+
+                    // 2. Query điểm số
+                    string query = @"
+                        SELECT s.StudentID, s.FullName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore
+                        FROM Student s
+                        JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
+                        LEFT JOIN Score sc ON s.StudentID = sc.StudentID 
+                                          AND sc.SubjectID = @SubjectID 
+                                          AND sc.Semester = @Semester 
+                                          AND sc.AcademicYear = @AcademicYear
+                        WHERE cp.ClassID = @ClassID";
+
+                    SqlParameter[] paras = {
+                        new SqlParameter("@SubjectID", SelectedSubject.Id),
+                        new SqlParameter("@ClassID", cls.Id),
+                        new SqlParameter("@Semester", SelectedSemester),
+                        new SqlParameter("@AcademicYear", SelectedAcademicYear)
+                    };
+
+                    DataTable dt = DatabaseHelper.ExecuteQuery(query, paras);
+
+                    int passCount = 0;
+                    int totalStudents = dt.Rows.Count;
+
+                    if (totalStudents == 0) continue; // Lớp chưa có học sinh thì bỏ qua
+
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        if (row["RegularTestScore"] == DBNull.Value || row["MidTermScore"] == DBNull.Value || row["FinalTermScore"] == DBNull.Value)
+                        {
+                            isMissing = true;
+                        }
+
+                        double r = row["RegularTestScore"] != DBNull.Value ? Convert.ToDouble(row["RegularTestScore"]) : 0;
+                        double m = row["MidTermScore"] != DBNull.Value ? Convert.ToDouble(row["MidTermScore"]) : 0;
+                        double f = row["FinalTermScore"] != DBNull.Value ? Convert.ToDouble(row["FinalTermScore"]) : 0;
+
+                        double avg = 0;
+                        if (totalCoef > 0) avg = Math.Round((r * _regCoef + m * _midCoef + f * _finCoef) / totalCoef, 1);
+
+                        if (avg >= passingGrade && !isMissing) passCount++;
+                    }
+
+                    // 3. Đưa vào bảng tổng kết
+                    ReportData.Add(new SubjectReportRow
+                    {
+                        OrderNumber = orderNumber++,
+                        ClassId = cls.Id,
+                        ClassName = cls.Name,
+                        TotalStudents = totalStudents,
+                        PassedCount = isMissing ? 0 : passCount,
+                        PassRate = (totalStudents > 0 && !isMissing) ? Math.Round((double)passCount / totalStudents * 100, 2) : 0,
+                        IsMissingScores = isMissing,
+                        IsSubjectLocked = isSubjectLocked,
+                        IsClassLockedByGVCN = isClassLocked
+                    });
+                }
+
+                if (ReportData.Count == 0)
+                {
+                    NotificationHelper.ShowWarning("Không có dữ liệu báo cáo cho môn học và học kỳ này.");
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi hệ thống khi lập báo cáo:\n" + ex.Message);
+            }
+        }
+
+        [RelayCommand]
+        private async Task ViewDetail()
+        {
+            if (SelectedReportRow == null) return;
+
+            // Theo đặc tả: Thiếu điểm thì cấm lập báo cáo/xem chi tiết
+            if (SelectedReportRow.IsMissingScores)
+            {
+                NotificationHelper.ShowWarning("Lớp này chưa hoàn tất nhập điểm, không thể xem chi tiết!");
+                return;
+            }
+
+            try
+            {
+                DetailedStudentList.Clear();
+                double passingGrade = 5.0;
+                DataTable dtParam = DatabaseHelper.ExecuteQuery("SELECT Value FROM Parameter WHERE ParameterName = 'NumPassingGrade'");
+                if (dtParam.Rows.Count > 0) passingGrade = Convert.ToDouble(dtParam.Rows[0]["Value"]);
+
+                LoadCoefficients();
+                double totalCoef = _regCoef + _midCoef + _finCoef;
+
+                // Query lại chi tiết cho cái ClassID đang được double-click
                 string query = @"
                     SELECT s.FullName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore
                     FROM Student s
@@ -537,21 +724,12 @@ namespace WPF_Student_Management.ViewModels
 
                 SqlParameter[] paras = {
                     new SqlParameter("@SubjectID", SelectedSubject.Id),
-                    new SqlParameter("@ClassID", SelectedClass.Id),
+                    new SqlParameter("@ClassID", SelectedReportRow.ClassId),
                     new SqlParameter("@Semester", SelectedSemester),
                     new SqlParameter("@AcademicYear", SelectedAcademicYear)
                 };
 
                 DataTable dt = DatabaseHelper.ExecuteQuery(query, paras);
-
-                if (dt.Rows.Count == 0)
-                {
-                    NotificationHelper.ShowWarning("Không có dữ liệu học sinh trong lớp này!");
-                    return;
-                }
-
-                int passCount = 0;
-                int totalStudents = dt.Rows.Count;
                 int orderNumber = 1;
 
                 foreach (DataRow row in dt.Rows)
@@ -561,14 +739,8 @@ namespace WPF_Student_Management.ViewModels
                     double f = row["FinalTermScore"] != DBNull.Value ? Convert.ToDouble(row["FinalTermScore"]) : 0;
 
                     double avg = 0;
-                    if (row["RegularTestScore"] != DBNull.Value || row["MidTermScore"] != DBNull.Value || row["FinalTermScore"] != DBNull.Value)
-                    {
-                        if (totalCoef > 0)
-                            avg = Math.Round((r * _regCoef + m * _midCoef + f * _finCoef) / totalCoef, 1);
-                    }
-
+                    if (totalCoef > 0) avg = Math.Round((r * _regCoef + m * _midCoef + f * _finCoef) / totalCoef, 1);
                     bool isPass = avg >= passingGrade;
-                    if (isPass) passCount++;
 
                     DetailedStudentList.Add(new SubjectReportDetailRow
                     {
@@ -579,22 +751,97 @@ namespace WPF_Student_Management.ViewModels
                     });
                 }
 
-                // 3. Đổ dữ liệu tổng kết vào Bảng 1
-                var summaryRow = new SubjectReportRow
-                {
-                    OrderNumber = 1,
-                    ClassName = SelectedClass.Name,
-                    TotalStudents = totalStudents,
-                    PassedCount = passCount,
-                    PassRate = totalStudents > 0 ? Math.Round((double)passCount / totalStudents * 100, 2) : 0
-                };
-
-                ReportData.Add(summaryRow);
-                SelectedReportRow = summaryRow; // Tự động select để hiện tiêu đề bảng 2
+                var detailDialog = new WPF_Student_Management.Components.SubjectReportDetailUC { DataContext = this };
+                await MaterialDesignThemes.Wpf.DialogHost.Show(detailDialog, "RootDialog");
             }
             catch (Exception ex)
             {
-                NotificationHelper.ShowError("Lỗi hệ thống khi lập báo cáo:\n" + ex.Message);
+                NotificationHelper.ShowError("Lỗi khi mở bảng chi tiết:\n" + ex.Message);
+            }
+        }
+
+        // --- LỆNH CHỐT SỔ MÔN HỌC (Nhận Parameter là Dòng đang thao tác) ---
+        [RelayCommand]
+        private void ConfirmSubjectReport(SubjectReportRow row)
+        {
+            if (SelectedSubject == null || row == null || row.IsMissingScores) return;
+            if (CurrentUser.Instance == null) return;
+
+            try
+            {
+                int currentAccountId = CurrentUser.Instance.UserId;
+                
+                string query = @"
+                DECLARE @EmpID INT = (SELECT TOP 1 EmployeeID FROM Employee WHERE AccountID = @AccountID);
+
+                IF EXISTS (SELECT 1 FROM SubjectReport WHERE ClassID = @ClassID AND SubjectID = @SubjectID AND Semester = @Semester AND AcademicYear = @AcademicYear)
+                BEGIN
+                    UPDATE SubjectReport 
+                    SET IsLocked = 1, TotalStudents = @Total, PassedStudents = @Pass, PassRate = @Rate 
+                    WHERE ClassID = @ClassID AND SubjectID = @SubjectID AND Semester = @Semester AND AcademicYear = @AcademicYear
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO SubjectReport (ClassID, SubjectID, Semester, AcademicYear, TotalStudents, PassedStudents, PassRate, IsLocked, CreatedByTeacherID, CreatedAt)
+                    VALUES (@ClassID, @SubjectID, @Semester, @AcademicYear, @Total, @Pass, @Rate, 1, @EmpID, GETDATE())
+                END";
+
+                SqlParameter[] paras = {
+                    new SqlParameter("@ClassID", row.ClassId),
+                    new SqlParameter("@SubjectID", SelectedSubject.Id),
+                    new SqlParameter("@Semester", SelectedSemester),
+                    new SqlParameter("@AcademicYear", SelectedAcademicYear),
+                    new SqlParameter("@Total", row.TotalStudents),
+                    new SqlParameter("@Pass", row.PassedCount),
+                    new SqlParameter("@Rate", row.PassRate),
+                    new SqlParameter("@AccountID", currentAccountId)
+                };
+
+                DatabaseHelper.ExecuteNonQuery(query, paras);
+
+                // Cập nhật State để UI nháy tự động sang trạng thái "Đã chốt"
+                row.IsSubjectLocked = true;
+
+                // Đồng bộ cập nhật nút Lưu ở tab Nhập Điểm (Nếu user đang xem lớp này)
+                if (SelectedClass != null && SelectedClass.Id == row.ClassId) { CheckLockStatus(); }
+
+                NotificationHelper.ShowSuccess($"Đã lập báo cáo môn học cho lớp {row.ClassName} thành công!");
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi lập báo cáo: " + ex.Message);
+            }
+        }
+
+        // --- LỆNH MỞ KHÓA MÔN HỌC ---
+        [RelayCommand]
+        private void CancelSubjectReport(SubjectReportRow row)
+        {
+            if (SelectedSubject == null || row == null) return;
+
+            try
+            {
+                string query = "UPDATE SubjectReport SET IsLocked = 0 WHERE ClassID = @ClassID AND SubjectID = @SubjectID AND Semester = @Semester AND AcademicYear = @AcademicYear";
+
+                SqlParameter[] paras = {
+                    new SqlParameter("@ClassID", row.ClassId),
+                    new SqlParameter("@SubjectID", SelectedSubject.Id),
+                    new SqlParameter("@Semester", SelectedSemester),
+                    new SqlParameter("@AcademicYear", SelectedAcademicYear)
+                };
+
+                DatabaseHelper.ExecuteNonQuery(query, paras);
+
+                // Cập nhật State để UI nháy tự động sang trạng thái "Chưa chốt"
+                row.IsSubjectLocked = false;
+
+                if (SelectedClass != null && SelectedClass.Id == row.ClassId) { CheckLockStatus(); }
+
+                NotificationHelper.ShowSuccess($"Đã mở khóa sổ môn học cho lớp {row.ClassName}!");
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi mở khóa: " + ex.Message);
             }
         }
     }

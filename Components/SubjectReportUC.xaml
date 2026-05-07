@@ -6,12 +6,16 @@
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
              mc:Ignorable="d"
              d:DesignHeight="450"
-             d:DesignWidth="800"
+             d:DesignWidth="1000"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </UserControl.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -29,40 +33,31 @@
 
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.5*" />
-                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0"
-                            Margin="0,0,20,0">
-                    <TextBlock Text="Môn học:"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,5"
-                               Foreground="Gray" />
-                    <ComboBox Height="35"
-                              ItemsSource="{Binding Subjects}"
-                              SelectedItem="{Binding SelectedSubject}" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="1"
-                            Margin="0,0,20,0">
-                    <TextBlock Text="Lớp:"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,5"
-                               Foreground="Gray" />
-                    <ComboBox Height="35"
-                              ItemsSource="{Binding Classes}"
-                              SelectedItem="{Binding SelectedClass}" />
+                            Orientation="Horizontal">
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Môn học:"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,5"
+                                   Foreground="Black"
+                                   FontSize="14" />
+                        <ComboBox Height="35"
+                                  Width="250"
+                                  ItemsSource="{Binding Subjects}"
+                                  SelectedItem="{Binding SelectedSubject}" />
+                    </StackPanel>
                 </StackPanel>
 
                 <Button Content="Xem Báo Cáo"
-                        Grid.Column="2"
-                        Margin="5,0,0,0"
+                        Grid.Column="1"
                         Command="{Binding GenerateReportCommand}"
                         Style="{StaticResource PrimaryRoundedButton}"
-                        VerticalAlignment="Bottom">
-                </Button>
+                        VerticalAlignment="Bottom"
+                        HorizontalAlignment="Right" />
             </Grid>
         </Border>
 
@@ -77,118 +72,244 @@
                                   Color="#DDDDDD"
                                   Opacity="0.5" />
             </Border.Effect>
+
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Text="Thống kê theo lớp"
+
+                <TextBlock Grid.Row="0"
+                           Text="Thống kê theo lớp"
                            FontSize="16"
                            FontWeight="Bold"
                            Margin="0,0,0,15"
-                           Foreground="Black" />
+                           Foreground="Black"
+                           VerticalAlignment="Center" />
 
                 <DataGrid Grid.Row="1"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           Background="Transparent"
                           BorderThickness="0"
-                          RowHeight="40"
                           ItemsSource="{Binding ReportData}"
-                          SelectedItem="{Binding SelectedReportRow}">
+                          SelectedItem="{Binding SelectedReportRow}"
+                          Style="{StaticResource GlobalDataGridStyle}"
+                          CellStyle="{StaticResource GlobalDataGridCellStyle}"
+                          FontSize="15"
+                          Cursor="Hand"
+                          CanUserSortColumns="True">
+
+                    <DataGrid.InputBindings>
+                        <MouseBinding Gesture="LeftDoubleClick"
+                                      Command="{Binding ViewDetailCommand}" />
+                    </DataGrid.InputBindings>
+
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="STT"
                                             Binding="{Binding OrderNumber}"
                                             IsReadOnly="True"
-                                            Width="60" />
+                                            Width="80"
+                                            CanUserSort="False"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+
                         <DataGridTextColumn Header="Lớp"
                                             Binding="{Binding ClassName}"
                                             IsReadOnly="True"
-                                            Width="*" />
+                                            Width="1.5*"
+                                            HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock"
+                                       BasedOn="{StaticResource GlobalLeftElementStyle}">
+                                    <Setter Property="FontWeight"
+                                            Value="SemiBold" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
                         <DataGridTextColumn Header="Sĩ số"
                                             Binding="{Binding TotalStudents}"
                                             IsReadOnly="True"
-                                            Width="100" />
+                                            Width="120"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+
                         <DataGridTextColumn Header="Số lượng Đạt"
                                             Binding="{Binding PassedCount}"
                                             IsReadOnly="True"
-                                            Width="120" />
+                                            Width="140"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+
                         <DataGridTextColumn Header="Tỷ lệ (%)"
                                             Binding="{Binding PassRate, StringFormat={}{0:F2}%}"
                                             IsReadOnly="True"
                                             Width="120"
-                                            Foreground="Green"
-                                            FontWeight="Bold" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-        </Border>
-
-        <Border Grid.Row="2"
-                Background="White"
-                CornerRadius="8"
-                Padding="20"
-                Margin="0,10,0,0">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="10"
-                                  ShadowDepth="1"
-                                  Color="#DDDDDD"
-                                  Opacity="0.5" />
-            </Border.Effect>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock Text="{Binding SelectedReportRow.ClassName, StringFormat='Danh sách chi tiết lớp: {0}'}"
-                           FontSize="16"
-                           FontWeight="Bold"
-                           Margin="0,0,0,15"
-                           Foreground="Black" />
-
-                <DataGrid Grid.Row="1"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          Background="Transparent"
-                          BorderThickness="0"
-                          RowHeight="40"
-                          ItemsSource="{Binding DetailedStudentList}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="STT"
-                                            Binding="{Binding OrderNumber}"
-                                            IsReadOnly="True"
-                                            Width="60" />
-                        <DataGridTextColumn Header="Họ và tên"
-                                            Binding="{Binding FullName}"
-                                            IsReadOnly="True"
-                                            Width="*" />
-                        <DataGridTextColumn Header="Điểm TB"
-                                            Binding="{Binding AverageScore, StringFormat={}{0:F1}}"
-                                            IsReadOnly="True"
-                                            Width="100" />
-                        <DataGridTextColumn Header="Kết quả"
-                                            Binding="{Binding Result}"
-                                            IsReadOnly="True"
-                                            Width="120">
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
+                                <Style TargetType="TextBlock"
+                                       BasedOn="{StaticResource GlobalCenterElementStyle}">
+                                    <Setter Property="Foreground"
+                                            Value="#1B5E20" />
                                     <Setter Property="FontWeight"
-                                            Value="SemiBold" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Result}"
-                                                     Value="Không đạt">
-                                            <Setter Property="Foreground"
-                                                    Value="#D32F2F" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Result}"
-                                                     Value="Đạt">
-                                            <Setter Property="Foreground"
-                                                    Value="#1B5E20" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
+                                            Value="ExtraBold" />
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
+
+                        <DataGridTemplateColumn Header="Trạng thái / Thao tác"
+                                                Width="300"
+                                                CanUserSort="False"
+                                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid Background="Transparent">
+
+                                        <StackPanel x:Name="StatusDisplay"
+                                                    Orientation="Horizontal"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center">
+                                            <materialDesign:PackIcon x:Name="StatusIcon"
+                                                                     Kind="Minus"
+                                                                     Foreground="Gray"
+                                                                     Margin="0,0,5,0"
+                                                                     VerticalAlignment="Center"
+                                                                     Width="20"
+                                                                     Height="20" />
+                                            <TextBlock x:Name="StatusText"
+                                                       Text="Chưa lập báo cáo"
+                                                       Foreground="Gray"
+                                                       FontWeight="Bold"
+                                                       FontSize="14"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <Grid x:Name="ActionDisplay"
+                                              Visibility="Hidden"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center">
+                                            <Button x:Name="BtnConfirm"
+                                                    Content="Lập báo cáo môn"
+                                                    Visibility="Collapsed"
+                                                    Command="{Binding DataContext.ConfirmSubjectReportCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"
+                                                    Height="30"
+                                                    Padding="15,0"
+                                                    Background="#FF4CAF50"
+                                                    BorderBrush="#FF4CAF50"
+                                                    Foreground="White"
+                                                    FontWeight="Bold"
+                                                    Style="{StaticResource PrimaryRoundedButton}" />
+                                            <Button x:Name="BtnCancel"
+                                                    Content="Mở khóa"
+                                                    Visibility="Collapsed"
+                                                    Command="{Binding DataContext.CancelSubjectReportCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"
+                                                    Height="30"
+                                                    Padding="15,0"
+                                                    Background="#FFE57373"
+                                                    BorderBrush="#FFE57373"
+                                                    Foreground="White"
+                                                    FontWeight="Bold"
+                                                    Style="{StaticResource PrimaryRoundedButton}" />
+                                        </Grid>
+                                    </Grid>
+
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsMissingScores}"
+                                                     Value="True">
+                                            <Setter TargetName="StatusIcon"
+                                                    Property="Kind"
+                                                    Value="AlertCircleOutline" />
+                                            <Setter TargetName="StatusIcon"
+                                                    Property="Foreground"
+                                                    Value="#F57C00" />
+                                            <Setter TargetName="StatusText"
+                                                    Property="Text"
+                                                    Value="Thiếu điểm" />
+                                            <Setter TargetName="StatusText"
+                                                    Property="Foreground"
+                                                    Value="#F57C00" />
+                                        </DataTrigger>
+
+                                        <DataTrigger Binding="{Binding IsClassLockedByGVCN}"
+                                                     Value="True">
+                                            <Setter TargetName="StatusIcon"
+                                                    Property="Kind"
+                                                    Value="LockAlert" />
+                                            <Setter TargetName="StatusIcon"
+                                                    Property="Foreground"
+                                                    Value="#D32F2F" />
+                                            <Setter TargetName="StatusText"
+                                                    Property="Text"
+                                                    Value="GVCN đã lập báo cáo cho lớp này" />
+                                            <Setter TargetName="StatusText"
+                                                    Property="Foreground"
+                                                    Value="#D32F2F" />
+                                        </DataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsSubjectLocked}"
+                                                           Value="True" />
+                                                <Condition Binding="{Binding IsClassLockedByGVCN}"
+                                                           Value="False" />
+                                                <Condition Binding="{Binding IsMissingScores}"
+                                                           Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter TargetName="StatusIcon"
+                                                    Property="Kind"
+                                                    Value="LockCheck" />
+                                            <Setter TargetName="StatusIcon"
+                                                    Property="Foreground"
+                                                    Value="#1B5E20" />
+                                            <Setter TargetName="StatusText"
+                                                    Property="Text"
+                                                    Value="Đã khóa sổ điểm" />
+                                            <Setter TargetName="StatusText"
+                                                    Property="Foreground"
+                                                    Value="#1B5E20" />
+                                            <Setter TargetName="BtnCancel"
+                                                    Property="Visibility"
+                                                    Value="Visible" />
+                                        </MultiDataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsSubjectLocked}"
+                                                           Value="False" />
+                                                <Condition Binding="{Binding IsClassLockedByGVCN}"
+                                                           Value="False" />
+                                                <Condition Binding="{Binding IsMissingScores}"
+                                                           Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter TargetName="BtnConfirm"
+                                                    Property="Visibility"
+                                                    Value="Visible" />
+                                        </MultiDataTrigger>
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}"
+                                                           Value="True" />
+                                                <Condition Binding="{Binding IsMissingScores}"
+                                                           Value="False" />
+                                                <Condition Binding="{Binding IsClassLockedByGVCN}"
+                                                           Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter TargetName="StatusDisplay"
+                                                    Property="Visibility"
+                                                    Value="Hidden" />
+                                            <Setter TargetName="ActionDisplay"
+                                                    Property="Visibility"
+                                                    Value="Visible" />
+                                        </MultiDataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

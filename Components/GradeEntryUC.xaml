@@ -32,33 +32,37 @@
 
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200" />
-                    <!--Chiều dài cbb môn học-->
-                    <ColumnDefinition Width="150" />
-                    <!--Chiều dài cbb lớp-->
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0"
-                            Margin="0,0,20,0">
-                    <TextBlock Text="Môn học:"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,5"
-                               Foreground="Gray" />
-                    <ComboBox Height="35"
-                              ItemsSource="{Binding Subjects}"
-                              SelectedItem="{Binding SelectedSubject}" />
-                </StackPanel>
+                            Orientation="Horizontal">
+                    <StackPanel Grid.Column="0"
+                                Margin="0,0,20,0">
+                        <TextBlock Text="Môn học:"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,5"
+                                   Foreground="Black"
+                                   FontSize="14" />
+                        <ComboBox Height="35"
+                                  Width="220"
+                                  ItemsSource="{Binding Subjects}"
+                                  SelectedItem="{Binding SelectedSubject}" />
+                    </StackPanel>
 
-                <StackPanel Grid.Column="1"
-                            Margin="0,0,20,0">
-                    <TextBlock Text="Lớp:"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,5"
-                               Foreground="Gray" />
-                    <ComboBox Height="35"
-                              ItemsSource="{Binding Classes}"
-                              SelectedItem="{Binding SelectedClass}" />
+                    <StackPanel Grid.Column="1"
+                                Margin="0,0,20,0">
+                        <TextBlock Text="Lớp:"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,5"
+                                   Foreground="Black"
+                                   FontSize="14" />
+                        <ComboBox Height="35"
+                                  Width="150"
+                                  ItemsSource="{Binding Classes}"
+                                  SelectedItem="{Binding SelectedClass}" />
+                    </StackPanel>
                 </StackPanel>
 
                 <Button Content="Lấy danh sách"
@@ -153,7 +157,8 @@
                           HorizontalAlignment="Stretch"
                           Style="{StaticResource GlobalDataGridStyle}"
                           CellStyle="{StaticResource GlobalDataGridCellStyle}"
-                          FontSize="15">
+                          FontSize="15"
+                          IsReadOnly="{Binding IsGradebookReadOnly}">
                     <DataGrid.Columns>
 
                         <DataGridTextColumn Header="STT"
