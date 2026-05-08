@@ -9,6 +9,10 @@
              d:Height="800"
              d:Width="850">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </UserControl.Resources>
+
     <Border CornerRadius="16"
             Background="White"
             Margin="10"
@@ -70,7 +74,8 @@
                         <Label Content="Mã Học Sinh:"
                                FontWeight="SemiBold"
                                FontSize="15"
-                               Foreground="Gray" />
+                               Foreground="#3e4c82" />
+
                         <Border Background="#F5F5F5"
                                 CornerRadius="8"
                                 BorderBrush="#D2D6DC"
@@ -78,37 +83,33 @@
                                 Margin="0,2,0,12"
                                 Height="40">
                             <TextBox Text="{Binding StudentID}"
+                                     materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
                                      BorderThickness="0"
                                      Background="Transparent"
                                      IsReadOnly="True"
-                                     Foreground="Gray"
+                                     Foreground="Black"
+                                     FontWeight="SemiBold"
                                      VerticalContentAlignment="Center"
                                      Padding="10,0"
                                      FontSize="15" />
                         </Border>
 
-                        <Label Content="Họ Tên: *"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               Foreground="Gray" />
-                        <Border Background="#F8F9FA"
-                                CornerRadius="8"
-                                BorderBrush="#D2D6DC"
-                                BorderThickness="1"
-                                Margin="0,2,0,12"
-                                Height="40">
-                            <TextBox Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"
-                                     BorderThickness="0"
-                                     Background="Transparent"
-                                     VerticalContentAlignment="Center"
-                                     Padding="10,0"
-                                     FontSize="15" />
-                        </Border>
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="5,0,0,10">
+                            <Run Text="Họ Tên"
+                                 Foreground="#3e4c82" />
+                            <Run Text="*"
+                                 Foreground="#FF4757" />
+                        </TextBlock>
+
+                        <TextBox Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource RoundedTextBoxStyle}" />
 
                         <Label Content="Giới tính:"
                                FontWeight="SemiBold"
                                FontSize="15"
-                               Foreground="Gray" />
+                               Foreground="#3e4c82" />
                         <StackPanel Orientation="Horizontal"
                                     Margin="0,2,0,12"
                                     Height="40"
@@ -122,16 +123,16 @@
                                          FontSize="15" />
                         </StackPanel>
 
-                        <Label Content="Ngày sinh:"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               Foreground="Gray" />
-                        <Border Background="#F8F9FA"
-                                CornerRadius="8"
-                                BorderBrush="#D2D6DC"
-                                BorderThickness="1"
-                                Margin="0,2,0,5"
-                                Height="40">
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="5,0,0,10">
+                            <Run Text="Ngày sinh"
+                                 Foreground="#3e4c82" />
+                            <Run Text="*"
+                                 Foreground="#FF4757" />
+                        </TextBlock>
+
+                        <Border Style="{StaticResource InputWrapperBorderStyle}">
                             <DatePicker SelectedDate="{Binding DateOfBirth, UpdateSourceTrigger=PropertyChanged}"
                                         BorderThickness="0"
                                         Background="Transparent"
@@ -147,10 +148,15 @@
                                    TextWrapping="Wrap"
                                    Visibility="{Binding AgeErrorMessage, Converter={StaticResource StringToVisibilityConverter}}" />
 
-                        <Label Content="Hoàn cảnh gia đình:"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               Foreground="Gray" />
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="5,0,0,10">
+                            <Run Text="Hoàn cảnh gia đình"
+                                 Foreground="#3e4c82" />
+                            <Run Text="*"
+                                 Foreground="#FF4757" />
+                        </TextBlock>
+
                         <StackPanel Orientation="Horizontal"
                                     Margin="0,2,0,12"
                                     Height="40"
@@ -173,16 +179,16 @@
                                Margin="0,0,0,15"
                                Foreground="#FF1A237E" />
 
-                        <Label Content="SĐT học sinh:"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               Foreground="Gray" />
-                        <Border Background="#F8F9FA"
-                                CornerRadius="8"
-                                BorderBrush="#D2D6DC"
-                                BorderThickness="1"
-                                Margin="0,2,0,12"
-                                Height="40">
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="5,0,0,10">
+                            <Run Text="SĐT học sinh"
+                                 Foreground="#3e4c82" />
+                            <Run Text="*"
+                                 Foreground="#FF4757" />
+                        </TextBlock>
+
+                        <Border Style="{StaticResource InputWrapperBorderStyle}">
                             <TextBox Text="{Binding PhoneNumber, UpdateSourceTrigger=PropertyChanged}"
                                      helpers:TextBoxHelper.IsNumericOnly="True"
                                      MaxLength="10"
@@ -196,13 +202,9 @@
                         <Label Content="Email:"
                                FontWeight="SemiBold"
                                FontSize="15"
-                               Foreground="Gray" />
-                        <Border Background="#F8F9FA"
-                                CornerRadius="8"
-                                BorderBrush="#D2D6DC"
-                                BorderThickness="1"
-                                Margin="0,2,0,12"
-                                Height="40">
+                               Foreground="#3e4c82" />
+
+                        <Border Style="{StaticResource InputWrapperBorderStyle}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -225,53 +227,44 @@
                             </Grid>
                         </Border>
 
-                        <Label Content="Địa chỉ: *"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               Foreground="Gray" />
-                        <Border Background="#F8F9FA"
-                                CornerRadius="8"
-                                BorderBrush="#D2D6DC"
-                                BorderThickness="1"
-                                Margin="0,2,0,12"
-                                Height="60">
-                            <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
-                                     BorderThickness="0"
-                                     Background="Transparent"
-                                     TextWrapping="Wrap"
-                                     AcceptsReturn="True"
-                                     Padding="10,5"
-                                     FontSize="15" />
-                        </Border>
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="5,0,0,10">
+                            <Run Text="Địa chỉ"
+                                 Foreground="#3e4c82" />
+                            <Run Text="*"
+                                 Foreground="#FF4757" />
+                        </TextBlock>
 
-                        <Label Content="Họ tên người bảo hộ: *"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               Foreground="Gray" />
-                        <Border Background="#F8F9FA"
-                                CornerRadius="8"
-                                BorderBrush="#D2D6DC"
-                                BorderThickness="1"
-                                Margin="0,2,0,12"
-                                Height="40">
-                            <TextBox Text="{Binding GuardianName, UpdateSourceTrigger=PropertyChanged}"
-                                     BorderThickness="0"
-                                     Background="Transparent"
-                                     VerticalContentAlignment="Center"
-                                     Padding="10,0"
-                                     FontSize="15" />
-                        </Border>
+                        <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource RoundedTextBoxStyle}"
+                                 VerticalContentAlignment="Top"
+                                 Height="70" 
+                                 Padding="10,5,0,0"
+                                 TextWrapping="Wrap"/>
 
-                        <Label Content="SĐT người bảo hộ: *"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               Foreground="Gray" />
-                        <Border Background="#F8F9FA"
-                                CornerRadius="8"
-                                BorderBrush="#D2D6DC"
-                                BorderThickness="1"
-                                Margin="0,2,0,0"
-                                Height="40">
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="5,0,0,10">
+                            <Run Text="Họ tên người bảo hộ"
+                                 Foreground="#3e4c82" />
+                            <Run Text="*"
+                                 Foreground="#FF4757" />
+                        </TextBlock>
+
+                        <TextBox Text="{Binding GuardianName, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource RoundedTextBoxStyle}" />
+
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="5,0,0,5">
+                            <Run Text="SĐT người bảo hộ"
+                                 Foreground="#3e4c82" />
+                            <Run Text="*"
+                                 Foreground="#FF4757" />
+                        </TextBlock>
+
+                        <Border Style="{StaticResource InputWrapperBorderStyle}">
                             <TextBox Text="{Binding GuardianPhoneNumber, UpdateSourceTrigger=PropertyChanged}"
                                      BorderThickness="0"
                                      helpers:TextBoxHelper.IsNumericOnly="True"
@@ -292,19 +285,58 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Nút Cấp lại mật khẩu đẩy sang trái -->
-                <Button Grid.Column="0"
-                        Command="{Binding ResetPasswordCommand}"
-                        IsEnabled="{Binding IsAccountActive}"
-                        Content="CẤP LẠI MẬT KHẨU"
-                        ToolTipService.ShowOnDisabled="True"
-                        Height="40"
-                        Style="{StaticResource OutlineRoundedButton}"
-                        Foreground="#D32F2F"
-                        BorderBrush="#EF5350">
-                </Button>
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal">
+                    <Button Command="{Binding ResetPasswordCommand}"
+                            IsEnabled="{Binding IsAccountActive}"
+                            Content="CẤP LẠI MẬT KHẨU"
+                            ToolTipService.ShowOnDisabled="True"
+                            Height="40"
+                            Margin="0,0,15,0"
+                            Style="{StaticResource OutlineRoundedButton}"
+                            Foreground="#D32F2F"
+                            BorderBrush="#EF5350">
+                        <Button.ContentTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="PasswordReset"
+                                                             Margin="0,0,8,0"
+                                                             VerticalAlignment="Center"
+                                                             Width="18"
+                                                             Height="18" />
+                                    <TextBlock Text="CẤP LẠI MẬT KHẨU"
+                                               VerticalAlignment="Center"
+                                               FontWeight="Bold" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </Button.ContentTemplate>
+                    </Button>
 
-                <!-- 2 Nút Lưu và Hủy đẩy sang phải -->
+                    <Button Command="{Binding OpenRequestFormCommand}"
+                            Visibility="{Binding IsCreateRequestVisible, Converter={StaticResource BoolToVisConverter}}"
+                            Content="LẬP ĐƠN THAY ĐỔI"
+                            ToolTip="Lập phiếu yêu cầu chuyển lớp hoặc thôi học cho học sinh này"
+                            Height="40"
+                            Style="{StaticResource OutlineRoundedButton}"
+                            Foreground="#F57C00"
+                            BorderBrush="#FFB74D">
+                        <Button.ContentTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="FileDocumentEditOutline"
+                                                             Margin="0,0,8,0"
+                                                             VerticalAlignment="Center"
+                                                             Width="18"
+                                                             Height="18" />
+                                    <TextBlock Text="LẬP ĐƠN THAY ĐỔI"
+                                               VerticalAlignment="Center"
+                                               FontWeight="Bold" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </Button.ContentTemplate>
+                    </Button>
+                </StackPanel>
+
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             HorizontalAlignment="Right">

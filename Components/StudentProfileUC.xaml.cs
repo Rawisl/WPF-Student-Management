@@ -26,6 +26,15 @@ namespace WPF_Student_Management.Components
             InitializeComponent();
         }
 
+        //khúc này để ẩn/hiện cái thùng rác
+        public Visibility DeleteButtonVisibility
+        {
+            get { return (Visibility)GetValue(DeleteButtonVisibilityProperty); }
+            set { SetValue(DeleteButtonVisibilityProperty, value); }
+        }
+        public static readonly DependencyProperty DeleteButtonVisibilityProperty =
+            DependencyProperty.Register("DeleteButtonVisibility", typeof(Visibility), typeof(StudentProfileUC), new PropertyMetadata(Visibility.Visible));
+
         // 1. Lỗ cắm cho Danh sách học sinh
         public static readonly DependencyProperty ItemsSourceProperty =
             DependencyProperty.Register("ItemsSource", typeof(IEnumerable), typeof(StudentProfileUC));

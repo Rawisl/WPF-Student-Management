@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
+using WPF_Student_Management.Services;
 
 namespace WPF_Student_Management.ViewModels
 {
@@ -20,7 +21,6 @@ namespace WPF_Student_Management.ViewModels
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _fullName;
 
-        // --- CÁC BIẾN MỚI THÊM ĐỂ KHỚP VỚI GIAO DIỆN XAML ---
         [ObservableProperty] private bool _isMale;
         [ObservableProperty] private bool _isFemale;
 
@@ -45,7 +45,6 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _guardianPhoneNumber;
-        // ----------------------------------------------------
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
@@ -54,9 +53,24 @@ namespace WPF_Student_Management.ViewModels
         private int _minAge = 15;
         private int _maxAge = 20;
 
+        // Cờ phân quyền: Chỉ GVCN mới được thấy nút Lập Đơn
+        [ObservableProperty]
+        private bool _isCreateRequestVisible;
+
         public StudentProfileDetailViewModel(Student student)
         {
             _originalItem = student;
+
+            // --- BỔ SUNG LOGIC CHECK QUYỀN HIỆN NÚT LẬP ĐƠN ---
+            // Truyền userrole = 5 = GVCN vô
+            if (CurrentUser.Instance != null && CurrentUser.Instance.Role == (UserRole)5 )
+            {
+                IsCreateRequestVisible = true;
+            }
+            else
+            {
+                IsCreateRequestVisible = false; // Giáo vụ hoặc người khác vào xem sẽ bị ẩn
+            }
 
             // 1. MAP DỮ LIỆU CƠ BẢN
             StudentID = student.StudentId.ToString();
@@ -229,6 +243,26 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private void Cancel() => MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
 
+        [RelayCommand]
+        private async Task OpenRequestForm()
+        {
+            try
+            {
+                // Bước 1: Đóng cái Dialog Chi tiết học sinh hiện tại lại cho đỡ rối màn hình
+                MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
+
+                // Bước 2: Tí nữa anh em mình tạo EnrollmentChangeRequestViewModel sẽ truyền _originalItem vào đây
+                var requestVM = new EnrollmentChangeRequestViewModel(_originalItem);
+                var requestView = new WPF_Student_Management.Components.EnrollmentChangeRequestUC { DataContext = requestVM };
+
+                // Bước 3: Mở Dialog Lập đơn lên (Mở khóa dòng này khi tạo xong UC)
+                await MaterialDesignThemes.Wpf.DialogHost.Show(requestView, "RootDialog");
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi khởi tạo form lập đơn:\n" + ex.Message);
+            }
+        }
         // Logic đồng bộ RadioButton (chống check cả 2 cái cùng lúc)
         partial void OnIsMaleChanged(bool value) => IsFemale = !value;
         partial void OnIsFemaleChanged(bool value) => IsMale = !value;

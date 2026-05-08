@@ -9,6 +9,8 @@ namespace WPF_Student_Management.Models
 {
     public class Student
     {
+        // Thêm dòng này để UI bind vào thôi chứ không tác động gì lên DB
+        public int STT { get; set; }
         public required string StudentId { get; set; } // Changed to string
         public int AccountId { get; set; }
         public required string FullName { get; set; }

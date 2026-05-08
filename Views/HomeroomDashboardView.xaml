@@ -13,7 +13,7 @@
     <UserControl.DataContext>
         <viewmodels:HomeroomDashboardViewModel />
     </UserControl.DataContext>
-
+    <!--Phải định nghĩa cái style riêng ở đây vì t nghĩ chắc sẽ k reuse nhiều ở đâu-->
     <UserControl.Resources>
         <Style x:Key="SegmentedLeftTabStyle"
                TargetType="TabItem">
@@ -257,13 +257,10 @@
                                FontSize="17"
                                FontWeight="SemiBold" />
                 </TabItem.Header>
-                <Grid Margin="0,20,0,0">
-                    <TextBlock Text="[Khu vực UC Danh sách học sinh sẽ nằm ở đây]"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               FontSize="20"
-                               Foreground="Gray" />
-                </Grid>
+                <components:HomeroomStudentListUC DataContext="{Binding}"
+                                              VerticalAlignment="Stretch"
+                                              HorizontalAlignment="Stretch"
+                                              Margin="0,20,0,0" />
             </TabItem>
 
             <TabItem Style="{StaticResource SegmentedMiddleTabStyle}">

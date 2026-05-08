@@ -194,9 +194,6 @@
         </Setter>
     </Style>
 
-    
-   
-
     <!--Mấy cái nút-->
     <Style x:Key="PrimaryRoundedButton"
            TargetType="Button"
@@ -261,6 +258,8 @@
                 Value="55" />
         <Setter Property="ColumnHeaderHeight"
                 Value="45" />
+        <Setter Property="FontSize"
+                Value="15" />
 
         <Setter Property="GridLinesVisibility"
                 Value="Horizontal" />
@@ -268,6 +267,10 @@
                 Value="#EAECEF" />
         <Setter Property="VerticalGridLinesBrush"
                 Value="Transparent" />
+        <Setter Property="CanUserReorderColumns"
+                Value="False" />
+        <Setter Property="CanUserResizeColumns"
+                Value="False" />
 
         <Setter Property="AutoGenerateColumns"
                 Value="False" />
@@ -574,6 +577,107 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <!--Style của cái textbox-->
+    <Style x:Key="RoundedTextBoxStyle"
+           TargetType="TextBox">
+        <Setter Property="Background"
+                Value="#F8F9FA" />
+        <Setter Property="BorderBrush"
+                Value="#D2D6DC" />
+        <Setter Property="BorderThickness"
+                Value="1" />
+        <Setter Property="Foreground"
+                Value="Black" />
+        <Setter Property="FontSize"
+                Value="15" />
+        <Setter Property="Height"
+                Value="40" />
+        <Setter Property="Padding"
+                Value="10,0" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Center" />
+        <Setter Property="Margin"
+                Value="0,2,0,12" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}" />
+                        </Border>
+
+                        <Border x:Name="Underline"
+                                Background="#293b7d"
+                                Height="2"
+                                VerticalAlignment="Bottom"
+                                CornerRadius="0,0,8,8"
+                                Margin="1,0,1,0"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="0" />
+                            </Border.RenderTransform>
+                        </Border>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused"
+                                 Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Underline"
+                                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                         To="1"
+                                                         Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuadraticEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Underline"
+                                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                         To="0"
+                                                         Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuadraticEase EasingMode="EaseIn" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="InputWrapperBorderStyle"
+           TargetType="Border">
+        <Setter Property="Background"
+                Value="#F8F9FA" />
+        <Setter Property="BorderBrush"
+                Value="#D2D6DC" />
+        <Setter Property="BorderThickness"
+                Value="1" />
+        <Setter Property="CornerRadius"
+                Value="8" />
+        <Setter Property="Height"
+                Value="40" />
+        <Setter Property="Margin"
+                Value="0,2,0,12" />
     </Style>
 
 </ResourceDictionary>

@@ -68,6 +68,27 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
+        // THÊM BIẾN TÍNH MÀU SẮC DỰA TRÊN SĨ SỐ
+        public string ClassSizeColor
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(SelectedClass))
+                {
+                    return "#2C3E50"; // Màu xám đen mặc định khi tàng hình
+                }
+
+                int current = CurrentClassStudents?.Count ?? 0;
+                double ratio = (double)current / _maxClassSize;
+
+                if (ratio >= 1.0)
+                    return "#FF4757"; // ĐỎ: Lớp đã Full 100%
+                if (ratio >= 0.8)
+                    return "#F39C12"; // CAM: Lớp sắp Full (>= 80%)
+
+                return "#00B894";     // XANH LÁ: Còn trống nhiều (< 80%)
+            }
+        }
         public ClassRosterViewModel()
         {
             AvailableStudents = new ObservableCollection<SelectableStudentItem>();
@@ -132,6 +153,7 @@ namespace WPF_Student_Management.ViewModels
 
                     // Cập nhật dòng text "Sĩ số: X / Y" 
                     OnPropertyChanged(nameof(ClassSizeText));
+                    OnPropertyChanged(nameof(ClassSizeColor));
 
                     // Check lại nút "+ Thêm học sinh" xem lớp có bị full chưa
                     OpenAddStudentDialogCommand.NotifyCanExecuteChanged();
@@ -237,6 +259,8 @@ namespace WPF_Student_Management.ViewModels
 
                 // Refresh lại UI
                 OnPropertyChanged(nameof(ClassSizeText));
+                OnPropertyChanged(nameof(ClassSizeColor));
+
                 OpenAddStudentDialogCommand.NotifyCanExecuteChanged();
 
                 // Đóng Popup
@@ -253,6 +277,7 @@ namespace WPF_Student_Management.ViewModels
         {
             // 1. BÁO UI CẬP NHẬT TRƯỚC! Dù có chọn lớp hay bị reset về null, cứ báo UI tính lại cái Text sĩ số
             OnPropertyChanged(nameof(ClassSizeText));
+            OnPropertyChanged(nameof(ClassSizeColor));
             OpenAddStudentDialogCommand.NotifyCanExecuteChanged();
 
             // 2. Nếu là Null (do chuyển tab reset) thì dọn sạch bảng học sinh rồi mới thoát

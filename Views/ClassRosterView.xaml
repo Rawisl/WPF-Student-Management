@@ -15,11 +15,12 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0"
-              Margin="0,0,0,20">
+    <Grid Grid.Row="0"
+          Margin="0,0,0,20">
 
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Text="Xếp lớp"
@@ -34,57 +35,84 @@
             </StackPanel>
         </Grid>
 
-        <materialDesign:Card Grid.Row="1"
-                             Margin="0,0,0,20"
-                             Padding="15,10"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Stretch"
-                             BorderBrush="#E0E0E0"
-                             BorderThickness="1"
-                             UniformCornerRadius="15">
-            <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center">
-                <Label Content="Khối:"
-                       FontSize="18"
-                       Foreground="Gray"
-                       VerticalAlignment="Center"
-                       FontWeight="SemiBold" />
-                <ComboBox x:Name="PickGradeCB"
-                          ItemsSource="{Binding AvailableGrades}"
-                          SelectedItem="{Binding SelectedGrade, UpdateSourceTrigger=PropertyChanged}"
-                          Width="100"
-                          Height="35"
-                          Margin="5,0,20,0"
-                          VerticalAlignment="Center" />
+        <Border Grid.Row="1"
+                Background="White"
+                CornerRadius="8"
+                Padding="20,15"
+                Margin="0,0,0,20">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10"
+                                  ShadowDepth="1"
+                                  Color="#DDDDDD"
+                                  Opacity="0.5" />
+            </Border.Effect>
 
-                <Label Content="Lớp:"
-                       FontSize="18"
-                       Foreground="Gray"
-                       VerticalAlignment="Center"
-                       FontWeight="SemiBold" />
-                <ComboBox x:Name="PickClassCB"
-                          ItemsSource="{Binding AvailableClasses}"
-                          DisplayMemberPath="ClassName"
-                          SelectedValuePath="ClassId"
-                          SelectedValue="{Binding SelectedClass, UpdateSourceTrigger=PropertyChanged}"
-                          Width="120"
-                          Height="35"
-                          Margin="5,0,20,0"
-                          VerticalAlignment="Center" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-                <TextBlock Text="{Binding ClassSizeText}"
-                           Foreground="#2C3E50"
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="0,0,30,0">
+                    <TextBlock Text="Khối:"
+                               FontWeight="Bold"
+                               Foreground="Black"
+                               FontSize="16"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0" />
+                    <ComboBox x:Name="PickGradeCB"
+                              ItemsSource="{Binding AvailableGrades}"
+                              SelectedItem="{Binding SelectedGrade, UpdateSourceTrigger=PropertyChanged}"
+                              Width="110"
+                              Height="40"
+                              VerticalContentAlignment="Center"
+                              FontSize="15" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="0,0,30,0">
+                    <TextBlock Text="Lớp:"
+                               FontWeight="Bold"
+                               Foreground="Black"
+                               FontSize="16"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0" />
+                    <ComboBox x:Name="PickClassCB"
+                              ItemsSource="{Binding AvailableClasses}"
+                              DisplayMemberPath="ClassName"
+                              SelectedValuePath="ClassId"
+                              SelectedValue="{Binding SelectedClass, UpdateSourceTrigger=PropertyChanged}"
+                              Width="130"
+                              Height="40"
+                              VerticalContentAlignment="Center"
+                              FontSize="15" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="2"
+                           Text="{Binding ClassSizeText}"
+                           Foreground="{Binding ClassSizeColor}"
                            FontWeight="Bold"
-                           FontSize="18"
-                           VerticalAlignment="Center"
-                           Margin="20,0,30,0" />
+                           FontSize="20"
+                           VerticalAlignment="Center" />
 
-                <Button Content="+ Thêm học sinh"
+                <Button Grid.Column="4"
+                        Content="+ Thêm học sinh"
                         Command="{Binding OpenAddStudentDialogCommand}"
-                        Style="{StaticResource PrimaryRoundedButton}">
+                        Style="{StaticResource PrimaryRoundedButton}"
+                        Height="40"
+                        Padding="20,0"
+                        VerticalAlignment="Center">
                 </Button>
-            </StackPanel>
-        </materialDesign:Card>
+            </Grid>
+        </Border>
 
         <Border Grid.Row="2"
                 Background="White"
