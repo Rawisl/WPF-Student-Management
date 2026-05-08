@@ -25,17 +25,32 @@
                        FontSize="22" FontWeight="Bold" Foreground="#D32F2F" Margin="0,0,0,20" HorizontalAlignment="Center"/>
 
             <DataGrid Grid.Row="1" ItemsSource="{Binding FailedSubjectsList}" 
+                      Cursor="Hand"
+                      Style="{StaticResource GlobalDataGridStyle}"
+                      CellStyle="{StaticResource GlobalDataGridCellStyle}"
                       AutoGenerateColumns="False" IsReadOnly="True" 
-                      HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                      RowHeight="45" FontSize="15" Background="Transparent"
-                      BorderThickness="0">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Môn học" Binding="{Binding SubjectName}" Width="1.2*" />
+                      FontSize="15" Background="Transparent" BorderThickness="0">
 
-                    <DataGridTemplateColumn Header="Điểm Thường xuyên" Width="1.5*">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
+                        <Setter Property="Cursor" Value="Hand" />
+                    </Style>
+                </DataGrid.RowStyle>
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Môn học" Binding="{Binding SubjectName}" Width="1.2*" 
+                                        HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource GlobalLeftElementStyle}">
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTemplateColumn Header="Điểm Thường xuyên" Width="1.5*" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock VerticalAlignment="Center">
+                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
                                             <Binding Path="SubjectName" />
@@ -47,10 +62,10 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Điểm Giữa kỳ" Width="1.2*">
+                    <DataGridTemplateColumn Header="Điểm Giữa kỳ" Width="1.2*" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock VerticalAlignment="Center">
+                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
                                             <Binding Path="SubjectName" />
@@ -62,10 +77,10 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Điểm Cuối kỳ" Width="1.2*">
+                    <DataGridTemplateColumn Header="Điểm Cuối kỳ" Width="1.2*" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock VerticalAlignment="Center">
+                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
                                             <Binding Path="SubjectName" />
@@ -77,10 +92,10 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Trung Bình" Width="*">
+                    <DataGridTemplateColumn Header="Trung Bình" Width="*" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock FontWeight="Bold" Foreground="#D32F2F" VerticalAlignment="Center">
+                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" Foreground="#D32F2F">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
                                             <Binding Path="SubjectName" />
