@@ -8,15 +8,21 @@
              d:DesignHeight="450"
              d:DesignWidth="800"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
-    
+
     <DataGrid HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch"
               ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=UserControl}}"
               Style="{StaticResource GlobalDataGridStyle}"
-              CellStyle="{StaticResource GlobalDataGridCellStyle}"
-              FontSize="15">
-
+              CellStyle="{StaticResource GlobalDataGridCellStyle}">
         <DataGrid.Columns>
+            <DataGridTextColumn Header="STT"
+                                Binding="{Binding STT}"
+                                Width="60"
+                                IsReadOnly="True"
+                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                ElementStyle="{StaticResource GlobalCenterElementStyle}">
+            </DataGridTextColumn>
+            
             <DataGridTextColumn Header="Mã học sinh"
                                 Binding="{Binding StudentId}"
                                 Width="115"
@@ -109,6 +115,7 @@
 
                             <Button Command="{Binding DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
+                                    Visibility="{Binding DeleteButtonVisibility, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     Foreground="#FF4757"
                                     Background="Transparent"
                                     Style="{StaticResource MaterialDesignIconForegroundButton}"

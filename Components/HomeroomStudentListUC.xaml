@@ -1,12 +1,105 @@
 ﻿<UserControl x:Class="WPF_Student_Management.Components.HomeroomStudentListUC"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:components="clr-namespace:WPF_Student_Management.Components"
+             mc:Ignorable="d"
+             d:DesignHeight="600"
+             d:DesignWidth="1000"
+             Background="Transparent">
+
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0"
+              Margin="0,0,0,20"
+              VerticalAlignment="Bottom">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Left">
+
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Tìm kiếm học sinh:"
+                               Foreground="#878A99"
+                               FontWeight="SemiBold"
+                               FontSize="13"
+                               Margin="5,0,0,5" />
+                    <Border CornerRadius="21"
+                            BorderBrush="#D1D5DB"
+                            BorderThickness="1"
+                            Background="White"
+                            Height="44"
+                            Width="350">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0"
+                                    Background="#2962FF"
+                                    CornerRadius="21"
+                                    Width="40"
+                                    Height="40"
+                                    Margin="1">
+                                <materialDesign:PackIcon Kind="Magnify"
+                                                         Foreground="White"
+                                                         Width="25"
+                                                         Height="25"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center" />
+                            </Border>
+
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     BorderThickness="0"
+                                     materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
+                                     VerticalAlignment="Center"
+                                     FontSize="15"
+                                     Margin="10,0,15,0" 
+                                     Foreground="Black"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical"
+                            Margin="20,0,0,0">
+                    <TextBlock Text="Giới tính:"
+                               Foreground="#878A99"
+                               FontWeight="SemiBold"
+                               FontSize="13"
+                               Margin="5,0,0,5" />
+                    <ComboBox ItemsSource="{Binding GenderList}"
+                              SelectedItem="{Binding SelectedGender}"
+                              Height="42"
+                              Width="120"
+                              FontSize="15"
+                              VerticalContentAlignment="Center" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Background="White"
+                CornerRadius="12"
+                ClipToBounds="True"
+                Padding="15">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10"
+                                  ShadowDepth="1"
+                                  Color="#DDDDDD"
+                                  Opacity="0.5" />
+            </Border.Effect>
+
+            <components:StudentProfileUC ItemsSource="{Binding DisplayStudents}"
+                                         EditCommand="{Binding OpenStudentDetailCommand}"
+                                         DeleteButtonVisibility="Collapsed" />
+
+        </Border>
     </Grid>
 </UserControl>

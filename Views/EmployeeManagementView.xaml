@@ -73,59 +73,61 @@
             </Border.Effect>
 
             <DataGrid ItemsSource="{Binding StaffList}"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False"
                       IsReadOnly="True"
-                      Background="White"
-                      BorderThickness="0"
-                      GridLinesVisibility="Horizontal"
-                      HorizontalGridLinesBrush="#EEEEEE"
-                      RowHeight="50"
-                      ColumnHeaderHeight="45">
-
-                <DataGrid.Resources>
-                    <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="FontWeight"
-                                Value="SemiBold" />
-                        <Setter Property="Background"
-                                Value="#F8F9FA" />
-                        <Setter Property="Padding"
-                                Value="10,0" />
-                        <Setter Property="FontSize"
-                                Value="14" />
-                    </Style>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="Padding"
-                                Value="10,0" />
-                        <Setter Property="VerticalContentAlignment"
-                                Value="Center" />
-                        <Setter Property="FontSize"
-                                Value="14" />
-                    </Style>
-                </DataGrid.Resources>
-
+                      Style="{StaticResource GlobalDataGridStyle}"
+                      CellStyle="{StaticResource GlobalDataGridCellStyle}">
+                
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Mã NV"
                                         Binding="{Binding StaffId}"
-                                        Width="80" />
+                                        Width="80"
+                                        IsReadOnly="True"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                        ElementStyle="{StaticResource GlobalCenterElementStyle}" />
                     <DataGridTextColumn Header="Họ và Tên"
                                         Binding="{Binding FullName}"
-                                        Width="*" />
+                                        Width="*"
+                                        IsReadOnly="True"
+                                        HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock"
+                                   BasedOn="{StaticResource GlobalLeftElementStyle}">
+                                <Setter Property="FontWeight"
+                                        Value="SemiBold" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+
+                    </DataGridTextColumn>
+                    
                     <DataGridTextColumn Header="Giới tính"
                                         Binding="{Binding Gender}"
-                                        Width="100" />
+                                        Width="100"
+                                        IsReadOnly="True"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                        ElementStyle="{StaticResource GlobalCenterElementStyle}" />
                     <DataGridTextColumn Header="Chuyên môn"
                                         Binding="{Binding Specialization}"
-                                        Width="150" />
+                                        Width="180"
+                                        IsReadOnly="True"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                        ElementStyle="{StaticResource GlobalCenterElementStyle}" />
                     <DataGridTextColumn Header="SĐT"
                                         Binding="{Binding PhoneNumber}"
-                                        Width="130" />
+                                        Width="130"
+                                        IsReadOnly="True"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                        ElementStyle="{StaticResource GlobalCenterElementStyle}" 
+                                        FontWeight="SemiBold"/>
                     <DataGridTextColumn Header="Trạng thái"
                                         Binding="{Binding Status}"
-                                        Width="100" />
+                                        Width="100"
+                                        IsReadOnly="True"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                        ElementStyle="{StaticResource GlobalCenterElementStyle}" />
 
                     <DataGridTemplateColumn Header="Hành động"
-                                            Width="120">
+                                            Width="120"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal"
@@ -151,7 +153,8 @@
                                             ToolTip="Chỉnh sửa"
                                             Width="35"
                                             Height="35"
-                                            Foreground="#1565C0"
+                                            Foreground="#00B894"
+                                            Background="Transparent"
                                             Cursor="Hand">
                                         <materialDesign:PackIcon Kind="PencilOutline" />
                                     </Button>
@@ -162,7 +165,8 @@
                                             ToolTip="Xóa"
                                             Width="35"
                                             Height="35"
-                                            Foreground="#E53935"
+                                            Foreground="#FF4757"
+                                            Background="Transparent"
                                             Cursor="Hand"
                                             Margin="5,0,0,0">
                                         <materialDesign:PackIcon Kind="TrashCanOutline" />

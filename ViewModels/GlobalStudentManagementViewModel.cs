@@ -129,7 +129,11 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                var studentList = Student.GetAllStudents();
+                //lọc ra đứa nào có status Active mới lấy
+                var studentList = Student.GetAllStudents()
+                                         .Where(s => s.Status == "Active")
+                                         .ToList();
+
                 _originalStudentList = studentList;
                 FilterData();
             }
@@ -274,7 +278,7 @@ namespace WPF_Student_Management.ViewModels
 
             if (!string.IsNullOrEmpty(newStudentId))
             {
-                NotificationHelper.ShowSuccess($"Tiếp nhận thành công!\nMã HS / Tài khoản: {newStudentId} / Mật khẩu : <Ngày/tháng/năm sinh + 4 số cuối trong số điện thoại liên lạc học sinh");
+                NotificationHelper.ShowSuccess($"Tiếp nhận thành công!\nMã HS / Tài khoản: {newStudentId}\nMật khẩu : <Ngày/tháng/năm sinh> + 4 số cuối trong số điện thoại liên lạc học sinh");
                 LoadDataFromDatabase();
                 Cancel();
             }
@@ -323,6 +327,13 @@ namespace WPF_Student_Management.ViewModels
             if (!string.IsNullOrWhiteSpace(SelectedGender) && SelectedGender != "Tất cả")
             {
                 filtered = filtered.Where(s => !string.IsNullOrEmpty(s.Gender) && s.Gender.Equals(SelectedGender, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // --- LOGIC ĐÁNH SỐ THỨ TỰ STT ---
+            var resultList = filtered.ToList();
+            for (int i = 0; i < resultList.Count; i++)
+            {
+                resultList[i].STT = i + 1;
             }
 
             AllStudent = new ObservableCollection<Student>(filtered);

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.SqlClient;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
@@ -9,7 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using WPF_Student_Management.Helpers;
-using System.Collections.Generic;
+using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
@@ -21,6 +22,8 @@ namespace WPF_Student_Management.ViewModels
         public string Gender { get; set; }
         public string ClassName { get; set; }
         public string AverageScore { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string PhoneNumber { get; set; }
     }
 
     public class ReportItem
@@ -136,6 +139,7 @@ namespace WPF_Student_Management.ViewModels
         public ICommand ConfirmReportCommand { get; }
         public ICommand CancelReportCommand { get; }
         public ICommand ViewDetailCommand { get; }
+        public ICommand OpenStudentDetailCommand { get; }
 
         public HomeroomDashboardViewModel()
         {
@@ -145,6 +149,7 @@ namespace WPF_Student_Management.ViewModels
             ConfirmReportCommand = new RelayCommand(ExecuteConfirmReport, CanExecuteReportActions);
             CancelReportCommand = new RelayCommand(ExecuteCancelReport, CanExecuteReportActions);
             ViewDetailCommand = new RelayCommand<object>(ExecuteViewDetail, CanExecuteReportActions);
+            OpenStudentDetailCommand = new RelayCommand<HomeroomStudentGradeItem>(ExecuteOpenStudentDetail);
 
             bool isDesignMode = DesignerProperties.GetIsInDesignMode(new DependencyObject());
             if (!isDesignMode)
@@ -196,7 +201,7 @@ namespace WPF_Student_Management.ViewModels
                 string query = @"
             SELECT 
                 c.ClassID, e.EmployeeID, ISNULL(cr.IsLocked, 0) AS IsLocked,
-                s.StudentID, s.FullName, s.Gender, c.ClassName,
+                s.StudentID, s.FullName, s.Gender, s.DateOfBirth, s.PhoneNumber, c.ClassName,
                 AVG(CASE WHEN sub.SubjectName <> N'Giáo dục thể chất' THEN sc.AverageScore ELSE NULL END) as OverallAverage,
                 COUNT(sc.SubjectID) as GradedCount,
                 (SELECT COUNT(DISTINCT SubjectID) FROM TeachingAssignment 
@@ -210,7 +215,7 @@ namespace WPF_Student_Management.ViewModels
             LEFT JOIN Score sc ON s.StudentID = sc.StudentID AND sc.Semester = @Semester AND sc.AcademicYear = @AcademicYear
             LEFT JOIN Subject sub ON sc.SubjectID = sub.SubjectID
             WHERE a.AccountID = @AccountID AND c.AcademicYear = @AcademicYear
-            GROUP BY c.ClassID, e.EmployeeID, cr.IsLocked, s.StudentID, s.FullName, s.Gender, c.ClassName";
+            GROUP BY c.ClassID, e.EmployeeID, cr.IsLocked, s.StudentID, s.FullName, s.Gender, s.DateOfBirth, s.PhoneNumber, c.ClassName";
 
                 SqlParameter[] parameters = {
                     new SqlParameter("@AccountID", currentUserId),
@@ -245,7 +250,9 @@ namespace WPF_Student_Management.ViewModels
                             FullName = row["FullName"].ToString(),
                             Gender = row["Gender"].ToString(),
                             ClassName = row["ClassName"].ToString(),
-                            AverageScore = scoreStr
+                            AverageScore = scoreStr,
+                            DateOfBirth = row["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(row["DateOfBirth"]) : null,
+                            PhoneNumber = row["PhoneNumber"].ToString()
                         });
                     }
                 }
@@ -574,5 +581,49 @@ namespace WPF_Student_Management.ViewModels
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        private async void ExecuteOpenStudentDetail(HomeroomStudentGradeItem item)
+        {
+            if (item == null) return;
+
+            try
+            {
+                // Truy vấn ngược DB để lấy Full Object Student dựa vào StudentId
+                string query = "SELECT * FROM Student WHERE StudentID = @ID";
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@ID", item.StudentId) });
+
+                if (dt.Rows.Count > 0)
+                {
+                    DataRow row = dt.Rows[0];
+                    Student fullStudent = new Student
+                    {
+                        StudentId = row["StudentID"].ToString(),
+                        FullName = row["FullName"].ToString(),
+                        Gender = row["Gender"].ToString(),
+                        DateOfBirth = row["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(row["DateOfBirth"]) : null,
+                        PhoneNumber = row["PhoneNumber"].ToString(),
+                        Email = row["Email"].ToString(),
+                        Address = row["Address"].ToString(),
+                        FamilyBackground = row["FamilyBackground"].ToString(),
+                        GuardianName = row["GuardianName"].ToString(),
+                        GuardianPhoneNumber = row["GuardianPhoneNumber"].ToString(),
+                        AccountId = row["AccountID"] != DBNull.Value ? Convert.ToInt32(row["AccountID"]) : 0
+                    };
+
+                    // Gọi popup StudentProfileDetailUC lên
+                    var detailVM = new StudentProfileDetailViewModel(fullStudent);
+                    var detailUC = new WPF_Student_Management.Components.StudentProfileDetailUC { DataContext = detailVM };
+
+                    await MaterialDesignThemes.Wpf.DialogHost.Show(detailUC, "RootDialog");
+
+                    // Tùy chọn: Sau khi đóng popup có thể gọi FilterData() để reload lại lưới nếu data thay đổi
+                    LoadHomeroomData();
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi khi mở hồ sơ: " + ex.Message);
+            }
+        }
     }
 }

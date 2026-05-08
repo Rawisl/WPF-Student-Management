@@ -13,7 +13,7 @@ namespace WPF_Student_Management.Helpers
         /// <summary>
         /// REQUIREMENTS: SQL Server Express LocalDB 2019+
         /// </summary>
-        private static string connectionString = @"Server=(localdb)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Services\StudentManagementDB.mdf;Integrated Security=True;TrustServerCertificate=True;";        /// </summary>
+        public static string connectionString = @"Server=(localdb)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Services\StudentManagementDB.mdf;Integrated Security=True;TrustServerCertificate=True;";        /// </summary>
         public static DataTable ExecuteQuery(string query, SqlParameter[]? parameters = null)
         {
             DataTable data = new DataTable();

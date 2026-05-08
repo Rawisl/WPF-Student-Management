@@ -15,16 +15,17 @@
             Margin="10"
             MinWidth="450"
             MaxWidth="450"
-            MinHeight="290"
-            MaxHeight="290">
+            MinHeight="300"
+            MaxHeight="300">
         <Border.Effect>
             <DropShadowEffect BlurRadius="15"
-                              ShadowDepth="3"
+                              ShadowDepth="1"
                               Opacity="0.2" />
         </Border.Effect>
 
         <Grid Margin="25">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -40,21 +41,33 @@
                        HorizontalAlignment="Center"
                        Margin="0,0,0,20" />
 
-            <TextBox Grid.Row="1"
-                     materialDesign:HintAssist.Hint="Tên môn học *"
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+            <TextBlock Grid.Row="1"
+                       FontSize="15"
+                       FontWeight="SemiBold"
+                       Margin="5,0,0,5">
+                <Run Text="Tên môn học"
+                     Foreground="#3e4c82" />
+                <Run Text="*"
+                     Foreground="#FF4757" />
+            </TextBlock>
+
+            <TextBox Grid.Row="2"
                      helpers:TextBoxHelper.IsAlphaNumericOnly="True"
                      Text="{Binding NewSubjectName, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="16"
-                     Margin="0,0,0,20" />
+                     Style="{StaticResource RoundedTextBoxStyle}" />
+            
+            <TextBlock Grid.Row="3"
+                       FontSize="15"
+                       FontWeight="SemiBold"
+                       Margin="5,0,0,5">
+                <Run Text="Loại điểm"
+                     Foreground="#3e4c82" />
+                <Run Text="*"
+                     Foreground="#FF4757" />
+            </TextBlock>
 
-            <TextBlock Grid.Row="2"
-                       Text="Loại điểm (Không thể sửa sau khi tạo):"
-                       FontSize="14"
-                       Foreground="Gray"
-                       Margin="0,0,0,10" />
-
-            <StackPanel Grid.Row="3"
+            <StackPanel Grid.Row="4"
                         Orientation="Horizontal"
                         Margin="0,0,0,30"
                         HorizontalAlignment="Center">
@@ -74,14 +87,14 @@
                              FontSize="15" />
             </StackPanel>
 
-            <StackPanel Grid.Row="4"
+            <StackPanel Grid.Row="5"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
                 <Button Content="Hủy bỏ"
                         Command="{Binding CancelAddSubjectCommand}"
                         IsCancel="True"
                         Style="{StaticResource OutlineRoundedButton}"
-                        FontSize="14"
+                        FontSize="16"
                         Width="90"
                         Margin="0,0,15,0" />
 
@@ -89,8 +102,8 @@
                         Command="{Binding SaveSubjectCommand}"
                         Style="{StaticResource PrimaryRoundedButton}"
                         IsDefault="True"
-                        FontSize="14"
-                        Width="90" />
+                        FontSize="16"
+                        Width="100" />
             </StackPanel>
         </Grid>
 
