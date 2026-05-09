@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Windows;
 using WPF_Student_Management.Helpers;
+using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
@@ -97,7 +98,37 @@ namespace WPF_Student_Management.ViewModels
             bool confirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn thực thi đơn {item.RequestTypeDisplay} của học sinh {item.FullName}?");
             if (!confirm) return;
 
-            // Bọc bằng SqlTransaction để đảm bảo toàn vẹn dữ liệu
+            // =========================================================================
+            // KIỂM TRA KHÓA SỔ BÁO CÁO LỚP
+            // =========================================================================
+            // NOTE: Thay "Học kỳ 1" và "2025-2026" bằng biến Global của bro nếu có
+            string currentSemester = "Học kỳ 1";
+            string currentYear = "2025-2026";
+
+            // 1. Kiểm tra Lớp Cũ (Áp dụng cho cả Thôi học và Chuyển lớp)
+            if (item.CurrentClassId.HasValue)
+            {
+                bool isOldClassLocked = ClassReport.IsClassReportLocked(item.CurrentClassId.Value, currentSemester, currentYear);
+                if (isOldClassLocked)
+                {
+                    NotificationHelper.ShowError($"Lớp cũ ({item.CurrentClassName}) đã được GVCN lập báo cáo học kỳ!\nKhông thể rút học sinh khỏi lớp này. Vui lòng chọn Trả đơn.");
+                    return;
+                }
+            }
+
+            // 2. Kiểm tra Lớp Mới (Chỉ áp dụng cho Chuyển lớp)
+            if (item.RequestType == "ClassTransfer" && item.TargetClassId.HasValue)
+            {
+                bool isNewClassLocked = ClassReport.IsClassReportLocked(item.TargetClassId.Value, currentSemester, currentYear);
+                if (isNewClassLocked)
+                {
+                    NotificationHelper.ShowError($"Lớp đích ({item.TargetClassName}) đã được GVCN lập báo cáo học kỳ!\nKhông thể thêm học sinh vào lớp này. Vui lòng chọn Trả đơn.");
+                    return;
+                }
+            }
+            // =========================================================================
+
+            // Nếu an toàn (chưa khóa sổ) -> Bọc bằng SqlTransaction để xử lý CSDL
             using (SqlConnection conn = new SqlConnection(DatabaseHelper.connectionString))
             {
                 conn.Open();

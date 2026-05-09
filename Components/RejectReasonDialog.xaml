@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
+             xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
              mc:Ignorable="d"
              Width="500"
              Height="345">
@@ -44,6 +45,7 @@
 
             <TextBox Text="{Binding RejectReason, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource RoundedTextBoxStyle}"
+                     helpers:TextBoxHelper.IsLettersOnly="True"
                      Height="90"
                      TextWrapping="Wrap"
                      AcceptsReturn="True"

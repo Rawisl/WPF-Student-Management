@@ -120,7 +120,7 @@
             <Button Grid.Row="2"
                     Content="ĐÓNG"
                     Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Style="{StaticResource OutlineRoundedButton}"
                     Margin="0,20,0,0"
                     HorizontalAlignment="Center"
                     Width="140"

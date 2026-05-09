@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
 using WPF_Student_Management.Services;
@@ -31,7 +33,9 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty] private bool _isFamilyNormal = true;
         [ObservableProperty] private bool _isFamilyHard;
 
-        [ObservableProperty] private string _phoneNumber;
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private string _phoneNumber;
         [ObservableProperty] private string _emailPrefix;
 
         [ObservableProperty]
@@ -144,57 +148,68 @@ namespace WPF_Student_Management.ViewModels
         // Kiểm tra điều kiện để cho bấm nút Lưu
         private bool CanSave()
         {
+            string phoneRegexPattern = @"^0\d{9}$";
+
             return string.IsNullOrEmpty(AgeErrorMessage) &&
                    !string.IsNullOrWhiteSpace(FullName) &&
                    !string.IsNullOrWhiteSpace(Address) &&
+                   !string.IsNullOrWhiteSpace(PhoneNumber) &&
                    !string.IsNullOrWhiteSpace(GuardianName) &&
-                   !string.IsNullOrWhiteSpace(GuardianPhoneNumber);
+                   !string.IsNullOrWhiteSpace(GuardianPhoneNumber) &&
+                   Regex.IsMatch(PhoneNumber?.Trim() ?? "", phoneRegexPattern) &&
+                   Regex.IsMatch(GuardianPhoneNumber?.Trim() ?? "", phoneRegexPattern);
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
         private void Save()
         {
-            string phoneRegexPattern = @"^0\d{9}$";
-
-            if (!System.Text.RegularExpressions.Regex.IsMatch(PhoneNumber?.Trim() ?? "", phoneRegexPattern))
+            try
             {
-                NotificationHelper.ShowWarning("Số điện thoại Học sinh chưa hợp lệ!\nVui lòng nhập ĐỦ 10 chữ số và bắt đầu bằng số 0.");
-                return;
+                // Chốt data từ UI
+                string finalGender = IsMale ? "Nam" : "Nữ";
+                string finalFamilyBg = IsFamilyNormal ? "Bình thường" : "Khó khăn";
+                string finalEmail = string.IsNullOrWhiteSpace(EmailPrefix) ? null : $"{EmailPrefix.Trim()}@gmail.com";
+
+                // Cập nhật dữ liệu mới vào object _originalItem
+                _originalItem.FullName = FullName.Trim();
+                _originalItem.Gender = finalGender;
+                _originalItem.DateOfBirth = DateOfBirth;
+                _originalItem.FamilyBackground = finalFamilyBg;
+                _originalItem.Address = Address.Trim();
+                _originalItem.PhoneNumber = PhoneNumber.Trim();
+                _originalItem.Email = finalEmail;
+                _originalItem.GuardianName = GuardianName.Trim();
+                _originalItem.GuardianPhoneNumber = GuardianPhoneNumber.Trim();
+
+                bool success = _originalItem.UpdateStudent();
+
+                if (success)
+                {
+                    NotificationHelper.ShowSuccess("Cập nhật hồ sơ thành công!");
+                    MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
+                }
+                else
+                {
+                    NotificationHelper.ShowError("Lỗi: Không thể lưu thông tin xuống CSDL!");
+                }
             }
-
-            if (!System.Text.RegularExpressions.Regex.IsMatch(GuardianPhoneNumber?.Trim() ?? "", phoneRegexPattern))
+            catch (SqlException sqlEx)
             {
-                NotificationHelper.ShowWarning("Số điện thoại Người bảo hộ chưa hợp lệ!\nVui lòng nhập ĐỦ 10 chữ số và bắt đầu bằng số 0.");
-                return;
+                // Bắt lỗi trùng Email.
+                // 2601: Lỗi do vi phạm "Unique Index" (Tạo ra một dòng trùng lặp ở cột đã đánh dấu là Unique).
+                // 2627: Lỗi do vi phạm "Primary Key"(Khóa chính) hoặc "Unique Constraint"(Ràng buộc duy nhất).
+                if (sqlEx.Number == 2627 || sqlEx.Number == 2601)
+                {
+                    NotificationHelper.ShowError("Lỗi: Email này đã được sử dụng cho một học sinh khác. Vui lòng kiểm tra lại!");
+                }
+                else
+                {
+                    NotificationHelper.ShowError("Lỗi cơ sở dữ liệu: " + sqlEx.Message);
+                }
             }
-
-            // Chốt data từ UI
-            string finalGender = IsMale ? "Nam" : "Nữ";
-            string finalFamilyBg = IsFamilyNormal ? "Bình thường" : "Khó khăn";
-            string finalEmail = string.IsNullOrWhiteSpace(EmailPrefix) ? "" : $"{EmailPrefix.Trim()}@gmail.com";
-
-            //Cập nhật dữ liệu mới vào object _originalItem
-            _originalItem.FullName = FullName;
-            _originalItem.Gender = finalGender;
-            _originalItem.DateOfBirth = DateOfBirth;
-            _originalItem.FamilyBackground = finalFamilyBg;
-            _originalItem.Address = Address;
-            _originalItem.PhoneNumber = PhoneNumber;
-            _originalItem.Email = finalEmail;
-            _originalItem.GuardianName = GuardianName;
-            _originalItem.GuardianPhoneNumber = GuardianPhoneNumber;
-
-            bool success = _originalItem.UpdateStudent();
-
-            if (success)
+            catch (Exception ex)
             {
-                NotificationHelper.ShowSuccess("Cập nhật hồ sơ thành công!");
-                MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
-            }
-            else
-            {
-                // Nhỡ DB rớt mạng hay gì thì nó văng lỗi
-                NotificationHelper.ShowError("Lỗi: Không thể lưu thông tin xuống CSDL!");
+                NotificationHelper.ShowError("Lỗi hệ thống khi cập nhật: " + ex.Message);
             }
         }
 
@@ -248,14 +263,13 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                // Bước 1: Đóng cái Dialog Chi tiết học sinh hiện tại lại cho đỡ rối màn hình
+                //Đóng cái Dialog Chi tiết học sinh hiện tại lại cho đỡ rối màn hình
                 MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
 
-                // Bước 2: Tí nữa anh em mình tạo EnrollmentChangeRequestViewModel sẽ truyền _originalItem vào đây
                 var requestVM = new EnrollmentChangeRequestViewModel(_originalItem);
                 var requestView = new WPF_Student_Management.Components.EnrollmentChangeRequestUC { DataContext = requestVM };
 
-                // Bước 3: Mở Dialog Lập đơn lên (Mở khóa dòng này khi tạo xong UC)
+                //Mở Dialog Lập đơn lên (Mở khóa dòng này khi tạo xong UC)
                 await MaterialDesignThemes.Wpf.DialogHost.Show(requestView, "RootDialog");
             }
             catch (Exception ex)
