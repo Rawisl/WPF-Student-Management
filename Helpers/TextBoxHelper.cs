@@ -145,6 +145,56 @@ namespace WPF_Student_Management.Helpers
                 }
             }
         }
+
+        // CHỈ NHẬP CHỮ ĐƯỢC
+
+        public static readonly DependencyProperty IsLettersOnlyProperty =
+    DependencyProperty.RegisterAttached("IsLettersOnly", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnIsLettersOnlyChanged));
+
+        public static void SetIsLettersOnly(UIElement element, bool value) => element.SetValue(IsLettersOnlyProperty, value);
+        public static bool GetIsLettersOnly(UIElement element) => (bool)element.GetValue(IsLettersOnlyProperty);
+
+        private static void OnIsLettersOnlyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is TextBox textBox)
+            {
+                if ((bool)e.NewValue)
+                {
+                    textBox.PreviewTextInput += BlockSpecialCharactersAndNumber;
+                    // Chặn cả việc dán (Paste) ký tự đặc biệt vào TextBox
+                    DataObject.AddPastingHandler(textBox, OnPasteLetter);
+                }
+                else
+                {
+                    textBox.PreviewTextInput -= BlockSpecialCharactersAndNumber;
+                    DataObject.RemovePastingHandler(textBox, OnPasteLetter);
+                }
+            }
+        }
+
+        private static void BlockSpecialCharactersAndNumber(object sender, TextCompositionEventArgs e)
+        {
+            // Regex này cho phép:
+            // a-z, A-Z: Chữ cái Latin
+            // \s: Khoảng trắng (Dùng cho tên lớp có dấu cách)
+            // Các ký tự Tiếng Việt (Unicode): àáạảã...
+            Regex regex = new Regex(@"[^a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private static void OnPasteLetter(object sender, DataObjectPastingEventArgs e)
+        {
+            if (e.DataObject.GetDataPresent(typeof(string)))
+            {
+                string text = (string)e.DataObject.GetData(typeof(string));
+                Regex regex = new Regex(@"[^a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+");
+                if (regex.IsMatch(text))
+                {
+                    e.CancelCommand(); // Hủy lệnh Paste nếu chuỗi chứa ký tự đặc biệt
+                }
+            }
+        }
+
         // ====================================================================
         // --- 5. THUỘC TÍNH RÀNG BUỘC TỰ ĐỘNG LÀM TRÒN ĐIỂM THEO CHUẨN BGD ---
         // ====================================================================

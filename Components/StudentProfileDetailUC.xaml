@@ -104,7 +104,8 @@
                         </TextBlock>
 
                         <TextBox Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource RoundedTextBoxStyle}" />
+                                 Style="{StaticResource RoundedTextBoxStyle}"
+                                 helpers:TextBoxHelper.IsLettersOnly="True"/>
 
                         <Label Content="Giới tính:"
                                FontWeight="SemiBold"
@@ -238,6 +239,7 @@
 
                         <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource RoundedTextBoxStyle}"
+                                 helpers:TextBoxHelper.IsAlphaNumericOnly="True"
                                  VerticalContentAlignment="Top"
                                  Height="70" 
                                  Padding="10,5,0,0"
@@ -253,7 +255,8 @@
                         </TextBlock>
 
                         <TextBox Text="{Binding GuardianName, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource RoundedTextBoxStyle}" />
+                                 Style="{StaticResource RoundedTextBoxStyle}"
+                                 helpers:TextBoxHelper.IsLettersOnly="True" />
 
                         <TextBlock FontSize="15"
                                    FontWeight="SemiBold"

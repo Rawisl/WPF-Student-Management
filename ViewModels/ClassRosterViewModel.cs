@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using WPF_Student_Management.Helpers;
@@ -22,10 +24,8 @@ namespace WPF_Student_Management.ViewModels
 
     public partial class ClassRosterViewModel : ObservableObject
     {
-        // --- BỔ SUNG: QUẢN LÝ NĂM HỌC HIỆN TẠI ---
         [ObservableProperty]
         private string _currentAcademicYear = "2025-2026";
-        // -----------------------------------------
 
         [ObservableProperty]
         private ObservableCollection<SelectableStudentItem> _currentClassStudents;
@@ -39,61 +39,54 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private string _selectedClass;
 
-        // Kho giấu kín chứa TOÀN BỘ lớp từ DB
         private List<Class> _allClassesFromDb = new List<Class>();
 
-        // Kho đổ lên ComboBox Khối
         [ObservableProperty]
         private ObservableCollection<string> _availableGrades;
 
-        // Kho đổ lên ComboBox Lớp
         [ObservableProperty]
         private ObservableCollection<Class> _availableClasses;
 
-        // BIẾN LƯU SĨ SỐ TỐI ĐA (Kéo từ DB lên, giả định mặc định là 40)
         private int _maxClassSize = 40;
+
+        // CỜ KIỂM SOÁT KHÓA SỔ
+        private bool _isClassLocked = false;
 
         public string ClassSizeText
         {
             get
             {
-                // Nếu chưa chọn lớp thì cho tàng hình luôn
-                if (SelectedClass == null || SelectedClass.ToString() == "")
-                {
-                    return "";
-                }
+                if (string.IsNullOrEmpty(SelectedClass)) return "";
 
-                // Nếu đã chọn lớp thì hiện bình thường
+                // Báo cho Giáo vụ biết lớp đã bị khóa sổ
+                if (_isClassLocked)
+                    return $"Sĩ số: {CurrentClassStudents?.Count ?? 0} / {_maxClassSize}\nLớp đã được GVCN lập báo cáo học kỳ!";
+
                 return $"Sĩ số: {CurrentClassStudents?.Count ?? 0} / {_maxClassSize}";
             }
         }
 
-        // THÊM BIẾN TÍNH MÀU SẮC DỰA TRÊN SĨ SỐ
         public string ClassSizeColor
         {
             get
             {
-                if (string.IsNullOrEmpty(SelectedClass))
-                {
-                    return "#2C3E50"; // Màu xám đen mặc định khi tàng hình
-                }
+                if (string.IsNullOrEmpty(SelectedClass)) return "#2C3E50";
+
+                if (_isClassLocked) return "#FF4757"; // Hiện MÀU ĐỎ nếu lớp đã bị khóa sổ
 
                 int current = CurrentClassStudents?.Count ?? 0;
                 double ratio = (double)current / _maxClassSize;
 
-                if (ratio >= 1.0)
-                    return "#FF4757"; // ĐỎ: Lớp đã Full 100%
-                if (ratio >= 0.8)
-                    return "#F39C12"; // CAM: Lớp sắp Full (>= 80%)
-
-                return "#00B894";     // XANH LÁ: Còn trống nhiều (< 80%)
+                if (ratio >= 1.0) return "#FF4757"; // Lớp đã Full
+                if (ratio >= 0.8) return "#F39C12"; // Sắp Full
+                return "#00B894";                   // Còn trống nhiều
             }
         }
+
         public ClassRosterViewModel()
         {
             AvailableStudents = new ObservableCollection<SelectableStudentItem>();
             CurrentClassStudents = new ObservableCollection<SelectableStudentItem>();
-
             AvailableGrades = new ObservableCollection<string>();
             AvailableClasses = new ObservableCollection<Class>();
         }
@@ -102,48 +95,49 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                // Lấy toàn bộ quy định từ CSDL
                 var allRegulations = Regulation.GetAllRegulations();
                 if (allRegulations != null && allRegulations.Any())
                 {
-                    // Tìm quy định có tên "MaxClassSize" (hoặc SiSoToiDa tùy bro đặt trong DB)
                     var maxSizeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MaxClassSize");
-                    if (maxSizeParam != null)
-                    {
-                        // Gán vào biến của VM
-                        _maxClassSize = (int)maxSizeParam.Value;
-                    }
+                    if (maxSizeParam != null) _maxClassSize = (int)maxSizeParam.Value;
                 }
             }
             catch (Exception ex)
             {
                 NotificationHelper.ShowError("Lỗi tải quy định sĩ số: " + ex.Message);
-                // Giữ nguyên _maxClassSize = 40 (hoặc số an toàn nào đó) nếu DB lỗi
             }
         }
 
         private void LoadStudentsForSelectedClass()
         {
-            // Xóa lưới cũ cho sạch sẽ
             CurrentClassStudents.Clear();
+            _isClassLocked = false; // Reset cờ khóa sổ mỗi khi đổi lớp
 
-            // Rào chắn: Phải có mã lớp thì mới tìm
             if (string.IsNullOrEmpty(SelectedClass)) return;
 
-            // Ép mã lớp từ chuỗi sang số nguyên
             if (int.TryParse(SelectedClass, out int classId))
             {
                 try
                 {
-                    // Tận dụng hàm SearchStudents của Model, truyền đúng cái classId vào
-                    var dbStudents = Student.SearchStudents(classId: classId);
+                    // 1. KIỂM TRA LỚP ĐÃ CÓ BÁO CÁO KHÓA SỔ CHƯA
+                    string lockQuery = "SELECT COUNT(*) FROM ClassReport WHERE ClassID = @ClassID AND AcademicYear = @AcademicYear AND IsLocked = 1";
+                    DataTable dtLock = DatabaseHelper.ExecuteQuery(lockQuery, new[] {
+                        new SqlParameter("@ClassID", classId),
+                        new SqlParameter("@AcademicYear", CurrentAcademicYear)
+                    });
 
-                    // Trút data từ Model sang giao diện
+                    if (dtLock.Rows.Count > 0 && Convert.ToInt32(dtLock.Rows[0][0]) > 0)
+                    {
+                        _isClassLocked = true; // Bật cờ khóa nếu có báo cáo đã chốt
+                    }
+
+                    // 2. KÉO HỌC SINH CỦA LỚP
+                    var dbStudents = Student.SearchStudents(classId: classId);
                     foreach (var hs in dbStudents)
                     {
                         CurrentClassStudents.Add(new SelectableStudentItem
                         {
-                            StudentId = hs.StudentId, // Mã giờ là "hs25..." tự sinh nên ném thẳng lên
+                            StudentId = hs.StudentId,
                             FullName = hs.FullName,
                             Gender = hs.Gender ?? "Không rõ",
                             DateOfBirth = hs.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Không rõ",
@@ -151,11 +145,8 @@ namespace WPF_Student_Management.ViewModels
                         });
                     }
 
-                    // Cập nhật dòng text "Sĩ số: X / Y" 
                     OnPropertyChanged(nameof(ClassSizeText));
                     OnPropertyChanged(nameof(ClassSizeColor));
-
-                    // Check lại nút "+ Thêm học sinh" xem lớp có bị full chưa
                     OpenAddStudentDialogCommand.NotifyCanExecuteChanged();
                 }
                 catch (System.Exception ex)
@@ -165,24 +156,24 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        //Check điều kiện để Enable/Disable nút "+ Thêm học sinh"
+        // ĐIỀU KIỆN MỞ KHÓA NÚT "+ THÊM HỌC SINH"
         private bool CanOpenAddStudent()
         {
-            return CurrentClassStudents != null && CurrentClassStudents.Count < _maxClassSize;
+            return !string.IsNullOrEmpty(SelectedGrade) &&              // Đã chọn Khối
+                   !string.IsNullOrEmpty(SelectedClass) &&              // Đã chọn Lớp
+                   !_isClassLocked &&                                   // Lớp CHƯA bị khóa sổ
+                   CurrentClassStudents != null &&
+                   CurrentClassStudents.Count < _maxClassSize;          // Lớp chưa Full sĩ số
         }
 
         [RelayCommand(CanExecute = nameof(CanOpenAddStudent))]
         private async Task OpenAddStudentDialog()
         {
-            //Dọn sạch rác cũ trước khi load
             AvailableStudents.Clear();
 
             try
             {
-                // SỬA LỖI COMPILER: Kéo danh sách học sinh chưa có lớp của NĂM HỌC HIỆN TẠI
                 var bovoStudents = Student.GetUnassignedStudents(CurrentAcademicYear);
-
-                //Đổ data vào kho chứa của Popup
                 foreach (var hs in bovoStudents)
                 {
                     AvailableStudents.Add(new SelectableStudentItem
@@ -198,10 +189,9 @@ namespace WPF_Student_Management.ViewModels
             catch (Exception ex)
             {
                 NotificationHelper.ShowError("Lỗi kéo dữ liệu học sinh vãng lai: " + ex.Message);
-                return; // Lỗi DB thì khỏi mở popup luôn
+                return;
             }
 
-            //gọi Popup
             var dialogContent = new WPF_Student_Management.Components.AddStudentToClassDialog
             {
                 DataContext = this
@@ -212,22 +202,15 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private void SaveSelection()
         {
-            //Lọc ra tụi nhỏ đang được tick chọn
             var selectedStudents = AvailableStudents.Where(s => s.IsSelected).ToList();
+            if (selectedStudents.Count == 0) return;
 
-            if (selectedStudents.Count == 0)
-            {
-                return;
-            }
-
-            //Ép kiểu cái SelectedClass (đang là string) sang classId (int) để ném xuống DB
             if (string.IsNullOrEmpty(SelectedClass) || !int.TryParse(SelectedClass, out int classId))
             {
                 NotificationHelper.ShowError("Lỗi: Không xác định được Lớp để xếp vào!");
                 return;
             }
 
-            //Rào chắn sĩ số
             int projectedSize = CurrentClassStudents.Count + selectedStudents.Count;
             if (projectedSize > _maxClassSize)
             {
@@ -235,16 +218,12 @@ namespace WPF_Student_Management.ViewModels
                 return;
             }
 
-            //Đưa dữ liệu xuống database
             int successCount = 0;
             foreach (var hs in selectedStudents)
             {
-                // Gọi Model để Insert
                 bool isSavedToDb = Student.AssignStudentToClass(hs.StudentId, classId);
-
                 if (isSavedToDb)
                 {
-                    // Nếu DB ok thì mới update UI (chuyển từ bảng ngoài vào bảng trong)
                     hs.IsSelected = false;
                     CurrentClassStudents.Add(hs);
                     AvailableStudents.Remove(hs);
@@ -252,18 +231,12 @@ namespace WPF_Student_Management.ViewModels
                 }
             }
 
-            // 5. Báo cáo kết quả
             if (successCount > 0)
             {
                 NotificationHelper.ShowSuccess($"Đã xếp lớp thành công cho {successCount} học sinh!");
-
-                // Refresh lại UI
                 OnPropertyChanged(nameof(ClassSizeText));
                 OnPropertyChanged(nameof(ClassSizeColor));
-
                 OpenAddStudentDialogCommand.NotifyCanExecuteChanged();
-
-                // Đóng Popup
                 MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
             }
             else
@@ -272,22 +245,17 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // Bẫy sự kiện: Tự động chạy mỗi khi giá trị của SelectedClass thay đổi
         partial void OnSelectedClassChanged(string value)
         {
-            // 1. BÁO UI CẬP NHẬT TRƯỚC! Dù có chọn lớp hay bị reset về null, cứ báo UI tính lại cái Text sĩ số
             OnPropertyChanged(nameof(ClassSizeText));
             OnPropertyChanged(nameof(ClassSizeColor));
             OpenAddStudentDialogCommand.NotifyCanExecuteChanged();
 
-            // 2. Nếu là Null (do chuyển tab reset) thì dọn sạch bảng học sinh rồi mới thoát
             if (string.IsNullOrEmpty(value))
             {
-                CurrentClassStudents?.Clear(); // Xóa sạch grid học sinh ngoài màn hình
+                CurrentClassStudents?.Clear();
                 return;
             }
-
-            //Load danh sách học sinh của cái Lớp vừa chọn
             LoadStudentsForSelectedClass();
         }
 
@@ -295,45 +263,31 @@ namespace WPF_Student_Management.ViewModels
         {
             if (string.IsNullOrEmpty(value)) return;
 
-            // Xóa sạch danh sách lớp cũ
             AvailableClasses.Clear();
 
-            // Ép kiểu chữ (string) sang số (int)
             if (int.TryParse(value, out int selectedGradeInt))
             {
-                // Lọc trong kho giấu kín: Lấy những lớp có Grade khớp với số vừa chọn
                 var filteredClasses = _allClassesFromDb.Where(c => c.Grade == selectedGradeInt).ToList();
-
-                foreach (var cls in filteredClasses)
-                {
-                    AvailableClasses.Add(cls);
-                }
+                foreach (var cls in filteredClasses) AvailableClasses.Add(cls);
             }
 
-            // Reset lại ô chọn Lớp (để chống bug chọn Khối 10 nhưng ô Lớp vẫn đang ngậm "11A1")
             SelectedClass = null;
+            OpenAddStudentDialogCommand.NotifyCanExecuteChanged(); // Ép check lại nút khi bị reset
         }
 
         public void RefreshData()
         {
-            // 1. Reset trắng ComboBox và Grid
             SelectedGrade = null;
-            SelectedClass = null; // Đoạn này sẽ kích hoạt hàm OnSelectedClassChanged để xóa Grid
+            SelectedClass = null;
             AvailableClasses.Clear();
             AvailableGrades.Clear();
 
-            // 2. Kéo lại Quy định sĩ số (đề phòng vừa sửa bên tab Cài đặt)
             LoadRegulations();
 
-            // 3. SỬA LỖI LOGIC: Kéo mẻ lưới mới từ DB, nhưng CHỈ LẤY LỚP CỦA NĂM HỌC HIỆN TẠI
             _allClassesFromDb = Class.GetAllClasses().Where(c => c.AcademicYear == CurrentAcademicYear).ToList();
 
-            // 4. Lọc lại danh sách Khối đổ lên ComboBox
             var distinctGrades = _allClassesFromDb.Select(c => c.Grade.ToString()).Distinct().OrderBy(g => g).ToList();
-            foreach (var grade in distinctGrades)
-            {
-                AvailableGrades.Add(grade);
-            }
+            foreach (var grade in distinctGrades) AvailableGrades.Add(grade);
         }
     }
 }

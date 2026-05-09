@@ -6,10 +6,12 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
              mc:Ignorable="d"
-             d:DesignHeight="700" d:DesignWidth="1000"
+             d:DesignHeight="700"
+             d:DesignWidth="1000"
              Background="Transparent">
 
-    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <Grid HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch">
 
         <Grid.Resources>
             <helpers:GenderToBoolConverter x:Key="GenderConverter" />
@@ -37,7 +39,8 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="0,0,0,15">
+                <Grid Grid.Row="0"
+                      Margin="0,0,0,15">
                     <TextBlock Text="Thông tin Nhân viên"
                                FontSize="22"
                                FontWeight="Bold"
@@ -52,7 +55,9 @@
                             Height="30"
                             Padding="0"
                             Margin="0,-5,-5,0">
-                        <materialDesign:PackIcon Kind="Close" Width="22" Height="22" />
+                        <materialDesign:PackIcon Kind="Close"
+                                                 Width="22"
+                                                 Height="22" />
                     </Button>
                 </Grid>
 
@@ -76,21 +81,39 @@
                                    Fill="#F0F0F0"
                                    Margin="0,10" />
 
-                        <StackPanel Grid.Column="0" Margin="10,0,30,0">
-                            <Label Content="Thông tin cơ bản" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" Foreground="#FF1A237E" />
+                        <StackPanel Grid.Column="0"
+                                    Margin="10,0,30,0">
+                            <Label Content="Thông tin cơ bản"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,10"
+                                   Foreground="#FF1A237E" />
 
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Margin="5,0,0,5">
-                                <Run Text="Họ Tên" Foreground="#3e4c82" />
-                                <Run Text="*" Foreground="#FF4757" />
+                            <TextBlock FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="5,0,0,5">
+                                <Run Text="Họ Tên"
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
-                            <TextBox Text="{Binding CurrentStaff.FullName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource RoundedTextBoxStyle}" />
+                            <TextBox Text="{Binding CurrentStaff.FullName, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource RoundedTextBoxStyle}"
+                                     helpers:TextBoxHelper.IsLettersOnly="True" />
 
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Margin="5,0,0,5">
-                                <Run Text="Giới tính" Foreground="#3e4c82" />
-                                <Run Text="*" Foreground="#FF4757" />
+                            <TextBlock FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="5,0,0,5">
+                                <Run Text="Giới tính"
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,2,0,12" Height="40" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0,2,0,12"
+                                        Height="40"
+                                        VerticalAlignment="Center">
                                 <RadioButton Content="Nam"
                                              IsChecked="{Binding CurrentStaff.Gender, Converter={StaticResource GenderConverter}, ConverterParameter=Nam}"
                                              Margin="0,0,30,0"
@@ -102,54 +125,100 @@
                                              Cursor="Hand" />
                             </StackPanel>
 
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Margin="5,10,0,5">
-                                <Run Text="CCCD/CMND" Foreground="#3e4c82" />
-                                <Run Text="*" Foreground="#FF4757" />
+                            <TextBlock FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="5,10,0,5">
+                                <Run Text="CCCD/CMND"
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
-                            <TextBox Text="{Binding CurrentStaff.NationalId, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource RoundedTextBoxStyle}" />
+                            <TextBox Text="{Binding CurrentStaff.NationalId, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource RoundedTextBoxStyle}"
+                                     helpers:TextBoxHelper.IsNumericOnly="True" />
 
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Margin="5,0,0,5">
-                                <Run Text="Chuyên môn" Foreground="#3e4c82" />
-                                <Run Text="*" Foreground="#FF4757" />
+                            <TextBlock FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="5,0,0,5">
+                                <Run Text="Chuyên môn"
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
-                            <TextBox Text="{Binding CurrentStaff.Specialization, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource RoundedTextBoxStyle}" />
+                            <TextBox Text="{Binding CurrentStaff.Specialization, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource RoundedTextBoxStyle}"
+                                     helpers:TextBoxHelper.IsLettersOnly="True" />
 
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Margin="5,0,0,5">
-                                <Run Text="Vai trò / Quyền hạn" Foreground="#3e4c82" />
-                                <Run Text="*" Foreground="#FF4757" />
+                            <TextBlock FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="5,0,0,5">
+                                <Run Text="Vai trò / Quyền hạn"
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
                             <ComboBox ItemsSource="{Binding RoleList}"
                                       SelectedValue="{Binding CurrentStaff.RoleId}"
                                       materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
-                                      SelectedValuePath="RoleId" DisplayMemberPath="RoleName"
-                                      BorderThickness="0" Background="Transparent"
-                                      VerticalContentAlignment="Center" Padding="10,0" FontSize="15" />
+                                      SelectedValuePath="RoleId"
+                                      DisplayMemberPath="RoleName"
+                                      BorderThickness="0"
+                                      Background="Transparent"
+                                      VerticalContentAlignment="Center"
+                                      Padding="10,0"
+                                      FontSize="15" />
                         </StackPanel>
 
-                        <StackPanel Grid.Column="2" Margin="30,0,10,0">
-                            <Label Content="Liên lạc &amp; Công tác" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" Foreground="#FF1A237E" />
+                        <StackPanel Grid.Column="2"
+                                    Margin="30,0,10,0">
+                            <Label Content="Liên lạc &amp; Công tác"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,10"
+                                   Foreground="#FF1A237E" />
 
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Margin="5,0,0,5">
-                                <Run Text="Số điện thoại" Foreground="#3e4c82" />
-                                <Run Text="*" Foreground="#FF4757" />
+                            <TextBlock FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="5,0,0,5">
+                                <Run Text="Số điện thoại"
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
                             <Border Style="{StaticResource InputWrapperBorderStyle}">
                                 <TextBox Text="{Binding CurrentStaff.PhoneNumber, UpdateSourceTrigger=PropertyChanged}"
-                                         helpers:TextBoxHelper.IsNumericOnly="True" BorderThickness="0"
-                                         MaxLength="10" Background="Transparent" VerticalContentAlignment="Center"
-                                         Padding="10,0" FontSize="15" />
+                                         helpers:TextBoxHelper.IsNumericOnly="True"
+                                         BorderThickness="0"
+                                         MaxLength="10"
+                                         Background="Transparent"
+                                         VerticalContentAlignment="Center"
+                                         Padding="10,0"
+                                         FontSize="15" />
                             </Border>
 
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Margin="5,0,0,5">
-                                <Run Text="Email" Foreground="#3e4c82" />
-                                <Run Text="*" Foreground="#FF4757" />
+                            <TextBlock FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="5,0,0,5">
+                                <Run Text="Email"
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
-                            <TextBox Text="{Binding CurrentStaff.Email, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource RoundedTextBoxStyle}" />
+                            <TextBox Text="{Binding CurrentStaff.Email, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource RoundedTextBoxStyle}"/>
 
-                            <Label Content="Địa chỉ:" FontWeight="SemiBold" FontSize="14" Foreground="#3e4c82" Margin="0,0,0,0" />
+                            <Label Content="Địa chỉ:"
+                                   FontWeight="SemiBold"
+                                   FontSize="14"
+                                   Foreground="#3e4c82"
+                                   Margin="0,0,0,0" />
                             <TextBox Text="{Binding CurrentStaff.HometownAddress, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource RoundedTextBoxStyle}" VerticalContentAlignment="Top"
-                                     Height="70" Padding="10,5,0,0" TextWrapping="Wrap" />
+                                     Style="{StaticResource RoundedTextBoxStyle}"
+                                     VerticalContentAlignment="Top"
+                                     helpers:TextBoxHelper.IsAlphaNumericOnly="True"
+                                     Height="70"
+                                     Padding="10,5,0,0"
+                                     TextWrapping="Wrap" />
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -159,40 +228,68 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock FontSize="14" FontWeight="SemiBold" Margin="0,0,0,3">
-                                        <Run Text="Ngày vào làm" Foreground="#3e4c82" />
-                                        <Run Text="*" Foreground="#FF4757" />
+                                    <TextBlock FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,3">
+                                        <Run Text="Ngày vào làm"
+                                             Foreground="#3e4c82" />
+                                        <Run Text="*"
+                                             Foreground="#FF4757" />
                                     </TextBlock>
                                     <Border Style="{StaticResource InputWrapperBorderStyle}">
                                         <DatePicker SelectedDate="{Binding CurrentStaff.HireDate}"
                                                     materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
-                                                    BorderThickness="0" Background="Transparent"
-                                                    VerticalContentAlignment="Center" Padding="10,0" FontSize="15" />
+                                                    BorderThickness="0"
+                                                    Background="Transparent"
+                                                    VerticalContentAlignment="Center"
+                                                    Padding="10,0"
+                                                    FontSize="15" />
                                     </Border>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2">
-                                    <TextBlock FontSize="14" FontWeight="SemiBold" Margin="0,0,0,3">
-                                        <Run Text="Trạng thái tài khoản" Foreground="#3e4c82" />
-                                        <Run Text="*" Foreground="#FF4757" />
+                                    <TextBlock FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,3">
+                                        <Run Text="Trạng thái tài khoản"
+                                             Foreground="#3e4c82" />
+                                        <Run Text="*"
+                                             Foreground="#FF4757" />
                                     </TextBlock>
                                     <ComboBox ItemsSource="{Binding StatusList}"
                                               SelectedItem="{Binding CurrentStaff.Status}"
                                               materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
-                                              BorderThickness="0" Background="Transparent"
-                                              VerticalContentAlignment="Center" Padding="10,0" FontSize="15" />
+                                              BorderThickness="0"
+                                              Background="Transparent"
+                                              VerticalContentAlignment="Center"
+                                              Padding="10,0"
+                                              FontSize="15" />
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Grid>
                 </Border>
 
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,20,0,0">
                     <Button Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
-                            IsCancel="True" Content="Hủy" Width="100" Height="40" Margin="0,0,15,0"
-                            Style="{StaticResource OutlineRoundedButton}" BorderThickness="2" Cursor="Hand" />
-                    <Button Command="{Binding SaveCommand}" IsDefault="True" Content="Lưu nhân viên"
-                            Width="160" Height="40" Style="{StaticResource PrimaryRoundedButton}" Cursor="Hand" />
+                            IsCancel="True"
+                            Content="Hủy"
+                            Width="100"
+                            Height="40"
+                            Margin="0,0,15,0"
+                            Style="{StaticResource OutlineRoundedButton}"
+                            BorderThickness="2"
+                            Cursor="Hand" />
+                    <Button Command="{Binding SaveCommand}"
+                            IsDefault="True"
+                            Content="Lưu nhân viên"
+                            Width="160"
+                            Height="40"
+                            Style="{StaticResource PrimaryRoundedButton}"
+                            Cursor="Hand" />
                 </StackPanel>
             </Grid>
         </Border>

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
@@ -37,6 +38,7 @@ namespace WPF_Student_Management.ViewModels
         private DateTime _dateOfBirth = DateTime.Now;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _phoneNumber = string.Empty;
 
         [ObservableProperty]
@@ -232,59 +234,69 @@ namespace WPF_Student_Management.ViewModels
 
         private bool CanSave()
         {
+            string phoneRegexPattern = @"^0\d{9}$";
             return string.IsNullOrEmpty(AgeErrorMessage) &&
                    !string.IsNullOrWhiteSpace(FullName) &&
                    !string.IsNullOrWhiteSpace(Address) &&
                    !string.IsNullOrWhiteSpace(PhoneNumber) &&
                    !string.IsNullOrEmpty(GuardianName) &&
-                   !string.IsNullOrEmpty(GuardianPhoneNumber);
+                   !string.IsNullOrEmpty(GuardianPhoneNumber) &&
+                   Regex.IsMatch(PhoneNumber?.Trim() ?? "", phoneRegexPattern) &&
+                   Regex.IsMatch(GuardianPhoneNumber?.Trim() ?? "", phoneRegexPattern);
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
         private void Save()
         {
-            string phoneRegexPattern = @"^0\d{9}$";
-
-            if (!System.Text.RegularExpressions.Regex.IsMatch(PhoneNumber?.Trim() ?? "", phoneRegexPattern))
+            try
             {
-                NotificationHelper.ShowWarning("Số điện thoại Học sinh chưa hợp lệ!\nVui lòng nhập ĐỦ 10 chữ số và bắt đầu bằng số 0.");
-                return;
+                var newDbStudent = new Student
+                {
+                    StudentId = "",
+                    FullName = this.FullName,
+                    Gender = IsMale ? "Nam" : "Nữ",
+                    DateOfBirth = this.DateOfBirth,
+                    PhoneNumber = this.PhoneNumber,
+                    Email = string.IsNullOrWhiteSpace(this.EmailPrefix)
+                        ? null
+                        : $"{this.EmailPrefix.Trim()}@gmail.com",
+                    Address = this.Address,
+                    FamilyBackground = IsFamilyNormal ? "Bình thường" : "Khó khăn",
+                    GuardianName = this.GuardianName,
+                    GuardianPhoneNumber = this.GuardianPhoneNumber,
+                    Status = "Active"
+                };
+
+                string? newStudentId = newDbStudent.ReceiveNewStudent();
+
+                if (!string.IsNullOrEmpty(newStudentId))
+                {
+                    NotificationHelper.ShowSuccess($"Tiếp nhận thành công!\nMã HS / Tài khoản: {newStudentId}\nMật khẩu : <Ngày/tháng/năm sinh> + 4 số cuối trong số điện thoại liên lạc học sinh");
+                    LoadDataFromDatabase();
+                    Cancel();
+                }
+                else
+                {
+                    NotificationHelper.ShowError("Tiếp nhận học sinh thất bại!");
+                }
             }
-
-            if (!System.Text.RegularExpressions.Regex.IsMatch(GuardianPhoneNumber?.Trim() ?? "", phoneRegexPattern))
+            catch (SqlException sqlEx)
             {
-                NotificationHelper.ShowWarning("Số điện thoại Người bảo hộ chưa hợp lệ!\nVui lòng nhập ĐỦ 10 chữ số và bắt đầu bằng số 0.");
-                return;
+                // Bắt lỗi trùng Email hoặc trùng dữ liệu (Unique Constraint)
+                // 2601: Lỗi do vi phạm "Unique Index" (Tạo ra một dòng trùng lặp ở cột đã đánh dấu là Unique).
+                // 2627: Lỗi do vi phạm "Primary Key"(Khóa chính) hoặc "Unique Constraint"(Ràng buộc duy nhất).
+                if (sqlEx.Number == 2627 || sqlEx.Number == 2601)
+                {
+                    NotificationHelper.ShowError("Lỗi: Email này đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!");
+                }
+                else
+                {
+                    NotificationHelper.ShowError("Lỗi cơ sở dữ liệu: " + sqlEx.Message);
+                }
             }
-
-            var newDbStudent = new Student
+            catch (Exception ex)
             {
-                StudentId = "",
-                FullName = this.FullName,
-                Gender = IsMale ? "Nam" : "Nữ",
-                DateOfBirth = this.DateOfBirth,
-                PhoneNumber = this.PhoneNumber,
-                Email = string.IsNullOrWhiteSpace(this.EmailPrefix)
-                    ? ""
-                    : $"{this.EmailPrefix.Trim()}@gmail.com",
-                Address = this.Address,
-                FamilyBackground = IsFamilyNormal ? "Bình thường" : "Khó khăn",
-                GuardianName = this.GuardianName,
-                GuardianPhoneNumber = this.GuardianPhoneNumber,
-                Status = "Active"
-            };
-
-            string? newStudentId = newDbStudent.ReceiveNewStudent();
-
-            if (!string.IsNullOrEmpty(newStudentId))
-            {
-                NotificationHelper.ShowSuccess($"Tiếp nhận thành công!\nMã HS / Tài khoản: {newStudentId}\nMật khẩu : <Ngày/tháng/năm sinh> + 4 số cuối trong số điện thoại liên lạc học sinh");
-                LoadDataFromDatabase();
-                Cancel();
-            }
-            else
-            {
-                NotificationHelper.ShowError("Lưu thông tin học sinh thất bại!");
+                NotificationHelper.ShowError("Lỗi hệ thống khi lưu: " + ex.Message);
             }
         }
 
@@ -336,7 +348,7 @@ namespace WPF_Student_Management.ViewModels
                 resultList[i].STT = i + 1;
             }
 
-            AllStudent = new ObservableCollection<Student>(filtered);
+            AllStudent = new ObservableCollection<Student>(resultList);
         }
     }
 }
