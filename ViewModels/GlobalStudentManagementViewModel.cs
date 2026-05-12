@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
 
@@ -14,6 +15,11 @@ namespace WPF_Student_Management.ViewModels
 {
     public partial class GlobalStudentManagementViewModel : ObservableObject
     {
+        //KIỂM TRA ROLE ĐỂ KHÓA GIAO DIỆN HIỆU TRƯỞNG ---
+        public Visibility ActionVisibility => ((int)CurrentUser.Instance.Role == 6 || (int)CurrentUser.Instance.Role == 2) ? Visibility.Visible : Visibility.Collapsed;
+        private bool CanModify() => (int)CurrentUser.Instance.Role == 6 || (int)CurrentUser.Instance.Role == 2;
+        private bool CanModifyStudent(Student student) => (int)CurrentUser.Instance.Role == 6 || (int)CurrentUser.Instance.Role == 2;
+
         //TẠO 2 BIẾN LƯU TRỮ QUY ĐỊNH LÚC VỪA MỞ FORM(Cho số mặc định lỡ DB lỗi)
         private int _minAge = 15;
         private int _maxAge = 20;
@@ -145,7 +151,8 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        [RelayCommand]
+        // ĐÃ KHÓA NẾU LÀ HIỆU TRƯỞNG
+        [RelayCommand(CanExecute = nameof(CanModify))]
         private async Task AddStudent()
         {
             LoadAgeRegulations();
@@ -158,7 +165,8 @@ namespace WPF_Student_Management.ViewModels
             await MaterialDesignThemes.Wpf.DialogHost.Show(dialogContent, "RootDialog");
         }
 
-        [RelayCommand]
+        // ĐÃ KHÓA NẾU LÀ HIỆU TRƯỞNG
+        [RelayCommand(CanExecute = nameof(CanModifyStudent))]
         private async Task EditStudent(Student student)
         {
             if (student == null) return;
@@ -173,7 +181,8 @@ namespace WPF_Student_Management.ViewModels
             LoadDataFromDatabase();
         }
 
-        [RelayCommand]
+        // ĐÃ KHÓA NẾU LÀ HIỆU TRƯỞNG
+        [RelayCommand(CanExecute = nameof(CanModifyStudent))]
         private void DeleteStudent(Student student)
         {
             if (student == null) return;
@@ -206,13 +215,9 @@ namespace WPF_Student_Management.ViewModels
                 catch (SqlException sqlEx)
                 {
                     if (sqlEx.Number == 547)
-                    {
                         NotificationHelper.ShowWarning("Không thể xóa học sinh này!\n\nHọc sinh đã có dữ liệu Điểm số hoặc Xếp lớp.\nVui lòng chuyển trạng thái thành 'Inactive' hoặc xóa các dữ liệu liên quan trước.");
-                    }
                     else
-                    {
                         NotificationHelper.ShowError("Lỗi CSDL: " + sqlEx.Message);
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -234,6 +239,8 @@ namespace WPF_Student_Management.ViewModels
 
         private bool CanSave()
         {
+            if (!CanModify()) return false;
+
             string phoneRegexPattern = @"^0\d{9}$";
             return string.IsNullOrEmpty(AgeErrorMessage) &&
                    !string.IsNullOrWhiteSpace(FullName) &&
@@ -257,9 +264,7 @@ namespace WPF_Student_Management.ViewModels
                     Gender = IsMale ? "Nam" : "Nữ",
                     DateOfBirth = this.DateOfBirth,
                     PhoneNumber = this.PhoneNumber,
-                    Email = string.IsNullOrWhiteSpace(this.EmailPrefix)
-                        ? null
-                        : $"{this.EmailPrefix.Trim()}@gmail.com",
+                    Email = string.IsNullOrWhiteSpace(this.EmailPrefix) ? null : $"{this.EmailPrefix.Trim()}@gmail.com",
                     Address = this.Address,
                     FamilyBackground = IsFamilyNormal ? "Bình thường" : "Khó khăn",
                     GuardianName = this.GuardianName,
@@ -286,13 +291,9 @@ namespace WPF_Student_Management.ViewModels
                 // 2601: Lỗi do vi phạm "Unique Index" (Tạo ra một dòng trùng lặp ở cột đã đánh dấu là Unique).
                 // 2627: Lỗi do vi phạm "Primary Key"(Khóa chính) hoặc "Unique Constraint"(Ràng buộc duy nhất).
                 if (sqlEx.Number == 2627 || sqlEx.Number == 2601)
-                {
                     NotificationHelper.ShowError("Lỗi: Email này đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!");
-                }
                 else
-                {
                     NotificationHelper.ShowError("Lỗi cơ sở dữ liệu: " + sqlEx.Message);
-                }
             }
             catch (Exception ex)
             {
@@ -311,15 +312,8 @@ namespace WPF_Student_Management.ViewModels
             MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
         }
 
-        partial void OnSearchTextChanged(string value)
-        {
-            FilterData();
-        }
-
-        partial void OnSelectedGenderChanged(string value)
-        {
-            FilterData();
-        }
+        partial void OnSearchTextChanged(string value) => FilterData();
+        partial void OnSelectedGenderChanged(string value) => FilterData();
 
         private void FilterData()
         {
@@ -343,10 +337,7 @@ namespace WPF_Student_Management.ViewModels
 
             // --- LOGIC ĐÁNH SỐ THỨ TỰ STT ---
             var resultList = filtered.ToList();
-            for (int i = 0; i < resultList.Count; i++)
-            {
-                resultList[i].STT = i + 1;
-            }
+            for (int i = 0; i < resultList.Count; i++) resultList[i].STT = i + 1;
 
             AllStudent = new ObservableCollection<Student>(resultList);
         }

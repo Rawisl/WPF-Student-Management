@@ -128,8 +128,7 @@ namespace WPF_Student_Management.ViewModels
             foreach (var subject in allSubjects)
             {
                 // LỌC GV THEO CHUYÊN MÔN: Sử dụng hàm thông dịch từ đồng nghĩa
-                var matchedTeachers = allStaff.Where(t => IsTeacherMatchSubject(t.Specialization, subject.SubjectName)).ToList();
-
+                var matchedTeachers = allStaff.Where(t => t.Specialization == subject.SubjectId).ToList();
                 matchedTeachers.Insert(0, new Staff { StaffId = 0, FullName = "Trống" });
 
                 var item = new AssignmentDisplayItem
@@ -194,14 +193,6 @@ namespace WPF_Student_Management.ViewModels
             {
                 NotificationHelper.ShowError("Lỗi khi lưu: " + ex.Message);
             }
-        }
-
-        private bool IsTeacherMatchSubject(string specialization, string subjectName)
-        {
-            if (string.IsNullOrWhiteSpace(specialization) || string.IsNullOrWhiteSpace(subjectName))
-                return false;
-
-            return specialization.Trim().Equals(subjectName.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
