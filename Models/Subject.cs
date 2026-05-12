@@ -69,11 +69,10 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        // DELETE (Logical Delete based on IsDeleted column)
+        // DELETE — trigger TRG_Subject_SmartDelete handles soft/hard delete automatically
         public static bool DeleteSubject(int subjectId)
         {
-            // Instead of physical deletion, we update the IsDeleted flag as schema structure.
-            string query = "UPDATE Subject SET IsDeleted = 1 WHERE SubjectID = @SubjectID";
+            string query = "DELETE FROM Subject WHERE SubjectID = @SubjectID";
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@SubjectID", subjectId)
             };

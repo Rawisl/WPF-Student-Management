@@ -47,7 +47,7 @@ namespace WPF_Student_Management.Models
         // ------------------------------------------------
 
         public string? Gender { get; set; }
-        public string? Specialization { get; set; }
+        public int? Specialization { get; set; } // FK → Subject.SubjectID
         public DateTime? HireDate { get; set; }
         public string? HometownAddress { get; set; }
         public string? Status { get; set; }
@@ -79,7 +79,7 @@ namespace WPF_Student_Management.Models
                     RoleId = Convert.ToInt32(row["RoleID"]),
                     FullName = row["FullName"].ToString() ?? "",
                     Gender = row["Gender"] as string,
-                    Specialization = row["Specialization"] as string,
+                    Specialization = row["Specialization"] == DBNull.Value ? null : Convert.ToInt32(row["Specialization"]),
                     Email = row["Email"] as string,
                     HireDate = row["HireDate"] == DBNull.Value ? null : Convert.ToDateTime(row["HireDate"]),
                     HometownAddress = row["HometownAddress"] as string,
@@ -194,7 +194,7 @@ namespace WPF_Student_Management.Models
                     AccountId = Convert.ToInt32(row["AccountID"]),
                     FullName = row["FullName"].ToString() ?? "",
                     Gender = row["Gender"] as string,
-                    Specialization = row["Specialization"] as string,
+                    Specialization = row["Specialization"] == DBNull.Value ? null : Convert.ToInt32(row["Specialization"]),
                     Email = row["Email"] as string,
                     PhoneNumber = row["PhoneNumber"] as string,
                     HometownAddress = row["HometownAddress"] as string,
