@@ -19,7 +19,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -69,7 +68,7 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Row="3" Background="White" CornerRadius="12" Padding="15">
+            <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="15">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
                 </Border.Effect>
@@ -144,7 +143,6 @@
                     </Grid>
 
                     <components:ClassReportDetailUC Grid.Row="1" />
-
                 </Grid>
             </Border>
         </Border>

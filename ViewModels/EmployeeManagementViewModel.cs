@@ -15,11 +15,10 @@ namespace WPF_Student_Management.ViewModels
 {
     public class EmployeeManagementViewModel : INotifyPropertyChanged
     {
-        // --- BỔ SUNG: KIỂM TRA ROLE ĐỂ KHÓA GIAO DIỆN HIỆU TRƯỞNG ---
-        public bool IsReadOnly => (int)CurrentUser.Instance.Role == 3;
+        // KIỂM TRA ROLE ĐỂ KHÓA GIAO DIỆN HIỆU TRƯỞNG ---
+        public bool IsReadOnly => (int)CurrentUser.Instance.Role != 2;
         public Visibility ActionVisibility => IsReadOnly ? Visibility.Collapsed : Visibility.Visible;
         private bool CanModify(object obj) => !IsReadOnly;
-        // -------------------------------------------------------------
 
         private ObservableCollection<Staff> _staffList;
 

@@ -19,7 +19,6 @@ namespace WPF_Student_Management.ViewModels
         public string PassRate { get; set; }
     }
 
-    // Class chứa dữ liệu chi tiết học sinh trong Popup
     public class StudentStatusItem
     {
         public int STT { get; set; }
@@ -45,7 +44,6 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private bool _isDataReady = false;
 
-        // --- CÁC BIẾN CHO TÍNH NĂNG POPUP CHI TIẾT ---
         [ObservableProperty]
         private GlobalReportItem _selectedReportItem;
 
@@ -99,15 +97,13 @@ namespace WPF_Student_Management.ViewModels
 
                     if (totalClasses == 0)
                     {
-                        StatusMessage = $"Không có lớp học nào được khởi tạo trong năm học {SelectedAcademicYear}.";
-                        NotificationHelper.ShowWarning(StatusMessage);
+                        NotificationHelper.ShowWarning($"Không có lớp học nào được khởi tạo trong năm học {SelectedAcademicYear}.");
                         return;
                     }
 
                     if (lockedReports < totalClasses)
                     {
-                        StatusMessage = $"Chưa thể lập báo cáo toàn trường! Hiện mới có {lockedReports}/{totalClasses} lớp hoàn tất chốt sổ.";
-                        NotificationHelper.ShowError(StatusMessage);
+                        NotificationHelper.ShowError($"Chưa thể lập báo cáo toàn trường! Hiện mới có {lockedReports}/{totalClasses} lớp hoàn tất chốt sổ.");
                         return;
                     }
                 }
@@ -163,7 +159,7 @@ namespace WPF_Student_Management.ViewModels
                 }
 
                 IsDataReady = true;
-                StatusMessage = $"Báo cáo đã sẵn sàng. Toàn bộ {dtReport.Rows.Count} lớp đã chốt sổ.";
+                NotificationHelper.ShowSuccess($"Báo cáo đã sẵn sàng. Toàn bộ {dtReport.Rows.Count} lớp đã chốt sổ.");
             }
             catch (Exception ex)
             {
@@ -171,7 +167,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // Lấy dữ liệu chi tiết của 1 lớp khi click vào DataGrid
         private void LoadClassDetail(string className)
         {
             try
@@ -248,14 +243,12 @@ namespace WPF_Student_Management.ViewModels
                     {
                         var worksheet = workbook.Worksheets.Add("Báo Cáo Tổng Kết");
 
-                        // Tiêu đề lớn
                         worksheet.Cell(1, 1).Value = $"BÁO CÁO TỔNG KẾT TOÀN TRƯỜNG - {SelectedSemester.ToUpper()} - {SelectedAcademicYear}";
                         var titleRange = worksheet.Range("A1:E1");
                         titleRange.Merge().Style.Font.SetBold().Font.FontSize = 16;
                         titleRange.Style.Font.FontColor = XLColor.FromHtml("#1A237E");
                         titleRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-                        // Tiêu đề cột
                         worksheet.Cell(3, 1).Value = "STT";
                         worksheet.Cell(3, 2).Value = "Lớp";
                         worksheet.Cell(3, 3).Value = "Sĩ số";
@@ -269,7 +262,6 @@ namespace WPF_Student_Management.ViewModels
                         headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
-                        // Đổ dữ liệu
                         int row = 4;
                         foreach (var item in ReportData)
                         {
@@ -284,7 +276,6 @@ namespace WPF_Student_Management.ViewModels
                             worksheet.Cell(row, 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                             worksheet.Cell(row, 5).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-                            // Màu nền xen kẽ
                             if (row % 2 == 0)
                             {
                                 worksheet.Range($"A{row}:E{row}").Style.Fill.BackgroundColor = XLColor.FromHtml("#F5F6FA");
@@ -293,19 +284,18 @@ namespace WPF_Student_Management.ViewModels
                             row++;
                         }
 
-                        // Kẻ khung
                         var dataRange = worksheet.Range($"A3:E{row - 1}");
                         dataRange.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
                         dataRange.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
                         dataRange.Style.Border.SetOutsideBorderColor(XLColor.FromHtml("#B2BEC3"));
                         dataRange.Style.Border.SetInsideBorderColor(XLColor.FromHtml("#DFE6E9"));
 
-                        worksheet.Column(1).Width = 8;  // STT
-                        worksheet.Column(2).Width = 25; // Lớp
-                        worksheet.Column(3).Width = 15; // Sĩ số
-                        worksheet.Column(4).Width = 20; // Số lượng Đạt
-                        worksheet.Column(5).Width = 18; // Tỉ lệ Đạt
-                        worksheet.Rows().AdjustToContents(); // Tự giãn chiều cao nếu cần
+                        worksheet.Column(1).Width = 8;
+                        worksheet.Column(2).Width = 25;
+                        worksheet.Column(3).Width = 15;
+                        worksheet.Column(4).Width = 20;
+                        worksheet.Column(5).Width = 18;
+                        worksheet.Rows().AdjustToContents();
 
                         workbook.SaveAs(saveFileDialog.FileName);
                     }
