@@ -3,13 +3,150 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:WPF_Student_Management.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
+             xmlns:components="clr-namespace:WPF_Student_Management.Components"
              mc:Ignorable="d"
-             d:DesignHeight="450"
-             d:DesignWidth="800">
+             d:DesignHeight="600" d:DesignWidth="900"
+             Background="Transparent">
+
+    <UserControl.DataContext>
+        <viewmodels:GlobalSummaryReportViewModel />
+    </UserControl.DataContext>
 
     <Grid>
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="Báo cáo tổng kết toàn trường" FontSize="28" FontWeight="Bold" Foreground="#1A237E" />
+                <TextBlock Text="Thống kê kết quả học tập của toàn bộ các lớp" FontSize="14" Foreground="#878A99" Margin="0,5,0,0" />
+            </StackPanel>
+
+            <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="20,15" Margin="0,0,0,15">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
+                </Border.Effect>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,20,0">
+                        <TextBlock Text="Học kỳ:" Foreground="#878A99" FontWeight="SemiBold" FontSize="13" Margin="5,0,0,5" />
+                        <ComboBox ItemsSource="{Binding SemesterList}" SelectedItem="{Binding SelectedSemester}" Width="150" Height="42" FontSize="15" VerticalContentAlignment="Center" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Vertical">
+                        <TextBlock Text="Năm học:" Foreground="#878A99" FontWeight="SemiBold" FontSize="13" Margin="5,0,0,5" />
+                        <ComboBox ItemsSource="{Binding AcademicYearList}" SelectedItem="{Binding SelectedAcademicYear}" Width="150" Height="42" FontSize="15" VerticalContentAlignment="Center" />
+                    </StackPanel>
+
+                    <Button Grid.Column="3" Command="{Binding LoadReportCommand}" Height="42" Padding="20,0" Margin="0,22,10,0" Style="{StaticResource PrimaryRoundedButton}" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="ChartBoxOutline" Width="20" Height="20" Margin="0,0,8,0" />
+                            <TextBlock Text="Lấy dữ liệu" FontSize="15" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="4" Command="{Binding ExportExcelCommand}" IsEnabled="{Binding IsDataReady}" Height="42" Padding="20,0" Margin="0,22,0,0" Cursor="Hand"
+                            Background="#10AC84" BorderThickness="0" materialDesign:ButtonAssist.CornerRadius="21">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="FileExcelBox" Width="20" Height="20" Margin="0,0,8,0" />
+                            <TextBlock Text="Xuất Excel" FontSize="15" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="3" Background="White" CornerRadius="12" Padding="15">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
+                </Border.Effect>
+
+                <DataGrid ItemsSource="{Binding ReportData}" 
+                          SelectedItem="{Binding SelectedReportItem}"
+                          IsReadOnly="True" 
+                          Cursor="Hand"
+                          Style="{StaticResource GlobalDataGridStyle}" 
+                          CellStyle="{StaticResource GlobalDataGridCellStyle}">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
+                            <Setter Property="Cursor" Value="Hand" />
+                        </Style>
+                    </DataGrid.RowStyle>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="STT" Binding="{Binding STT}" Width="80" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+                        <DataGridTextColumn Header="Tên Lớp" Binding="{Binding ClassName}" Width="*" HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GlobalLeftElementStyle}">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                    <Setter Property="Foreground" Value="#1A237E" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Tổng Sĩ số" Binding="{Binding TotalStudents}" Width="150" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+                        <DataGridTextColumn Header="Số lượng Đạt" Binding="{Binding PassedStudents}" Width="150" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GlobalCenterElementStyle}">
+                                    <Setter Property="Foreground" Value="#00B894" />
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Tỉ lệ Đạt" Binding="{Binding PassRate}" Width="150" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource GlobalCenterElementStyle}">
+                                    <Setter Property="Foreground" Value="#FF4757" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+
+        <Border Background="Transparent" Visibility="{Binding IsDetailOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="White" CornerRadius="12" Width="800" Height="500" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="20">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,15">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="FormatListBulleted" Width="26" Height="26" Foreground="#1A237E" Margin="0,0,10,0"/>
+                            <TextBlock FontSize="20" FontWeight="Bold" Foreground="#1A237E" VerticalAlignment="Center">
+                                <Run Text="Chi tiết học sinh lớp"/>
+                                <Run Text="{Binding DetailClassName}" Foreground="#FF4757"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <Button Command="{Binding CloseDetailCommand}" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Foreground="#878A99" Cursor="Hand" Padding="0" Width="30" Height="30">
+                            <materialDesign:PackIcon Kind="Close" Width="24" Height="24" />
+                        </Button>
+                    </Grid>
+
+                    <components:ClassReportDetailUC Grid.Row="1" />
+
+                </Grid>
+            </Border>
+        </Border>
     </Grid>
 </UserControl>

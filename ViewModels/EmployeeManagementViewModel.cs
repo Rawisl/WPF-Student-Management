@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MaterialDesignThemes.Wpf;
+using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
-using MaterialDesignThemes.Wpf;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
 
@@ -14,6 +15,12 @@ namespace WPF_Student_Management.ViewModels
 {
     public class EmployeeManagementViewModel : INotifyPropertyChanged
     {
+        // --- BỔ SUNG: KIỂM TRA ROLE ĐỂ KHÓA GIAO DIỆN HIỆU TRƯỞNG ---
+        public bool IsReadOnly => (int)CurrentUser.Instance.Role == 3;
+        public Visibility ActionVisibility => IsReadOnly ? Visibility.Collapsed : Visibility.Visible;
+        private bool CanModify(object obj) => !IsReadOnly;
+        // -------------------------------------------------------------
+
         private ObservableCollection<Staff> _staffList;
 
         public ObservableCollection<string> GenderList { get; } = new ObservableCollection<string> { "Nam", "Nữ" };
@@ -43,11 +50,12 @@ namespace WPF_Student_Management.ViewModels
         public EmployeeManagementViewModel()
         {
             LoadCommand = new RelayCommand(ExecuteLoad);
-            SaveCommand = new RelayCommand(ExecuteSave, CanExecuteSave);
-            DeleteCommand = new RelayCommand(ExecuteDelete);
 
-            OpenAddDialogCommand = new RelayCommand(ExecuteOpenAddDialog);
-            EditCommand = new RelayCommand(ExecuteEdit);
+            // Gắn rào chắn CanModify vào tất cả các Command hành động
+            SaveCommand = new RelayCommand(ExecuteSave, CanExecuteSave);
+            DeleteCommand = new RelayCommand(ExecuteDelete, CanModify);
+            OpenAddDialogCommand = new RelayCommand(ExecuteOpenAddDialog, CanModify);
+            EditCommand = new RelayCommand(ExecuteEdit, CanModify);
 
             bool isDesignMode = DesignerProperties.GetIsInDesignMode(new DependencyObject());
             if (!isDesignMode)
@@ -114,7 +122,6 @@ namespace WPF_Student_Management.ViewModels
                 if (isNewStaff)
                 {
                     var accountInfo = CurrentStaff.ReceiveNewStaff();
-
                     if (accountInfo != null)
                     {
                         NotificationHelper.ShowSuccess(
@@ -122,7 +129,6 @@ namespace WPF_Student_Management.ViewModels
                             $"Tài khoản: {accountInfo.Value.Username}\n" +
                             $"Mật khẩu: {accountInfo.Value.Password}\n\n" +
                             $"Lưu ý: Mật khẩu mặc định là tên + 4 số cuối SĐT.");
-
                         isSuccess = true;
                     }
                 }
@@ -158,29 +164,25 @@ namespace WPF_Student_Management.ViewModels
 
         private bool CanExecuteSave(object obj)
         {
-            if (CurrentStaff == null) return false;
+            if (IsReadOnly || CurrentStaff == null) return false;
 
             // Kiểm tra Họ Tên: Phải có ít nhất 2 từ (Họ và Tên)
             if (string.IsNullOrWhiteSpace(CurrentStaff.FullName) ||
-                CurrentStaff.FullName.Trim().Split(' ').Length < 2)
-                return false;
+                CurrentStaff.FullName.Trim().Split(' ').Length < 2) return false;
 
             // Kiểm tra SĐT: Phải đúng 10 số và bắt đầu bằng số 0
             string phonePattern = @"^0\d{9}$";
             if (string.IsNullOrWhiteSpace(CurrentStaff.PhoneNumber) ||
-                !System.Text.RegularExpressions.Regex.IsMatch(CurrentStaff.PhoneNumber, phonePattern))
-                return false;
+                !Regex.IsMatch(CurrentStaff.PhoneNumber, phonePattern)) return false;
 
             // Kiểm tra CCCD: Ít nhất 9 hoặc 12 số
             if (string.IsNullOrWhiteSpace(CurrentStaff.NationalId) ||
-                CurrentStaff.NationalId.Length < 9)
-                return false;
+                CurrentStaff.NationalId.Length < 9) return false;
 
             // Kiểm tra Email chuẩn
             string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             if (string.IsNullOrWhiteSpace(CurrentStaff.Email) ||
-                !System.Text.RegularExpressions.Regex.IsMatch(CurrentStaff.Email, emailPattern))
-                return false;
+                !Regex.IsMatch(CurrentStaff.Email, emailPattern)) return false;
 
             return true;
         }
@@ -212,7 +214,7 @@ namespace WPF_Student_Management.ViewModels
                         ExecuteLoad(null);
                     }
                 }
-                catch (Microsoft.Data.SqlClient.SqlException sqlEx)
+                catch (SqlException sqlEx)
                 {
                     if (sqlEx.Number == 547)
                         NotificationHelper.ShowWarning("Xóa dữ liệu thất bại!\n\nNhân viên này đang có dữ liệu liên kết ở bảng khác.\nVui lòng gỡ bỏ các liên kết này trước khi xóa.");

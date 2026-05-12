@@ -724,3 +724,15 @@ INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType,
 ('hs250015', 6,  NULL, 'DropOut',       N'Gia đình chuyển công tác ra nước ngoài',         N'Đã xác nhận với phụ huynh',      'Executed', '2024-04-20 09:30:00'),
 ('hs250025', 8,  6,    'ClassTransfer', N'Không theo kịp chương trình nâng cao',           N'Chuyển sang lớp 11A2',           'Executed', '2024-05-15 14:00:00'),
 ('hs250040', 12, NULL, 'DropOut',       N'Lý do sức khỏe',                                 NULL,                              'Pending',  NULL);
+
+INSERT INTO ClassReport (ClassID, Semester, AcademicYear, TotalStudents, IsLocked, CreatedByTeacherID, CreatedAt)
+VALUES
+(1, N'Học kỳ 1', '2025-2026', 5, 1, 4, GETDATE()),  -- Lớp 10A1 (Sĩ số: 5, GVCN: Phạm Văn Cán)
+(2, N'Học kỳ 1', '2025-2026', 5, 1, 5, GETDATE()),  -- Lớp 10A2 (Sĩ số: 5, GVCN: Hoàng Thị Ngữ)
+(3, N'Học kỳ 1', '2025-2026', 5, 1, 6, GETDATE()),  -- Lớp 10A3 (Sĩ số: 5, GVCN: Vũ Văn Khoa)
+(4, N'Học kỳ 1', '2025-2026', 5, 1, 7, GETDATE()),  -- Lớp 10A4 (Sĩ số: 5, GVCN: Đặng Thị Hóa)
+(5, N'Học kỳ 1', '2025-2026', 5, 1, 8, GETDATE()),  -- Lớp 11A1 (Sĩ số: 5, GVCN: Bùi Văn Sinh)
+(6, N'Học kỳ 1', '2025-2026', 5, 1, 9, GETDATE()),  -- Lớp 11A2 (Sĩ số: 5, GVCN: Đỗ Thị Sử)
+(7, N'Học kỳ 1', '2025-2026', 5, 1, 10, GETDATE()), -- Lớp 11A3 (Sĩ số: 5, GVCN: Hồ Văn Địa)
+(8, N'Học kỳ 1', '2025-2026', 3, 1, 11, GETDATE()), -- Lớp 12A1 (Sĩ số: 3, GVCN: Ngô Thị Anh)
+(9, N'Học kỳ 1', '2025-2026', 2, 1, 12, GETDATE()); -- Lớp 12A2 (Sĩ số: 2, GVCN: Dương Văn Bách)

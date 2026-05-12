@@ -41,7 +41,8 @@
 
             <StackPanel Grid.Column="2"
                         Orientation="Horizontal"
-                        VerticalAlignment="Center">
+                        VerticalAlignment="Center"
+                        Visibility="{Binding ActionVisibility}">
                 <Button Command="{Binding AddStudentCommand}"
                         Height="42"
                         Padding="15,0,15,0"
