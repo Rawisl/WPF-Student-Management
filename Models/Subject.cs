@@ -9,6 +9,15 @@ using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.Models
 {
+    public class DeletedSubjectDto
+    {
+        public int SubjectId { get; set; }
+        public required string SubjectName { get; set; }
+        public required string GradeType { get; set; }
+        public int ScoreCount { get; set; }
+        public int TeachingCount { get; set; }
+        public int ReportCount { get; set; }
+    }
     public class Subject
     {
         public int SubjectId { get; set; }
@@ -79,5 +88,41 @@ namespace WPF_Student_Management.Models
 
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
+
+        // 1. READ — Lấy danh sách các môn đã bị xóa mềm từ View
+        public static List<DeletedSubjectDto> GetDeletedSubjects()
+        {
+            List<DeletedSubjectDto> deletedSubjects = new List<DeletedSubjectDto>();
+            string query = "SELECT * FROM vw_DeletedSubjects";
+
+            DataTable data = DatabaseHelper.ExecuteQuery(query);
+
+            foreach (DataRow row in data.Rows)
+            {
+                var sub = new DeletedSubjectDto()
+                {
+                    SubjectId = Convert.ToInt32(row["SubjectID"]),
+                    SubjectName = row["SubjectName"].ToString() ?? "",
+                    GradeType = row["GradeType"].ToString() ?? "",
+                    ScoreCount = Convert.ToInt32(row["ScoreCount"]),
+                    TeachingCount = Convert.ToInt32(row["TeachingCount"]),
+                    ReportCount = Convert.ToInt32(row["ReportCount"])
+                };
+                deletedSubjects.Add(sub);
+            }
+            return deletedSubjects;
+        }
+
+        // 2. UPDATE — Khôi phục môn học (bật IsDeleted về 0)
+        public static bool RestoreSubject(int subjectId)
+        {
+            string query = "UPDATE Subject SET IsDeleted = 0 WHERE SubjectID = @SubjectID";
+            SqlParameter[] parameters = new SqlParameter[] {
+                new SqlParameter("@SubjectID", subjectId)
+            };
+
+            return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
+        }
+
     }
 }

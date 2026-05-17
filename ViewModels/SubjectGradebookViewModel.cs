@@ -770,20 +770,23 @@ namespace WPF_Student_Management.ViewModels
             try
             {
                 int currentAccountId = CurrentUser.Instance.UserId;
-                
+
+                // chỉ bỏ PassRate!
                 string query = @"
                 DECLARE @EmpID INT = (SELECT TOP 1 EmployeeID FROM Employee WHERE AccountID = @AccountID);
 
                 IF EXISTS (SELECT 1 FROM SubjectReport WHERE ClassID = @ClassID AND SubjectID = @SubjectID AND Semester = @Semester AND AcademicYear = @AcademicYear)
                 BEGIN
                     UPDATE SubjectReport 
-                    SET IsLocked = 1, TotalStudents = @Total, PassedStudents = @Pass, PassRate = @Rate 
+                    SET IsLocked = 1,
+                        TotalStudents = @Total,
+                        PassedStudents = @Pass
                     WHERE ClassID = @ClassID AND SubjectID = @SubjectID AND Semester = @Semester AND AcademicYear = @AcademicYear
                 END
                 ELSE
                 BEGIN
-                    INSERT INTO SubjectReport (ClassID, SubjectID, Semester, AcademicYear, TotalStudents, PassedStudents, PassRate, IsLocked, CreatedByTeacherID, CreatedAt)
-                    VALUES (@ClassID, @SubjectID, @Semester, @AcademicYear, @Total, @Pass, @Rate, 1, @EmpID, GETDATE())
+                    INSERT INTO SubjectReport (ClassID, SubjectID, Semester, AcademicYear, TotalStudents, PassedStudents, IsLocked, CreatedByTeacherID, CreatedAt)
+                    VALUES (@ClassID, @SubjectID, @Semester, @AcademicYear, @Total, @Pass, 1, @EmpID, GETDATE())
                 END";
 
                 SqlParameter[] paras = {
@@ -791,10 +794,9 @@ namespace WPF_Student_Management.ViewModels
                     new SqlParameter("@SubjectID", SelectedSubject.Id),
                     new SqlParameter("@Semester", SelectedSemester),
                     new SqlParameter("@AcademicYear", SelectedAcademicYear),
+                    new SqlParameter("@AccountID", currentAccountId),
                     new SqlParameter("@Total", row.TotalStudents),
-                    new SqlParameter("@Pass", row.PassedCount),
-                    new SqlParameter("@Rate", row.PassRate),
-                    new SqlParameter("@AccountID", currentAccountId)
+                    new SqlParameter("@Pass", row.PassedCount)
                 };
 
                 DatabaseHelper.ExecuteNonQuery(query, paras);

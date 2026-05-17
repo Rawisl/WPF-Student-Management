@@ -14,6 +14,14 @@ namespace WPF_Student_Management.ViewModels
 {
     public partial class SelectableStudentItem : ObservableObject
     {
+        // Viết rõ Property ra để ép nó xài đúng tên "STT" viết hoa 100%
+        private int _stt;
+        public int STT
+        {
+            get => _stt;
+            set => SetProperty(ref _stt, value);
+        }
+
         [ObservableProperty] private bool _isSelected = false;
         [ObservableProperty] private string _studentId = string.Empty;
         [ObservableProperty] private string _fullName = string.Empty;
@@ -133,10 +141,12 @@ namespace WPF_Student_Management.ViewModels
 
                     // 2. KÉO HỌC SINH CỦA LỚP
                     var dbStudents = Student.SearchStudents(classId: classId);
+                    int newStt = 1; //khai báo biến đếm
                     foreach (var hs in dbStudents)
                     {
                         CurrentClassStudents.Add(new SelectableStudentItem
                         {
+                            STT = newStt++,
                             StudentId = hs.StudentId,
                             FullName = hs.FullName,
                             Gender = hs.Gender ?? "Không rõ",
@@ -221,7 +231,8 @@ namespace WPF_Student_Management.ViewModels
             int successCount = 0;
             foreach (var hs in selectedStudents)
             {
-                bool isSavedToDb = Student.AssignStudentToClass(hs.StudentId, classId);
+                bool isSavedToDb = Student.AssignStudentToClass(hs.StudentId, classId, CurrentAcademicYear);
+
                 if (isSavedToDb)
                 {
                     hs.IsSelected = false;
@@ -229,6 +240,12 @@ namespace WPF_Student_Management.ViewModels
                     AvailableStudents.Remove(hs);
                     successCount++;
                 }
+            }
+
+            int newStt = 1;
+            foreach (var item in CurrentClassStudents)
+            {
+                item.STT = newStt++;
             }
 
             if (successCount > 0)
