@@ -3,129 +3,139 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
-             Width="850"
-             Height="550"
-             Background="Transparent">
-
-
+             MinWidth="450"
+             MaxWidth="1000"
+             VerticalAlignment="Stretch"
+             HorizontalAlignment="Stretch">
+    
     <UserControl.Resources>
         <helpers:ScoreDisplayConverter x:Key="ScoreDisplayConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </UserControl.Resources>
 
-    <Border CornerRadius="16"
-            Background="White"
-            Margin="10"
-            ClipToBounds="True">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="15"
-                              ShadowDepth="3"
-                              Opacity="0.2" />
-        </Border.Effect>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
-        <Grid Margin="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0"
+                   Text="{Binding StudentName, StringFormat='Chi tiết điểm: {0}'}"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Foreground="#1A237E"
+                   Margin="0,0,0,20"
+                   HorizontalAlignment="Center" />
 
-            <TextBlock Grid.Row="0"
-                       Text="{Binding StudentName, StringFormat='Chi tiết điểm: {0}'}"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       Foreground="#1A237E"
-                       Margin="0,0,0,20"
-                       HorizontalAlignment="Center" />
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding ScoreList}"
+                  Cursor="Hand"
+                  Style="{StaticResource GlobalDataGridStyle}"
+                  CellStyle="{StaticResource GlobalDataGridCellStyle}"
+                  FontSize="15"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Môn học"
+                                    Binding="{Binding SubjectName}"
+                                    Width="1.2*"
+                                    HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock"
+                               BasedOn="{StaticResource GlobalLeftElementStyle}">
+                            <Setter Property="FontWeight"
+                                    Value="SemiBold" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
 
-            <DataGrid Grid.Row="1"
-                      ItemsSource="{Binding ScoreList}"
-                      Cursor="Hand"
-                      Style="{StaticResource GlobalDataGridStyle}"
-                      CellStyle="{StaticResource GlobalDataGridCellStyle}"
-                      FontSize="15">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Môn học"
-                                        Binding="{Binding SubjectName}"
-                                        Width="1.2*" />
+                <DataGridTemplateColumn Header="Điểm Thường xuyên"
+                                        Width="1.5*"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock VerticalAlignment="Center"
+                                       Style="{StaticResource GlobalCenterElementStyle}">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                        <Binding Path="SubjectName" />
+                                        <Binding Path="RegularScore" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Điểm Thường xuyên"
-                                            Width="1.5*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock VerticalAlignment="Center">
-                                    <TextBlock.Text>
-                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
-                                            <Binding Path="SubjectName" />
-                                            <Binding Path="RegularScore" />
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Điểm Giữa kỳ"
+                                        Width="1.2*"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock VerticalAlignment="Center"
+                                       Style="{StaticResource GlobalCenterElementStyle}">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                        <Binding Path="SubjectName" />
+                                        <Binding Path="MidTermScore" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Điểm Giữa kỳ"
-                                            Width="1.2*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock VerticalAlignment="Center">
-                                    <TextBlock.Text>
-                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
-                                            <Binding Path="SubjectName" />
-                                            <Binding Path="MidTermScore" />
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Điểm Cuối kỳ"
+                                        Width="1.2*"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock VerticalAlignment="Center"
+                                       Style="{StaticResource GlobalCenterElementStyle}">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                        <Binding Path="SubjectName" />
+                                        <Binding Path="FinalTermScore" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Điểm Cuối kỳ"
-                                            Width="1.2*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock VerticalAlignment="Center">
-                                    <TextBlock.Text>
-                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
-                                            <Binding Path="SubjectName" />
-                                            <Binding Path="FinalTermScore" />
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Trung Bình"
+                                        Width="*"
+                                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock VerticalAlignment="Center"
+                                       Style="{StaticResource GlobalCenterElementStyle}"
+                                       FontWeight="Bold"
+                                       Foreground="#E65100">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                        <Binding Path="SubjectName" />
+                                        <Binding Path="AverageScore" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Trung Bình"
-                                            Width="*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock VerticalAlignment="Center"
-                                           FontWeight="Bold"
-                                           Foreground="#E65100">
-                                    <TextBlock.Text>
-                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
-                                            <Binding Path="SubjectName" />
-                                            <Binding Path="AverageScore" />
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
 
-                </DataGrid.Columns>
-            </DataGrid>
-
-            <Button Grid.Row="2"
-                    Content="ĐÓNG"
-                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
-                    Style="{StaticResource OutlineRoundedButton}"
-                    Margin="0,20,0,0"
-                    HorizontalAlignment="Center"
-                    Width="140"
-                    Height="40"
-                    FontSize="16" />
-        </Grid>
-    </Border>
+        <Button Grid.Row="2"
+                Visibility="{Binding IsCloseButtonVisible, Converter={StaticResource BoolToVis}}"
+                Content="ĐÓNG"
+                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                Style="{StaticResource OutlineRoundedButton}"
+                Margin="0,20,0,0"
+                HorizontalAlignment="Center"
+                Width="140"
+                Height="40"
+                FontSize="16" />
+    </Grid>
 </UserControl>

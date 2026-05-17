@@ -22,9 +22,12 @@ namespace WPF_Student_Management.ViewModels
         public string StudentName { get; set; }
         public ObservableCollection<GradeDetailItem> ScoreList { get; set; }
 
+        public bool IsCloseButtonVisible { get; set; }
+
         // SỬA: Nhận thêm Semester và AcademicYear
-        public StudentGradeDetailViewModel(string studentId, string studentName, string semester, string academicYear)
+        public StudentGradeDetailViewModel(string studentId, string studentName, string semester, string academicYear, bool showCloseButton = true)
         {
+            IsCloseButtonVisible = showCloseButton; //mặc định hiện button
             StudentName = studentName + $" ({semester} - {academicYear})"; // Thêm dòng này để tiêu đề UI rõ ràng hơn
             LoadScores(studentId, semester, academicYear);
         }
