@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,10 @@ using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Effects;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
 
@@ -476,6 +480,7 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
+        //code này là code bẩn, khởi tạo giao diện trong viewmodel thì quá rác nhưng t đéo biết làm j khác
         private async void ExecuteOpenDetail(HomeroomStudentGradeItem student)
         {
             var detailVM = new StudentGradeDetailViewModel(student.StudentId, student.FullName, CurrentSemester, CurrentAcademicYear);
@@ -485,7 +490,24 @@ namespace WPF_Student_Management.ViewModels
                 DataContext = detailVM
             };
 
-            await MaterialDesignThemes.Wpf.DialogHost.Show(detailView, "RootDialog");
+            var popupContainer = new System.Windows.Controls.Border
+            {
+                Background = Brushes.White,
+                CornerRadius = new CornerRadius(12),
+                Padding = new Thickness(10),
+                Effect = new DropShadowEffect
+                {
+                    BlurRadius = 15,
+                    ShadowDepth = 3,
+                    Color = (System.Windows.Media.Color)ColorConverter.ConvertFromString("#DDDDDD"),
+                    Opacity = 0.5
+                },
+                Width = 850,                 // Ép size cho Pop-up
+                Height = 600,
+                Child = detailView           // Nhét cái ruột vào trong vỏ
+            };
+
+            await MaterialDesignThemes.Wpf.DialogHost.Show(popupContainer, "RootDialog");
         }
 
         private async void ExecuteViewDetail(object obj)
