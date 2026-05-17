@@ -201,25 +201,23 @@ namespace WPF_Student_Management.ViewModels
                     return;
                 }
 
-                // SỬA: Đếm TotalSubjects dựa trên TeachingAssignment của Lớp đó trong Học kỳ/Năm học hiện tại
+                // ĐÃ FIX: Dùng bảng StudentAverage, check ClassPlacement lịch sử, bỏ GROUP BY cồng kềnh
                 string query = @"
-            SELECT 
-                c.ClassID, e.EmployeeID, ISNULL(cr.IsLocked, 0) AS IsLocked,
-                s.StudentID, s.FullName, s.Gender, s.DateOfBirth, s.PhoneNumber, c.ClassName,
-                AVG(CASE WHEN sub.SubjectName <> N'Giáo dục thể chất' THEN sc.AverageScore ELSE NULL END) as OverallAverage,
-                COUNT(sc.SubjectID) as GradedCount,
-                (SELECT COUNT(DISTINCT SubjectID) FROM TeachingAssignment 
-                 WHERE ClassID = c.ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear) as TotalSubjects
-            FROM Student s
-            JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
-            JOIN Class c ON cp.ClassID = c.ClassID
-            JOIN Employee e ON c.HomeroomTeacherID = e.EmployeeID
-            JOIN Account a ON e.AccountID = a.AccountID
-            LEFT JOIN ClassReport cr ON c.ClassID = cr.ClassID AND cr.Semester = @Semester AND cr.AcademicYear = @AcademicYear
-            LEFT JOIN Score sc ON s.StudentID = sc.StudentID AND sc.Semester = @Semester AND sc.AcademicYear = @AcademicYear
-            LEFT JOIN Subject sub ON sc.SubjectID = sub.SubjectID
-            WHERE a.AccountID = @AccountID AND c.AcademicYear = @AcademicYear
-            GROUP BY c.ClassID, e.EmployeeID, cr.IsLocked, s.StudentID, s.FullName, s.Gender, s.DateOfBirth, s.PhoneNumber, c.ClassName";
+                SELECT 
+                    c.ClassID, e.EmployeeID, ISNULL(cr.IsLocked, 0) AS IsLocked,
+                    s.StudentID, s.FullName, s.Gender, s.DateOfBirth, s.PhoneNumber, c.ClassName,
+                    sa.OverallAverage,
+                    (SELECT COUNT(SubjectID) FROM Score WHERE StudentID = s.StudentID AND Semester = @Semester AND AcademicYear = @AcademicYear) as GradedCount,
+                    (SELECT COUNT(DISTINCT SubjectID) FROM TeachingAssignment 
+                     WHERE ClassID = c.ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear) as TotalSubjects
+                FROM Student s
+                JOIN ClassPlacement cp ON s.StudentID = cp.StudentID AND cp.EffectiveTo IS NULL AND cp.AcademicYear = @AcademicYear
+                JOIN Class c ON cp.ClassID = c.ClassID
+                JOIN Employee e ON c.HomeroomTeacherID = e.EmployeeID
+                JOIN Account a ON e.AccountID = a.AccountID
+                LEFT JOIN ClassReport cr ON c.ClassID = cr.ClassID AND cr.Semester = @Semester AND cr.AcademicYear = @AcademicYear
+                LEFT JOIN StudentAverage sa ON s.StudentID = sa.StudentID AND sa.Semester = @Semester AND sa.AcademicYear = @AcademicYear
+                WHERE a.AccountID = @AccountID AND c.AcademicYear = @AcademicYear";
 
                 SqlParameter[] parameters = {
                     new SqlParameter("@AccountID", currentUserId),
@@ -242,7 +240,7 @@ namespace WPF_Student_Management.ViewModels
                         int totalSubjects = Convert.ToInt32(row["TotalSubjects"]);
 
                         string scoreStr;
-                        if (totalSubjects == 0) scoreStr = "Chưa phân công môn"; // Handle trường hợp chưa phân công
+                        if (totalSubjects == 0) scoreStr = "Chưa phân công môn";
                         else if (gradedCount == 0) scoreStr = "Chưa có điểm";
                         else if (gradedCount < totalSubjects) scoreStr = "Thiếu điểm môn";
                         else scoreStr = row["OverallAverage"] != DBNull.Value ? Convert.ToDecimal(row["OverallAverage"]).ToString("0.0") : "Chưa có điểm";
@@ -277,7 +275,6 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                // BƯỚC 1: KIỂM TRA ĐIỀU KIỆN TIÊN QUYẾT - TẤT CẢ MÔN PHẢI ĐƯỢC GVBM CHỐT SỔ!
                 string checkLockQuery = @"
                     DECLARE @TotalAssigned INT = (SELECT COUNT(DISTINCT SubjectID) FROM TeachingAssignment WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear);
                     DECLARE @TotalLocked INT = (SELECT COUNT(*) FROM SubjectReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear AND IsLocked = 1);
@@ -310,22 +307,20 @@ namespace WPF_Student_Management.ViewModels
                     }
                 }
 
-                // BƯỚC 2: TIẾN HÀNH TÍNH TOÁN BÁO CÁO KHI ĐÃ ĐỦ ĐIỀU KIỆN
                 string getPassingGradeQuery = "SELECT ISNULL((SELECT Value FROM Parameter WHERE ParameterName = 'NumPassingGrade'), 5.0) as PassingGrade";
                 DataTable dtParam = DatabaseHelper.ExecuteQuery(getPassingGradeQuery);
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
+                // ĐÃ FIX: Lấy điểm chuẩn từ StudentAverage, không tự tính bằng AVG nữa
                 string query = @"
                     SELECT 
                         s.StudentID, s.FullName,
-                        MIN(sc.AverageScore) AS MinScore,
-                        AVG(CASE WHEN sub.SubjectName <> N'Giáo dục thể chất' THEN sc.AverageScore ELSE NULL END) AS OverallAverage
+                        sa.OverallAverage,
+                        (SELECT MIN(AverageScore) FROM Score WHERE StudentID = s.StudentID AND Semester = @Semester AND AcademicYear = @AcademicYear) AS MinScore
                     FROM Student s
-                    JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
-                    LEFT JOIN Score sc ON s.StudentID = sc.StudentID AND sc.Semester = @Semester AND sc.AcademicYear = @AcademicYear
-                    LEFT JOIN Subject sub ON sc.SubjectID = sub.SubjectID
-                    WHERE cp.ClassID = @ClassID
-                    GROUP BY s.StudentID, s.FullName";
+                    JOIN ClassPlacement cp ON s.StudentID = cp.StudentID AND cp.EffectiveTo IS NULL AND cp.AcademicYear = @AcademicYear
+                    LEFT JOIN StudentAverage sa ON s.StudentID = sa.StudentID AND sa.Semester = @Semester AND sa.AcademicYear = @AcademicYear
+                    WHERE cp.ClassID = @ClassID";
 
                 SqlParameter[] parameters = {
                     new SqlParameter("@ClassID", _currentClassId),
@@ -343,7 +338,6 @@ namespace WPF_Student_Management.ViewModels
                     decimal minScore = row["MinScore"] != DBNull.Value ? Convert.ToDecimal(row["MinScore"]) : 0;
                     decimal overallAverage = row["OverallAverage"] != DBNull.Value ? Convert.ToDecimal(row["OverallAverage"]) : 0;
 
-                    // KIỂM TRA KÉP: Đạt = Điểm TB >= Điểm chuẩn VÀ Không có môn nào bị liệt (< Điểm chuẩn)
                     bool isPassed = (overallAverage >= passingGrade) && (minScore >= passingGrade);
                     if (isPassed) passCount++;
 
@@ -373,26 +367,27 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                // SỬA LOGIC: Insert hoặc Update vào bảng ClassReport (Không chọc vào bảng Class nữa)
                 string query = @"
                 IF EXISTS (SELECT 1 FROM ClassReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear)
                 BEGIN
                     UPDATE ClassReport 
-                    SET IsLocked = 1, TotalStudents = @TotalStudents 
+                    SET IsLocked = 1,
+                        TotalStudents = @Total
                     WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear
                 END
                 ELSE
                 BEGIN
                     INSERT INTO ClassReport (ClassID, Semester, AcademicYear, TotalStudents, IsLocked, CreatedByTeacherID, CreatedAt)
-                    VALUES (@ClassID, @Semester, @AcademicYear, @TotalStudents, 1, @TeacherID, GETDATE())
+                    VALUES (@ClassID, @Semester, @AcademicYear, @Total, 1, @TeacherID, GETDATE())
                 END";
 
                 SqlParameter[] parameters = {
                     new SqlParameter("@ClassID", _currentClassId),
                     new SqlParameter("@Semester", CurrentSemester),
                     new SqlParameter("@AcademicYear", CurrentAcademicYear),
-                    new SqlParameter("@TotalStudents", int.Parse(TotalStudents)),
-                    new SqlParameter("@TeacherID", _currentTeacherId)
+                    new SqlParameter("@TeacherID", _currentTeacherId),       
+                    // ĐÃ THÊM 2 THAM SỐ NÀY ĐỂ TRUYỀN DỮ LIỆU XUỐNG SQL
+                    new SqlParameter("@Total", int.Parse(TotalStudents)),
                 };
 
                 int rows = DatabaseHelper.ExecuteNonQuery(query, parameters);

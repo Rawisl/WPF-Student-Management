@@ -9,9 +9,8 @@ namespace WPF_Student_Management.Models
 {
     public class Student
     {
-        // Thêm dòng này để UI bind vào thôi chứ không tác động gì lên DB
         public int STT { get; set; }
-        public required string StudentId { get; set; } // Changed to string
+        public required string StudentId { get; set; }
         public int AccountId { get; set; }
         public required string FullName { get; set; }
         public string? Gender { get; set; }
@@ -36,7 +35,7 @@ namespace WPF_Student_Management.Models
             {
                 Student stu = new Student()
                 {
-                    StudentId = row["StudentID"].ToString() ?? "", // Cast to string
+                    StudentId = row["StudentID"].ToString() ?? "",
                     AccountId = Convert.ToInt32(row["AccountID"]),
                     FullName = row["FullName"].ToString() ?? "",
                     Gender = row["Gender"] as string,
@@ -53,7 +52,8 @@ namespace WPF_Student_Management.Models
             }
             return students;
         }
-        // SEARCH FOR STUDENTS: Discrete Search
+
+        // SEARCH FOR STUDENTS
         public static List<Student> SearchStudents(
             string? studentId = null,
             string? fullName = null,
@@ -68,15 +68,11 @@ namespace WPF_Student_Management.Models
             List<Student> students = new List<Student>();
             List<SqlParameter> parameters = new List<SqlParameter>();
 
-            // Base query using DISTINCT to prevent duplicates if a student has multiple class records somehow
             StringBuilder queryBuilder = new StringBuilder(@"
-                SELECT DISTINCT s.* 
-                FROM Student s
-                LEFT JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
+                SELECT DISTINCT s.* FROM Student s
+                LEFT JOIN ClassPlacement cp ON s.StudentID = cp.StudentID AND cp.EffectiveTo IS NULL
                 WHERE 1=1 "
             );
-
-            // --- EXACT MATCHES ---
 
             if (!string.IsNullOrWhiteSpace(studentId))
             {
@@ -98,7 +94,6 @@ namespace WPF_Student_Management.Models
 
             if (dateOfBirth.HasValue)
             {
-                // Matches exact Date (ignores time if database is strictly DATE)
                 queryBuilder.Append(" AND s.DateOfBirth = @DateOfBirth");
                 parameters.Add(new SqlParameter("@DateOfBirth", dateOfBirth.Value.Date));
             }
@@ -108,8 +103,6 @@ namespace WPF_Student_Management.Models
                 queryBuilder.Append(" AND s.Status = @Status");
                 parameters.Add(new SqlParameter("@Status", status.Trim()));
             }
-
-            // --- PARTIAL MATCHES (LIKE) ---
 
             if (!string.IsNullOrWhiteSpace(fullName))
             {
@@ -135,10 +128,8 @@ namespace WPF_Student_Management.Models
                 parameters.Add(new SqlParameter("@Address", "%" + address.Trim() + "%"));
             }
 
-            // Execute the dynamic query
             DataTable data = DatabaseHelper.ExecuteQuery(queryBuilder.ToString(), parameters.ToArray());
 
-            // Map the results back to objects
             foreach (DataRow row in data.Rows)
             {
                 Student stu = new Student()
@@ -162,30 +153,30 @@ namespace WPF_Student_Management.Models
             return students;
         }
 
-        // GET STUDENT AVERAGE GPA WITH ONLY STUDENT ID
-        public decimal GetOverallGPA()
+        // --- ĐÃ FIX: LẤY ĐIỂM TỪ BẢNG MỚI StudentAverage ---
+        public decimal GetOverallGPA(string semester, string academicYear)
         {
-            // Check DatabaseIndex&Procedure.sql for related procedure definition
-            string query = "EXEC usp_GetStudentGPA @StudentID";
+            string query = "SELECT OverallAverage FROM StudentAverage WHERE StudentID = @StudentID AND Semester = @Semester AND AcademicYear = @AcademicYear";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@StudentID", this.StudentId)
+                new SqlParameter("@StudentID", this.StudentId),
+                new SqlParameter("@Semester", semester),
+                new SqlParameter("@AcademicYear", academicYear)
             };
 
             DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
 
-            if (dt != null && dt.Rows.Count > 0 && dt.Rows[0]["TotalGPA"] != DBNull.Value)
+            if (dt != null && dt.Rows.Count > 0 && dt.Rows[0]["OverallAverage"] != DBNull.Value)
             {
-                return Convert.ToDecimal(dt.Rows[0]["TotalGPA"]);
+                return Convert.ToDecimal(dt.Rows[0]["OverallAverage"]);
             }
 
-            return 0; // Return 0 if no scores are found
+            return 0;
         }
 
         // CREATE
         public bool AddStudent()
         {
-            // Omit StudentID from INSERT; the database's DEFAULT constraint handles it automatically
             string query = "INSERT INTO Student (AccountID, FullName, Gender, DateOfBirth, PhoneNumber, Email, Address, FamilyBackground, GuardianName, GuardianPhoneNumber, Status) " +
                            "VALUES (@AccountID, @FullName, @Gender, @DateOfBirth, @PhoneNumber, @Email, @Address, @FamilyBackground, @GuardianName, @GuardianPhoneNumber, @Status)";
 
@@ -216,7 +207,7 @@ namespace WPF_Student_Management.Models
                            "WHERE StudentID = @StudentID";
 
             SqlParameter[] parameters = new SqlParameter[] {
-                new SqlParameter("@StudentID", this.StudentId), // Now passing a string
+                new SqlParameter("@StudentID", this.StudentId),
                 new SqlParameter("@AccountID", this.AccountId),
                 new SqlParameter("@FullName", this.FullName),
                 new SqlParameter("@Gender", this.Gender ?? (object)DBNull.Value),
@@ -234,7 +225,7 @@ namespace WPF_Student_Management.Models
         }
 
         // DELETE
-        public static bool DeleteStudent(string studentId) // Parameter changed to string
+        public static bool DeleteStudent(string studentId)
         {
             string query = "DELETE FROM Student WHERE StudentID = @StudentID";
             SqlParameter[] parameters = new SqlParameter[] {
@@ -245,10 +236,9 @@ namespace WPF_Student_Management.Models
         }
 
 
-        // THÊM MỚI HỌC SINH + TẠO TÀI KHOẢN KÉP (Dùng cho Tiếp nhận học sinh)
+        // THÊM MỚI HỌC SINH + TẠO TÀI KHOẢN KÉP
         public string? ReceiveNewStudent()
         {
-            // 1. Tạo Password mặc định: ddMMyyyy + 4 số cuối SĐT
             string defaultRawPassword = "";
             if (this.DateOfBirth.HasValue && !string.IsNullOrWhiteSpace(this.PhoneNumber) && this.PhoneNumber.Length >= 4)
             {
@@ -258,23 +248,19 @@ namespace WPF_Student_Management.Models
             }
             else
             {
-                defaultRawPassword = "Password123"; // Fallback nếu thiếu data
+                defaultRawPassword = "Password123";
             }
 
             string hashedPassword = PasswordHasher.HashPassword(defaultRawPassword);
 
-            // 2. Viết câu SQL Transaction để xử lý nghịch lý Gà - Trứng
             string query = @"
                 BEGIN TRAN;
                 BEGIN TRY
-                    -- Bước 1: Tạo Account với Username tạm thời
-                    -- RoleID = 1 là của Học sinh
                     INSERT INTO Account (RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive)
                     VALUES (1, 'TEMP_USERNAME', @PasswordHash, 1, 1);
                     
                     DECLARE @NewAccID INT = SCOPE_IDENTITY();
 
-                    -- Bước 2: Tạo Học sinh và tóm lấy StudentID vừa tự sinh (từ Sequence)
                     DECLARE @OutputTbl TABLE (ID VARCHAR(10));
 
                     INSERT INTO Student (AccountID, FullName, Gender, DateOfBirth, PhoneNumber, Email, Address, FamilyBackground, GuardianName, GuardianPhoneNumber, Status)
@@ -283,12 +269,10 @@ namespace WPF_Student_Management.Models
 
                     DECLARE @FinalStudentID VARCHAR(10) = (SELECT TOP 1 ID FROM @OutputTbl);
 
-                    -- Bước 3: Update lại Username của Account cho chuẩn
                     UPDATE Account SET Username = @FinalStudentID WHERE AccountID = @NewAccID;
 
                     COMMIT TRAN;
                     
-                    -- Bước 4: Trả mã học sinh về cho C#
                     SELECT @FinalStudentID AS GeneratedID;
                 END TRY
                 BEGIN CATCH
@@ -308,39 +292,37 @@ namespace WPF_Student_Management.Models
                 new SqlParameter("@FamilyBackground", this.FamilyBackground ?? (object)DBNull.Value),
                 new SqlParameter("@GuardianName", this.GuardianName ?? (object)DBNull.Value),
                 new SqlParameter("@GuardianPhoneNumber", this.GuardianPhoneNumber ?? (object)DBNull.Value),
-                new SqlParameter("@Status", "Active") // Trạng thái mặc định
+                new SqlParameter("@Status", "Active")
             };
 
-            // Dùng ExecuteQuery thay vì NonQuery vì ta cần hứng cái @FinalStudentID trả về
             DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
 
             if (result.Rows.Count > 0)
             {
                 this.StudentId = result.Rows[0]["GeneratedID"].ToString() ?? "";
-                return this.StudentId; // Thành công: Trả về mã HS (VD: hs250001)
+                return this.StudentId;
             }
 
-            return null; // Thất bại
+            return null;
         }
 
-        // SỬA LẠI: Thêm tham số academicYear để lọc theo năm học cụ thể
+        // --- ĐÃ FIX: CHỈ TÌM NHỮNG HS CHƯA CÓ PLACEMENT NÀO ĐANG ACTIVE (EffectiveTo IS NULL) ---
         public static List<Student> GetUnassignedStudents(string academicYear)
         {
             List<Student> students = new List<Student>();
 
-            // Tìm những học sinh KHÔNG CÓ MẶT trong danh sách xếp lớp của NĂM HỌC HIỆN TẠI
             string query = @"
             SELECT * FROM Student 
             WHERE Status = 'Active' AND StudentID NOT IN (
-            SELECT cp.StudentID 
-            FROM ClassPlacement cp
-            JOIN Class c ON cp.ClassID = c.ClassID
-            WHERE c.AcademicYear = @AcademicYear
+                SELECT StudentID 
+                FROM ClassPlacement 
+                WHERE AcademicYear = @AcademicYear 
+                  AND EffectiveTo IS NULL
             )";
 
             SqlParameter[] parameters = new SqlParameter[] {
-            new SqlParameter("@AcademicYear", academicYear)
-        };
+                new SqlParameter("@AcademicYear", academicYear)
+            };
 
             DataTable data = DatabaseHelper.ExecuteQuery(query, parameters);
 
@@ -354,7 +336,6 @@ namespace WPF_Student_Management.Models
                     Gender = row["Gender"] as string,
                     DateOfBirth = row["DateOfBirth"] == DBNull.Value ? null : Convert.ToDateTime(row["DateOfBirth"]),
                     PhoneNumber = row["PhoneNumber"] as string
-                    // Tạm thời chỉ lấy mấy field cần thiết để hiện lên UI
                 };
                 students.Add(stu);
             }
@@ -362,14 +343,15 @@ namespace WPF_Student_Management.Models
             return students;
         }
 
-        // THÊM HỌC SINH VÀO LỚP (Ghi vào bảng ClassPlacement)
-        public static bool AssignStudentToClass(string studentId, int classId)
+        // --- ĐÃ FIX: TRUYỀN THÊM THAM SỐ AcademicYear ĐỂ INSERT VÀO ClassPlacement ---
+        public static bool AssignStudentToClass(string studentId, int classId, string academicYear)
         {
-            string query = "INSERT INTO ClassPlacement (StudentID, ClassID) VALUES (@StudentID, @ClassID)";
+            string query = "INSERT INTO ClassPlacement (StudentID, ClassID, AcademicYear) VALUES (@StudentID, @ClassID, @AcademicYear)";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@StudentID", studentId),
-                new SqlParameter("@ClassID", classId)
+                new SqlParameter("@ClassID", classId),
+                new SqlParameter("@AcademicYear", academicYear)
             };
 
             try
