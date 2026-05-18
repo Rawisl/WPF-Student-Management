@@ -19,7 +19,7 @@ namespace WPF_Student_Management.Models
         public required string RequestType { get; set; }
         public string? Reason { get; set; }
         public string? FeedbackNote { get; set; }
-        public string Status { get; set; } = "Pending";
+        public int StatusId { get; set; } = 1;
         public DateTime? RespondedAt { get; set; }
 
         // READ
@@ -41,7 +41,7 @@ namespace WPF_Student_Management.Models
                     RequestType = row["RequestType"].ToString() ?? "",
                     Reason = row["Reason"] as string,
                     FeedbackNote = row["FeedbackNote"] as string,
-                    Status = row["Status"].ToString() ?? "Pending",
+                    StatusId = Convert.ToInt32(row["StatusID"]),
                     RespondedAt = row["RespondedAt"] == DBNull.Value ? null : Convert.ToDateTime(row["RespondedAt"])
                 };
                 requests.Add(req);
@@ -52,8 +52,8 @@ namespace WPF_Student_Management.Models
         // CREATE
         public bool AddRequest()
         {
-            string query = "INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, FeedbackNote, Status, RespondedAt) " +
-                           "VALUES (@StudentID, @CreatedByTeacherID, @NewClassID, @RequestType, @Reason, @FeedbackNote, @Status, @RespondedAt)";
+            string query = "INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, FeedbackNote, StatusID, RespondedAt) " +
+                           "VALUES (@StudentID, @CreatedByTeacherID, @NewClassID, @RequestType, @Reason, @FeedbackNote, @StatusID, @RespondedAt)";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@StudentID", this.StudentId),
@@ -62,7 +62,7 @@ namespace WPF_Student_Management.Models
                 new SqlParameter("@RequestType", this.RequestType),
                 new SqlParameter("@Reason", this.Reason ?? (object)DBNull.Value),
                 new SqlParameter("@FeedbackNote", this.FeedbackNote ?? (object)DBNull.Value),
-                new SqlParameter("@Status", this.Status),
+                new SqlParameter("@StatusID", this.StatusId),
                 new SqlParameter("@RespondedAt", this.RespondedAt ?? (object)DBNull.Value)
             };
 
@@ -74,7 +74,7 @@ namespace WPF_Student_Management.Models
         {
             string query = "UPDATE Application SET StudentID = @StudentID, CreatedByTeacherID = @CreatedByTeacherID, " +
                            "NewClassID = @NewClassID, RequestType = @RequestType, Reason = @Reason, " +
-                           "FeedbackNote = @FeedbackNote, Status = @Status, RespondedAt = @RespondedAt " +
+                           "FeedbackNote = @FeedbackNote, StatusID = @StatusID, RespondedAt = @RespondedAt " +
                            "WHERE RequestID = @RequestID";
 
             SqlParameter[] parameters = new SqlParameter[] {
@@ -85,7 +85,7 @@ namespace WPF_Student_Management.Models
                 new SqlParameter("@RequestType", this.RequestType),
                 new SqlParameter("@Reason", this.Reason ?? (object)DBNull.Value),
                 new SqlParameter("@FeedbackNote", this.FeedbackNote ?? (object)DBNull.Value),
-                new SqlParameter("@Status", this.Status),
+                new SqlParameter("@StatusID", this.StatusId),
                 new SqlParameter("@RespondedAt", this.RespondedAt ?? (object)DBNull.Value)
             };
 

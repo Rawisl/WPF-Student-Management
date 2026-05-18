@@ -105,7 +105,7 @@ namespace WPF_Student_Management.ViewModels
             try
             {
                 // 1. Chống Spam đơn Pending (Sửa lại tên bảng Application)
-                string checkQuery = "SELECT COUNT(*) AS Total FROM Application WHERE StudentID = @StudentID AND Status = 'Pending'";
+                string checkQuery = "SELECT COUNT(*) AS Total FROM Application WHERE StudentID = @StudentID AND StatusID = 1";
                 DataTable dtCheck = DatabaseHelper.ExecuteQuery(checkQuery, new[] { new SqlParameter("@StudentID", StudentId) });
 
                 int pendingCount = 0;
@@ -131,8 +131,8 @@ namespace WPF_Student_Management.ViewModels
                 string insertQuery = @"
                     DECLARE @EmpID INT = (SELECT TOP 1 EmployeeID FROM Employee WHERE AccountID = @AccountID);
 
-                    INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, Status)
-                    VALUES (@StudentID, @EmpID, @TargetClass, @ReqType, @Reason, 'Pending')";
+                    INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, StatusID)
+                    VALUES (@StudentID, @EmpID, @TargetClass, @ReqType, @Reason, 1)";
 
                 SqlParameter[] paras = {
                     new SqlParameter("@StudentID", StudentId),

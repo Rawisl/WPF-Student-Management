@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS StudentAverage;
 DROP TABLE IF EXISTS ClassReport;
 DROP TABLE IF EXISTS SubjectReport;
 DROP TABLE IF EXISTS Application;
+DROP TABLE IF EXISTS Status;
 DROP TABLE IF EXISTS Score;
 DROP TABLE IF EXISTS TeachingAssignment;
 DROP TABLE IF EXISTS ClassPlacement;
@@ -190,6 +191,12 @@ CREATE TABLE Score (
     CONSTRAINT CHK_Score_Semester CHECK (Semester IN (N'Học kỳ 1', N'Học kỳ 2'))
 );
 
+-- Status (lookup table for Application status)
+CREATE TABLE Status (
+    StatusID    INT IDENTITY(1,1) PRIMARY KEY,
+    StatusName  VARCHAR(50) NOT NULL UNIQUE
+);
+
 -- Application
 CREATE TABLE Application (
     RequestID           INT IDENTITY(1,1) PRIMARY KEY,
@@ -199,10 +206,10 @@ CREATE TABLE Application (
     RequestType         VARCHAR(50) NOT NULL,
     Reason              NVARCHAR(MAX),
     FeedbackNote        NVARCHAR(MAX),
-    Status              VARCHAR(50) DEFAULT 'Pending',
+    StatusID            INT NOT NULL DEFAULT 1,
     RespondedAt         DATETIME,
     CONSTRAINT CHK_Application_RequestType CHECK (RequestType IN ('ClassTransfer', 'DropOut')),
-    CONSTRAINT CHK_Application_Status      CHECK (Status      IN ('Pending', 'Executed', 'Rejected')),
+    CONSTRAINT FK_Application_Status   FOREIGN KEY (StatusID)          REFERENCES Status(StatusID),
     CONSTRAINT FK_Application_Student  FOREIGN KEY (StudentID)          REFERENCES Student(StudentID),
     CONSTRAINT FK_Application_Employee FOREIGN KEY (CreatedByTeacherID) REFERENCES Employee(EmployeeID),
     CONSTRAINT FK_Application_Class    FOREIGN KEY (NewClassID)         REFERENCES Class(ClassID)
@@ -492,6 +499,10 @@ GO
 INSERT INTO Role (RoleName) VALUES
 (N'Học sinh'), (N'IT Admin'), (N'Hiệu trưởng'), (N'GVBM'), (N'GVCN'), (N'Giáo vụ');
 
+-- Status (lookup table)
+INSERT INTO Status (StatusName) VALUES
+('Pending'), ('Accepted'), ('Rejected'), ('Executed');
+
 -- Parameters
 INSERT INTO Parameter (ParameterName, Value) VALUES
 ('MinAge', 15),
@@ -719,11 +730,11 @@ INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTe
 ('hs250005', 8, 10, 10, 10), ('hs250005', 9, 10, 10, 10);
 
 -- Applications
-INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, FeedbackNote, Status, RespondedAt) VALUES
-('hs250001', 4,  2,    'ClassTransfer', N'Chuyển sang lớp 10A2 để học cùng anh em họ',     NULL,                              'Pending',  NULL),
-('hs250015', 6,  NULL, 'DropOut',       N'Gia đình chuyển công tác ra nước ngoài',         N'Đã xác nhận với phụ huynh',      'Executed', '2024-04-20 09:30:00'),
-('hs250025', 8,  6,    'ClassTransfer', N'Không theo kịp chương trình nâng cao',           N'Chuyển sang lớp 11A2',           'Executed', '2024-05-15 14:00:00'),
-('hs250040', 12, NULL, 'DropOut',       N'Lý do sức khỏe',                                 NULL,                              'Pending',  NULL);
+INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, FeedbackNote, StatusID, RespondedAt) VALUES
+('hs250001', 4,  2,    'ClassTransfer', N'Chuyển sang lớp 10A2 để học cùng anh em họ',     NULL,                              1, NULL),
+('hs250015', 6,  NULL, 'DropOut',       N'Gia đình chuyển công tác ra nước ngoài',         N'Đã xác nhận với phụ huynh',      4, '2024-04-20 09:30:00'),
+('hs250025', 8,  6,    'ClassTransfer', N'Không theo kịp chương trình nâng cao',           N'Chuyển sang lớp 11A2',           4, '2024-05-15 14:00:00'),
+('hs250040', 12, NULL, 'DropOut',       N'Lý do sức khỏe',                                 NULL,                              1, NULL);
 
 INSERT INTO ClassReport (ClassID, Semester, AcademicYear, TotalStudents, IsLocked, CreatedByTeacherID, CreatedAt)
 VALUES
