@@ -60,7 +60,7 @@ namespace WPF_Student_Management.ViewModels
                     LEFT JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
                     LEFT JOIN Class c_old ON cp.ClassID = c_old.ClassID
                     LEFT JOIN Class c_new ON a.NewClassID = c_new.ClassID
-                    WHERE a.Status = 'Pending'
+                    WHERE a.StatusID = 1
                     ORDER BY a.RequestID ASC";
 
                 DataTable dt = DatabaseHelper.ExecuteQuery(query);
@@ -173,7 +173,7 @@ namespace WPF_Student_Management.ViewModels
                         }
 
                         // C. UPDATE TRẠNG THÁI ĐƠN VÀO BẢNG APPLICATION CHO CẢ 2 TRƯỜNG HỢP
-                        SqlCommand cmdUpdateApp = new SqlCommand("UPDATE Application SET Status = 'Executed', RespondedAt = GETDATE() WHERE RequestID = @ReqID", conn, transaction);
+                        SqlCommand cmdUpdateApp = new SqlCommand("UPDATE Application SET StatusID = 4, RespondedAt = GETDATE() WHERE RequestID = @ReqID", conn, transaction);
                         cmdUpdateApp.Parameters.AddWithValue("@ReqID", item.RequestId);
                         cmdUpdateApp.ExecuteNonQuery();
 
@@ -227,7 +227,7 @@ namespace WPF_Student_Management.ViewModels
 
             try
             {
-                string query = "UPDATE Application SET Status = 'Rejected', FeedbackNote = @Reason, RespondedAt = GETDATE() WHERE RequestID = @ReqID";
+                string query = "UPDATE Application SET StatusID = 3, FeedbackNote = @Reason, RespondedAt = GETDATE() WHERE RequestID = @ReqID";
                 DatabaseHelper.ExecuteNonQuery(query, new[] {
                     new SqlParameter("@Reason", RejectReason.Trim()),
                     new SqlParameter("@ReqID", _processingItem.RequestId)
