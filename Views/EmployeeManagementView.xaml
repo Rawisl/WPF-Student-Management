@@ -17,6 +17,8 @@
 
     <UserControl.Resources>
         <helpers:BindingProxy x:Key="Proxy" Data="{Binding}" />
+        <helpers:SubjectIdToNameConverter x:Key="SubjectConverter" />
+        <helpers:RoleIdToNameConverter x:Key="RoleConverter" />
     </UserControl.Resources>
 
     <Grid Margin="20">
@@ -54,7 +56,7 @@
             <DataGrid ItemsSource="{Binding StaffList}" IsReadOnly="True" Style="{StaticResource GlobalDataGridStyle}" CellStyle="{StaticResource GlobalDataGridCellStyle}">
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Mã NV" Binding="{Binding StaffId}" Width="80" IsReadOnly="True" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+                    <DataGridTextColumn Header="Mã NV" Binding="{Binding StaffId}" Width="60" IsReadOnly="True" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
                     <DataGridTextColumn Header="Họ và Tên" Binding="{Binding FullName}" Width="*" IsReadOnly="True" HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock" BasedOn="{StaticResource GlobalLeftElementStyle}">
@@ -64,8 +66,24 @@
                     </DataGridTextColumn>
 
                     <DataGridTextColumn Header="Giới tính" Binding="{Binding Gender}" Width="100" IsReadOnly="True" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
-                    <DataGridTextColumn Header="Chuyên môn" Binding="{Binding Specialization}" Width="180" IsReadOnly="True" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
-                    <DataGridTextColumn Header="SĐT" Binding="{Binding PhoneNumber}" Width="130" IsReadOnly="True" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" FontWeight="SemiBold"/>
+                    <DataGridTextColumn Header="Chuyên môn" 
+                    Binding="{Binding Specialization, Converter={StaticResource SubjectConverter}}" 
+                    Width="130" IsReadOnly="True" 
+                    HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" 
+                    ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+
+                    <DataGridTextColumn Header="Vai trò" 
+                    Binding="{Binding RoleId, Converter={StaticResource RoleConverter}}" 
+                    Width="120" IsReadOnly="True" 
+                    HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource GlobalCenterElementStyle}">
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="Foreground" Value="#0984e3" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="SĐT" Binding="{Binding PhoneNumber}" Width="120" IsReadOnly="True" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" FontWeight="SemiBold"/>
                     <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status}" Width="100" IsReadOnly="True" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
 
                     <DataGridTemplateColumn Header="Hành động" Width="120" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
