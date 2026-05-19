@@ -13,6 +13,11 @@ using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
+    public class SubjectItem
+    {
+        public int? SubjectId { get; set; }
+        public string SubjectName { get; set; }
+    }
     public class EmployeeManagementViewModel : INotifyPropertyChanged
     {
         // KIỂM TRA ROLE ĐỂ KHÓA GIAO DIỆN HIỆU TRƯỞNG ---
@@ -26,6 +31,8 @@ namespace WPF_Student_Management.ViewModels
         public ObservableCollection<string> StatusList { get; } = new ObservableCollection<string> { "Active", "Inactive" };
 
         public ObservableCollection<Role> RoleList { get; set; }
+
+        public ObservableCollection<SubjectItem> SubjectList { get; set; } = new();
 
         public ObservableCollection<Staff> StaffList
         {
@@ -66,6 +73,35 @@ namespace WPF_Student_Management.ViewModels
             }
 
             RoleList = new ObservableCollection<Role>(Role.GetAllRoles());
+
+            LoadSubjects();
+        }
+
+        // Hàm load các môn học còn Active
+        private void LoadSubjects()
+        {
+            SubjectList.Clear();
+            // Thay ID "" thành null
+            SubjectList.Add(new SubjectItem { SubjectId = null, SubjectName = "-- Trống --" });
+
+            try
+            {
+                string query = "SELECT SubjectID, SubjectName FROM Subject WHERE IsDeleted = 0"; // Sửa lại đk IsDeleted = 0 dựa theo Schema của bạn
+                var dt = DatabaseHelper.ExecuteQuery(query);
+                foreach (System.Data.DataRow row in dt.Rows)
+                {
+                    SubjectList.Add(new SubjectItem
+                    {
+                        // Ép kiểu về số
+                        SubjectId = Convert.ToInt32(row["SubjectID"]),
+                        SubjectName = row["SubjectName"].ToString()
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi tải danh sách môn học: " + ex.Message);
+            }
         }
 
         private void ExecuteLoad(object obj)
@@ -85,7 +121,16 @@ namespace WPF_Student_Management.ViewModels
         private async void ExecuteOpenAddDialog(object obj)
         {
             // Reset form
-            CurrentStaff = new Staff { StaffId = 0, AccountId = 0, FullName = "", Gender = "Nam", Status = "Active", HireDate = DateTime.Now };
+            CurrentStaff = new Staff
+            {
+                StaffId = 0,
+                AccountId = 0,
+                FullName = "",
+                Gender = "Nam",
+                Status = "Active",
+                HireDate = DateTime.Now,
+                Specialization = null
+            };
 
             // Gọi UserControl Dialog mới tạo
             var dialog = new Components.EmployeeDetailDialog { DataContext = this };

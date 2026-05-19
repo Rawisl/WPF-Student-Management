@@ -137,17 +137,21 @@
                                      Style="{StaticResource RoundedTextBoxStyle}"
                                      helpers:TextBoxHelper.IsNumericOnly="True" />
 
-                            <TextBlock FontSize="15"
-                                       FontWeight="SemiBold"
-                                       Margin="5,0,0,5">
-                                <Run Text="Chuyên môn"
-                                     Foreground="#3e4c82" />
-                                <Run Text="*"
-                                     Foreground="#FF4757" />
+                            <TextBlock FontSize="15" FontWeight="SemiBold" Margin="5,0,0,5">
+    <Run Text="Chuyên môn" Foreground="#3e4c82" />
                             </TextBlock>
-                            <TextBox Text="{Binding CurrentStaff.Specialization, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource RoundedTextBoxStyle}"
-                                     helpers:TextBoxHelper.IsLettersOnly="True" />
+
+                            <ComboBox ItemsSource="{Binding SubjectList}"
+          SelectedValue="{Binding CurrentStaff.Specialization, UpdateSourceTrigger=PropertyChanged}"
+          SelectedValuePath="SubjectId"
+          DisplayMemberPath="SubjectName"
+          materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
+          BorderThickness="0"
+          Background="Transparent"
+          VerticalContentAlignment="Center"
+          Padding="10,0"
+          FontSize="15">
+                            </ComboBox>
 
                             <TextBlock FontSize="15"
                                        FontWeight="SemiBold"

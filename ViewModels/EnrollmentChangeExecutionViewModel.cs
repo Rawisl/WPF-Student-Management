@@ -10,7 +10,6 @@ using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
-    // Model nhỏ dùng riêng cho DataGrid màn này
     public class PendingRequestItem
     {
         public int STT { get; set; }
@@ -23,11 +22,35 @@ namespace WPF_Student_Management.ViewModels
         public int? TargetClassId { get; set; }
         public string TargetClassName { get; set; }
         public string Reason { get; set; }
+        public int StatusId { get; set; }
 
-        // Format UI
+        // Format UI cho Loại yêu cầu
         public string RequestTypeDisplay => RequestType == "ClassTransfer" ? "Chuyển lớp" : "Thôi học";
-        public string RequestTypeBgColor => RequestType == "ClassTransfer" ? "#E3F2FD" : "#FFEBEE";
         public string RequestTypeTextColor => RequestType == "ClassTransfer" ? "#1565C0" : "#C62828";
+
+        // Format UI cho Trạng thái
+        public string StatusDisplay
+        {
+            get
+            {
+                if (StatusId == 1) return "Chờ hiệu trưởng duyệt";
+                if (StatusId == 2) return "Chờ giáo vụ thực thi";
+                if (StatusId == 3) return "Bị từ chối";
+                if (StatusId == 4) return "Đã hoàn tất";
+                return "Không rõ";
+            }
+        }
+        public string StatusTextColor
+        {
+            get
+            {
+                if (StatusId == 1) return "#F57F17"; // Cam
+                if (StatusId == 2) return "#0288D1"; // Xanh dương
+                if (StatusId == 3) return "#D32F2F"; // Đỏ
+                if (StatusId == 4) return "#388E3C"; // Xanh lá
+                return "#000000";
+            }
+        }
     }
 
     public partial class EnrollmentChangeExecutionViewModel : ObservableObject
@@ -35,13 +58,29 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private ObservableCollection<PendingRequestItem> _pendingRequests = new();
 
-        // Biến phục vụ Popup Trả đơn
+        [ObservableProperty]
+        private string _rejectReason;
+
         private PendingRequestItem _processingItem;
-        [ObservableProperty] private string _rejectReason;
+
+        // Biến điều khiển UI: Hiện cột Thao tác nếu là HT (Role 3) hoặc GV (Role 6)
+        public Visibility ActionColumnVisibility => ((int)CurrentUser.Instance.Role == 3 || (int)CurrentUser.Instance.Role == 6) ? Visibility.Visible : Visibility.Collapsed;
+
+        // Tiêu đề form thay đổi theo Role
+        public string FormTitle => (int)CurrentUser.Instance.Role == 5 ? "Lịch sử đơn từ đã lập" : "Xử lý đơn chuyển lớp / thôi học";
+        public string FormDescription => (int)CurrentUser.Instance.Role == 5 ? "Theo dõi tiến độ duyệt các lá đơn do bạn tạo ra." : "Danh sách các đơn yêu cầu đang chờ bạn xét duyệt và thực thi.";
 
         public EnrollmentChangeExecutionViewModel()
         {
             LoadPendingRequests();
+        }
+
+        private int GetCurrentEmployeeId()
+        {
+            string query = "SELECT EmployeeID FROM Employee WHERE AccountID = @AccID";
+            var dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@AccID", CurrentUser.Instance.UserId) });
+            if (dt.Rows.Count > 0) return Convert.ToInt32(dt.Rows[0][0]);
+            return -1;
         }
 
         private void LoadPendingRequests()
@@ -49,21 +88,32 @@ namespace WPF_Student_Management.ViewModels
             PendingRequests.Clear();
             try
             {
-                // Join bảng Application, Student và 2 lần bảng Class (để lấy Lớp cũ và Lớp mới)
-                string query = @"
+                int roleId = (int)CurrentUser.Instance.Role;
+                int empId = GetCurrentEmployeeId();
+
+                string whereClause = "1=0"; // Mặc định không cho xem gì cả
+
+                if (roleId == 5) // GVCN: Xem tất cả đơn do mình tạo (Mọi trạng thái)
+                    whereClause = "a.CreatedByTeacherID = @EmpID";
+                else if (roleId == 3) // Hiệu trưởng: Xem các đơn chờ duyệt (Status = 1)
+                    whereClause = "a.StatusID = 1";
+                else if (roleId == 6) // Giáo vụ: Xem các đơn HT đã duyệt (Status = 2)
+                    whereClause = "a.StatusID = 2";
+
+                string query = $@"
                     SELECT 
-                        a.RequestID, a.StudentID, s.FullName, a.RequestType, a.Reason,
+                        a.RequestID, a.StudentID, s.FullName, a.RequestType, a.Reason, a.StatusID,
                         c_old.ClassID AS CurrentClassID, c_old.ClassName AS CurrentClassName,
                         a.NewClassID, c_new.ClassName AS TargetClassName
                     FROM Application a
                     JOIN Student s ON a.StudentID = s.StudentID
-                    LEFT JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
+                    LEFT JOIN ClassPlacement cp ON s.StudentID = cp.StudentID AND cp.EffectiveTo IS NULL
                     LEFT JOIN Class c_old ON cp.ClassID = c_old.ClassID
                     LEFT JOIN Class c_new ON a.NewClassID = c_new.ClassID
-                    WHERE a.StatusID = 1
-                    ORDER BY a.RequestID ASC";
+                    WHERE {whereClause}
+                    ORDER BY a.RequestID DESC";
 
-                DataTable dt = DatabaseHelper.ExecuteQuery(query);
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@EmpID", empId) });
 
                 int stt = 1;
                 foreach (DataRow row in dt.Rows)
@@ -75,6 +125,7 @@ namespace WPF_Student_Management.ViewModels
                         StudentId = row["StudentID"].ToString(),
                         FullName = row["FullName"].ToString(),
                         RequestType = row["RequestType"].ToString(),
+                        StatusId = Convert.ToInt32(row["StatusID"]),
                         CurrentClassId = row["CurrentClassID"] != DBNull.Value ? Convert.ToInt32(row["CurrentClassID"]) : null,
                         CurrentClassName = row["CurrentClassName"].ToString() ?? "Không rõ",
                         TargetClassId = row["NewClassID"] != DBNull.Value ? Convert.ToInt32(row["NewClassID"]) : null,
@@ -89,102 +140,84 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- 1. THỰC THI (EXECUTE) ---
+        // --- 1. THỰC THI HOẶC DUYỆT ĐƠN ---
         [RelayCommand]
         private void ExecuteRequest(PendingRequestItem item)
         {
             if (item == null) return;
+            int roleId = (int)CurrentUser.Instance.Role;
 
-            bool confirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn thực thi đơn {item.RequestTypeDisplay} của học sinh {item.FullName}?");
-            if (!confirm) return;
-
-            // =========================================================================
-            // KIỂM TRA KHÓA SỔ BÁO CÁO LỚP
-            // =========================================================================
-            // NOTE: Thay "Học kỳ 1" và "2025-2026" bằng biến Global của bro nếu có
-            string currentSemester = "Học kỳ 1";
-            string currentYear = "2025-2026";
-
-            // 1. Kiểm tra Lớp Cũ (Áp dụng cho cả Thôi học và Chuyển lớp)
-            if (item.CurrentClassId.HasValue)
+            if (roleId == 3) // LÀ HIỆU TRƯỞNG (Chỉ chuyển status sang 2)
             {
-                bool isOldClassLocked = ClassReport.IsClassReportLocked(item.CurrentClassId.Value, currentSemester, currentYear);
-                if (isOldClassLocked)
+                bool confirm = NotificationHelper.ShowConfirm($"Bạn có duyệt đơn {item.RequestTypeDisplay} của học sinh {item.FullName} để chuyển xuống cho Giáo vụ thực thi không?");
+                if (!confirm) return;
+
+                string query = "UPDATE Application SET StatusID = 2 WHERE RequestID = @ReqID";
+                DatabaseHelper.ExecuteNonQuery(query, new[] { new SqlParameter("@ReqID", item.RequestId) });
+
+                NotificationHelper.ShowSuccess("Đã duyệt! Đơn đã được chuyển cho Giáo vụ.");
+                LoadPendingRequests();
+            }
+            else if (roleId == 6) // LÀ GIÁO VỤ (Thực thi Data và chuyển status sang 4)
+            {
+                bool confirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn THỰC THI đơn {item.RequestTypeDisplay} của học sinh {item.FullName}?");
+                if (!confirm) return;
+
+                string currentSemester = "Học kỳ 1";
+                string currentYear = "2025-2026";
+
+                // Kiểm tra khóa sổ lớp cũ
+                if (item.CurrentClassId.HasValue && ClassReport.IsClassReportLocked(item.CurrentClassId.Value, currentSemester, currentYear))
                 {
-                    NotificationHelper.ShowError($"Lớp cũ ({item.CurrentClassName}) đã được GVCN lập báo cáo học kỳ!\nKhông thể rút học sinh khỏi lớp này. Vui lòng chọn Trả đơn.");
+                    NotificationHelper.ShowError($"Lớp cũ ({item.CurrentClassName}) đã khóa sổ!\nKhông thể rút học sinh. Vui lòng chọn Trả đơn.");
                     return;
                 }
-            }
 
-            // 2. Kiểm tra Lớp Mới (Chỉ áp dụng cho Chuyển lớp)
-            if (item.RequestType == "ClassTransfer" && item.TargetClassId.HasValue)
-            {
-                bool isNewClassLocked = ClassReport.IsClassReportLocked(item.TargetClassId.Value, currentSemester, currentYear);
-                if (isNewClassLocked)
+                // Kiểm tra khóa sổ lớp mới
+                if (item.RequestType == "ClassTransfer" && item.TargetClassId.HasValue && ClassReport.IsClassReportLocked(item.TargetClassId.Value, currentSemester, currentYear))
                 {
-                    NotificationHelper.ShowError($"Lớp đích ({item.TargetClassName}) đã được GVCN lập báo cáo học kỳ!\nKhông thể thêm học sinh vào lớp này. Vui lòng chọn Trả đơn.");
+                    NotificationHelper.ShowError($"Lớp đích ({item.TargetClassName}) đã khóa sổ!\nKhông thể thêm học sinh. Vui lòng chọn Trả đơn.");
                     return;
                 }
-            }
-            // =========================================================================
 
-            // Nếu an toàn (chưa khóa sổ) -> Bọc bằng SqlTransaction để xử lý CSDL
-            using (SqlConnection conn = new SqlConnection(DatabaseHelper.connectionString))
-            {
-                conn.Open();
-                using (SqlTransaction transaction = conn.BeginTransaction())
+                using (SqlConnection conn = new SqlConnection(DatabaseHelper.connectionString))
                 {
-                    try
+                    conn.Open();
+                    using (SqlTransaction transaction = conn.BeginTransaction())
                     {
-                        if (item.RequestType == "DropOut")
+                        try
                         {
-                            // A. XỬ LÝ THÔI HỌC (Soft Delete)
-                            SqlCommand cmdHideStudent = new SqlCommand("UPDATE Student SET Status = 'Inactive' WHERE StudentID = @ID", conn, transaction);
-                            cmdHideStudent.Parameters.AddWithValue("@ID", item.StudentId);
-                            cmdHideStudent.ExecuteNonQuery();
-
-                            SqlCommand cmdRemoveClass = new SqlCommand("DELETE FROM ClassPlacement WHERE StudentID = @ID", conn, transaction);
-                            cmdRemoveClass.Parameters.AddWithValue("@ID", item.StudentId);
-                            cmdRemoveClass.ExecuteNonQuery();
-                        }
-                        else if (item.RequestType == "ClassTransfer")
-                        {
-                            // B. XỬ LÝ CHUYỂN LỚP
-                            // Check max size trước
-                            SqlCommand cmdGetMaxSize = new SqlCommand("SELECT CAST(Value AS INT) FROM Parameter WHERE ParameterName = 'MaxClassSize'", conn, transaction);
-                            int maxClassSize = (int)(cmdGetMaxSize.ExecuteScalar() ?? 40);
-
-                            SqlCommand cmdGetCurrentSize = new SqlCommand("SELECT COUNT(*) FROM ClassPlacement WHERE ClassID = @NewClassID", conn, transaction);
-                            cmdGetCurrentSize.Parameters.AddWithValue("@NewClassID", item.TargetClassId);
-                            int currentSize = (int)cmdGetCurrentSize.ExecuteScalar();
-
-                            if (currentSize + 1 > maxClassSize)
+                            if (item.RequestType == "DropOut")
                             {
-                                transaction.Rollback();
-                                NotificationHelper.ShowError("Lớp đích đã đủ sĩ số tối đa, không thể chuyển thêm! Vui lòng chọn Trả đơn.");
-                                return;
+                                new SqlCommand($"UPDATE Student SET Status = 'Inactive' WHERE StudentID = '{item.StudentId}'", conn, transaction).ExecuteNonQuery();
+                                new SqlCommand($"DELETE FROM ClassPlacement WHERE StudentID = '{item.StudentId}'", conn, transaction).ExecuteNonQuery();
+                            }
+                            else if (item.RequestType == "ClassTransfer")
+                            {
+                                int maxClassSize = (int)(new SqlCommand("SELECT CAST(Value AS INT) FROM Parameter WHERE ParameterName = 'MaxClassSize'", conn, transaction).ExecuteScalar() ?? 40);
+                                int currentSize = (int)new SqlCommand($"SELECT COUNT(*) FROM ClassPlacement WHERE ClassID = {item.TargetClassId} AND EffectiveTo IS NULL", conn, transaction).ExecuteScalar();
+
+                                if (currentSize + 1 > maxClassSize)
+                                {
+                                    transaction.Rollback();
+                                    NotificationHelper.ShowError("Lớp đích đã đủ sĩ số tối đa! Vui lòng chọn Trả đơn.");
+                                    return;
+                                }
+
+                                new SqlCommand($"UPDATE ClassPlacement SET ClassID = {item.TargetClassId} WHERE StudentID = '{item.StudentId}'", conn, transaction).ExecuteNonQuery();
                             }
 
-                            // Thỏa điều kiện -> Update ClassPlacement
-                            SqlCommand cmdUpdateClass = new SqlCommand("UPDATE ClassPlacement SET ClassID = @NewClassID WHERE StudentID = @ID", conn, transaction);
-                            cmdUpdateClass.Parameters.AddWithValue("@NewClassID", item.TargetClassId);
-                            cmdUpdateClass.Parameters.AddWithValue("@ID", item.StudentId);
-                            cmdUpdateClass.ExecuteNonQuery();
+                            new SqlCommand($"UPDATE Application SET StatusID = 4, RespondedAt = GETDATE() WHERE RequestID = {item.RequestId}", conn, transaction).ExecuteNonQuery();
+
+                            transaction.Commit();
+                            NotificationHelper.ShowSuccess("Thực thi yêu cầu thành công!");
+                            LoadPendingRequests();
                         }
-
-                        // C. UPDATE TRẠNG THÁI ĐƠN VÀO BẢNG APPLICATION CHO CẢ 2 TRƯỜNG HỢP
-                        SqlCommand cmdUpdateApp = new SqlCommand("UPDATE Application SET StatusID = 4, RespondedAt = GETDATE() WHERE RequestID = @ReqID", conn, transaction);
-                        cmdUpdateApp.Parameters.AddWithValue("@ReqID", item.RequestId);
-                        cmdUpdateApp.ExecuteNonQuery();
-
-                        transaction.Commit();
-                        NotificationHelper.ShowSuccess("Thực thi yêu cầu thành công!");
-                        LoadPendingRequests(); // Refresh lại lưới
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        NotificationHelper.ShowError("Lỗi hệ thống khi thực thi:\n" + ex.Message);
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            NotificationHelper.ShowError("Lỗi hệ thống khi thực thi:\n" + ex.Message);
+                        }
                     }
                 }
             }
@@ -192,20 +225,13 @@ namespace WPF_Student_Management.ViewModels
 
         // --- 2. TRẢ ĐƠN (REJECT) ---
         [RelayCommand]
-        private async Task OpenRejectDialog(PendingRequestItem item)
+        private async void OpenRejectDialog(PendingRequestItem item)
         {
             if (item == null) return;
-
             _processingItem = item;
-            RejectReason = string.Empty; // Xóa trắng textbox
+            RejectReason = string.Empty;
 
-            // Khởi tạo cái View Popup vừa tạo ở trên, truyền chính ViewModel này vào làm DataContext
-            var rejectDialogView = new WPF_Student_Management.Components.RejectReasonDialog
-            {
-                DataContext = this
-            };
-
-            // Mở Dialog bằng cách nhét cái View đó vào thay vì để null
+            var rejectDialogView = new WPF_Student_Management.Components.RejectReasonDialog { DataContext = this };
             await MaterialDesignThemes.Wpf.DialogHost.Show(rejectDialogView, "ExecutionDialogHost");
         }
 
@@ -227,15 +253,16 @@ namespace WPF_Student_Management.ViewModels
 
             try
             {
+                // Cả HT và Giáo vụ khi từ chối đều chuyển StatusID về 3
                 string query = "UPDATE Application SET StatusID = 3, FeedbackNote = @Reason, RespondedAt = GETDATE() WHERE RequestID = @ReqID";
                 DatabaseHelper.ExecuteNonQuery(query, new[] {
                     new SqlParameter("@Reason", RejectReason.Trim()),
                     new SqlParameter("@ReqID", _processingItem.RequestId)
                 });
 
-                NotificationHelper.ShowSuccess("Đã trả đơn về cho Giáo viên chủ nhiệm!");
+                NotificationHelper.ShowSuccess("Đã từ chối và trả đơn về cho Giáo viên chủ nhiệm!");
                 MaterialDesignThemes.Wpf.DialogHost.Close("ExecutionDialogHost");
-                LoadPendingRequests(); // Refresh lại lưới
+                LoadPendingRequests();
             }
             catch (Exception ex)
             {

@@ -59,13 +59,13 @@
                     <StackPanel Grid.Column="0"
                                 Orientation="Vertical"
                                 Margin="0,0,20,0">
-                        <TextBlock Text="Học kỳ:"
+                        <TextBlock Text="Năm học:"
                                    Foreground="#878A99"
                                    FontWeight="SemiBold"
                                    FontSize="13"
                                    Margin="5,0,0,5" />
-                        <ComboBox ItemsSource="{Binding SemesterList}"
-                                  SelectedItem="{Binding SelectedSemester}"
+                        <ComboBox ItemsSource="{Binding AcademicYearList}"
+                                  SelectedItem="{Binding SelectedAcademicYear}"
                                   Width="150"
                                   Height="42"
                                   FontSize="15"
@@ -74,13 +74,13 @@
 
                     <StackPanel Grid.Column="1"
                                 Orientation="Vertical">
-                        <TextBlock Text="Năm học:"
+                        <TextBlock Text="Học kỳ:"
                                    Foreground="#878A99"
                                    FontWeight="SemiBold"
                                    FontSize="13"
                                    Margin="5,0,0,5" />
-                        <ComboBox ItemsSource="{Binding AcademicYearList}"
-                                  SelectedItem="{Binding SelectedAcademicYear}"
+                        <ComboBox ItemsSource="{Binding SemesterList}"
+                                  SelectedItem="{Binding SelectedSemester}"
                                   Width="150"
                                   Height="42"
                                   FontSize="15"
