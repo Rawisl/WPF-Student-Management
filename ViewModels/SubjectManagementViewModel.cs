@@ -9,10 +9,35 @@ using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
+
+    //LỚP WRAPPER BỌC DTO ĐỂ HỖ TRỢ CHECKBOX TRÊN UI
+    public partial class SelectableDeletedSubject : ObservableObject
+    {
+        public DeletedSubjectDto Data { get; }
+
+        [ObservableProperty]
+        private bool _isSelected = false;
+
+        // Bọc các thuộc tính của DTO ra ngoài để XAML dễ dàng Binding
+        public int SubjectId => Data.SubjectId;
+        public string SubjectName => Data.SubjectName;
+        public string GradeType => Data.GradeType;
+        public int ScoreCount => Data.ScoreCount;
+        public int TeachingCount => Data.TeachingCount;
+        public int ReportCount => Data.ReportCount;
+
+        public SelectableDeletedSubject(DeletedSubjectDto data)
+        {
+            Data = data;
+        }
+    }
+
     public partial class SubjectManagementViewModel : ObservableObject
     {
         [ObservableProperty]
         private ObservableCollection<Subject> _subjectsList = new ObservableCollection<Subject>();
+        [ObservableProperty]
+        private ObservableCollection<SelectableDeletedSubject> _deletedSubjects = new ObservableCollection<SelectableDeletedSubject>();
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveSubjectCommand))]
@@ -28,7 +53,6 @@ namespace WPF_Student_Management.ViewModels
         // Logic đồng bộ 2 nút Radio
         partial void OnIsScoreGradeTypeChanged(bool value) => IsPassFailGradeType = !value;
         partial void OnIsPassFailGradeTypeChanged(bool value) => IsScoreGradeType = !value;
-
 
         // 1. THÊM CONSTRUCTOR NÀY VÀO ĐỂ LOAD DATA NGAY KHI MỞ TRANG
         public SubjectManagementViewModel()
@@ -135,6 +159,85 @@ namespace WPF_Student_Management.ViewModels
                 {
                     NotificationHelper.ShowError("Xóa thất bại! Lỗi kết nối CSDL.");
                 }
+            }
+        }
+        // 1. Lệnh mở Popup Khôi phục (Nối vào nút "Thùng rác" trên màn hình chính)
+        [RelayCommand]
+        private async Task OpenRestoreDialog()
+        {
+            LoadDeletedSubjectsData();
+
+            if (DeletedSubjects.Count == 0)
+            {
+                NotificationHelper.ShowWarning("Thùng rác trống!\nKhông có môn học nào cần khôi phục.");
+                return;
+            }
+
+            var dialog = new Components.SubjectRestoreDialog { DataContext = this };
+            await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialog");
+        }
+
+        // 2. Kéo data từ Database lên và bọc vào Wrapper
+        private void LoadDeletedSubjectsData()
+        {
+            try
+            {
+                DeletedSubjects.Clear();
+                var dataFromDb = Subject.GetDeletedSubjects();
+
+                foreach (var dto in dataFromDb)
+                {
+                    DeletedSubjects.Add(new SelectableDeletedSubject(dto));
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi tải danh sách môn đã xóa: " + ex.Message);
+            }
+        }
+
+        // 3. Lệnh đóng Popup
+        [RelayCommand]
+        private void CancelRestore()
+        {
+            MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
+        }
+
+        // 4. Lệnh thực thi Khôi phục môn
+        [RelayCommand]
+        private void ConfirmRestore()
+        {
+            // Lọc ra những môn được User tích CheckBox
+            var selectedItems = DeletedSubjects.Where(x => x.IsSelected).ToList();
+
+            if (selectedItems.Count == 0)
+            {
+                NotificationHelper.ShowWarning("Vui lòng chọn ít nhất 1 môn học để khôi phục!");
+                return;
+            }
+
+            int successCount = 0;
+            foreach (var item in selectedItems)
+            {
+                // Gọi hàm Restore dưới Model
+                if (Subject.RestoreSubject(item.SubjectId))
+                {
+                    successCount++;
+                }
+            }
+
+            if (successCount > 0)
+            {
+                NotificationHelper.ShowSuccess($"Đã khôi phục thành công {successCount} môn học!");
+
+                // Gọi lại hàm Load danh sách chính để UI cập nhật ngay môn vừa sống lại
+                LoadSubjectsData();
+
+                MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
+            }
+            else
+            {
+                NotificationHelper.ShowError("Lỗi hệ thống: Không thể khôi phục môn học!");
             }
         }
     }

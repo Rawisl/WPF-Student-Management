@@ -40,6 +40,28 @@
             <StackPanel Grid.Column="1"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
+
+                <Button Command="{Binding OpenRestoreDialogCommand}"
+                        Height="42"
+                        Padding="15,0,15,0"
+                        Margin="0,0,12,0"
+                        Style="{StaticResource OutlineRoundedButton}"
+                        ToolTip="Xem danh sách môn học đã ngừng hoạt động và khôi phục">
+
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="TrashCanOutline"
+                                                 Width="20"
+                                                 Height="20"
+                                                 Foreground="#878A99"
+                                                 Margin="0,0,8,0" />
+                        <TextBlock Text="Khôi phục môn"
+                                   FontSize="16"
+                                   Foreground="#495057"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
                 <Button Command="{Binding AddSubjectCommand}"
                         Height="42"
                         Padding="15,0,15,0"
@@ -58,6 +80,7 @@
                     </StackPanel>
                 </Button>
             </StackPanel>
+            
         </Grid>
 
         <Border Grid.Row="1"
