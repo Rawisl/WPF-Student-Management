@@ -11,28 +11,30 @@ namespace WPF_Student_Management.Helpers
     {
         public enum Feature
         {
+            // Người dùng hệ thống
+            //Login, Logout, ChangePassWord, PersonalInfoLookup, tạm comment vì hiện tại users thì không cần phân quyền phức tạp lmg
             // Học sinh
-            ViewPersonalInfo, ViewOwnGrades,
+            ViewOwnGrades,
             // IT Admin
             ManageEmployees, ManageAccounts,
             // GVBM
-            EditSubjectGrades, ViewSubjectReports,
+            EditSubjectGrades, EditSubjectReports,//
             // GVCN
-            ManageHomeroom, SubmitTermReport,
+            ManageHomeroom, SubmitTermReport, ResetHomeroomStudentPW, CreateRequestApplication,
             // Hiệu Trưởng
-            ViewGlobalStudents, ApproveRequests, ViewGlobalReports,
+            ViewGlobalStudents, ViewEmployeeList, ViewGlobalReports, ApproveRequests, ViewRequests,
             // Giáo vụ
-            ManageGlobalStudents, ManageClasses, ManageSubjects, ManageSystemConfig
+            ManageGlobalStudents, ManageClasses, ManageSubjects, ManageSystemConfig, ManageTeachingAssign, ExecuteRequests,
         }
 
         private static readonly Dictionary<UserRole, HashSet<Feature>> _roleFeatures = new()
         {
-            [UserRole.HocSinh] = new() { Feature.ViewPersonalInfo, Feature.ViewOwnGrades },
-            [UserRole.ITAdmin] = new() { Feature.ManageEmployees, Feature.ManageAccounts },
-            [UserRole.GVBM] = new() { Feature.EditSubjectGrades, Feature.ViewSubjectReports },
-            [UserRole.GVCN] = new() { Feature.ManageHomeroom, Feature.SubmitTermReport },
-            [UserRole.HieuTruong] = new() { Feature.ViewGlobalStudents, Feature.ViewGlobalReports, Feature.ApproveRequests },
-            [UserRole.GiaoVu] = new() { Feature.ManageGlobalStudents, Feature.ManageClasses, Feature.ManageSubjects, Feature.ManageSystemConfig, Feature.ViewGlobalStudents, Feature.ApproveRequests }
+            [UserRole.HocSinh] = new() { Feature.ViewOwnGrades },
+            [UserRole.ITAdmin] = new() { Feature.ViewEmployeeList, Feature.ManageEmployees, Feature.ManageAccounts },
+            [UserRole.GVBM] = new() { Feature.EditSubjectGrades, Feature.EditSubjectReports },
+            [UserRole.GVCN] = new() { Feature.ManageHomeroom, Feature.SubmitTermReport, Feature.ResetHomeroomStudentPW, Feature.CreateRequestApplication, Feature.EditSubjectGrades, Feature.EditSubjectReports },
+            [UserRole.HieuTruong] = new() { Feature.ViewGlobalStudents, Feature.ViewGlobalReports, Feature.ApproveRequests, Feature.ViewEmployeeList, Feature.ViewRequests },
+            [UserRole.GiaoVu] = new() { Feature.ManageGlobalStudents, Feature.ManageClasses, Feature.ManageSubjects, Feature.ManageSystemConfig, Feature.ViewGlobalStudents, Feature.ExecuteRequests, Feature.ManageTeachingAssign, Feature.ViewRequests }
         };
 
         // Check if the current user has the specified feature/permission

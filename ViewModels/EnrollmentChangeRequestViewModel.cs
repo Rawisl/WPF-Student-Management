@@ -105,7 +105,8 @@ namespace WPF_Student_Management.ViewModels
             try
             {
                 // 1. Chống Spam đơn Pending (Sửa lại tên bảng Application)
-                string checkQuery = "SELECT COUNT(*) AS Total FROM Application WHERE StudentID = @StudentID AND StatusID = 1";
+                // Thay StatusID = 1 thành StatusID IN (1, 2)
+                string checkQuery = "SELECT COUNT(*) AS Total FROM Application WHERE StudentID = @StudentID AND StatusID IN (1, 2)";
                 DataTable dtCheck = DatabaseHelper.ExecuteQuery(checkQuery, new[] { new SqlParameter("@StudentID", StudentId) });
 
                 int pendingCount = 0;
@@ -144,7 +145,7 @@ namespace WPF_Student_Management.ViewModels
 
                 DatabaseHelper.ExecuteNonQuery(insertQuery, paras);
 
-                NotificationHelper.ShowSuccess("Lập đơn thành công! Đơn đã được gửi đến Giáo vụ.");
+                NotificationHelper.ShowSuccess("Lập đơn thành công! Đơn đã được gửi đến Hiệu trưởng chờ duyệt.");
                 MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
             }
             catch (Exception ex)

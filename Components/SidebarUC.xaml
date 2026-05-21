@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="900"
              d:DesignWidth="250"
@@ -67,6 +68,9 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        
+        <helpers:ActiveViewConverter x:Key="ActiveViewConverter" />
+        
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Hidden"
@@ -77,57 +81,8 @@
                     Margin="0,20,0,20">
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
-                         IsChecked="True"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding ClassRosterVM}">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="AccountMultiplePlusOutline"
-                                             Width="20"
-                                             Height="20"
-                                             Margin="0,0,15,0" />
-                    <TextBlock Text="Xếp lớp"
-                               FontSize="14"
-                               FontWeight="Medium"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-            </RadioButton>
-
-            <RadioButton Style="{StaticResource ModernSidebarMenu}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding SubjectGradebookVM}">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="BookOpenVariant"
-                                             Width="20"
-                                             Height="20"
-                                             Margin="0,0,15,0" />
-                    <TextBlock Text="Sổ điểm môn học"
-                               FontSize="14"
-                               FontWeight="Medium"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-            </RadioButton>
-
-            <RadioButton Style="{StaticResource ModernSidebarMenu}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding HomeroomDashboardVM}">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="GoogleClassroom"
-                                             Width="20"
-                                             Height="20"
-                                             Margin="0,0,15,0" />
-                    <TextBlock Text="Lớp chủ nhiệm"
-                               FontSize="14"
-                               FontWeight="Medium"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-            </RadioButton>
-
-            <Separator Background="#d9e7ff"
-                       Margin="20,10,20,10"
-                       Height="1"
-                       BorderThickness="0" />
-
-            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ViewGlobalStudents"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=GlobalStudentManagementViewModel}"
                          Command="{Binding NavigateCommand}"
                          CommandParameter="{Binding GlobalStudentManagementVM}">
                 <StackPanel Orientation="Horizontal">
@@ -143,6 +98,60 @@
             </RadioButton>
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ManageGlobalStudents"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=ClassRosterViewModel}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding ClassRosterVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="AccountMultiplePlusOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Xếp lớp"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="EditSubjectGrades"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=SubjectGradebookViewModel}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding SubjectGradebookVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="BookOpenVariant"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Sổ điểm môn học"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ManageHomeroom"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=HomeroomDashboardViewModel}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding HomeroomDashboardVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="GoogleClassroom"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Lớp chủ nhiệm"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+
+   
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ManageClasses"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=ClassManagementViewModel}"
                          Command="{Binding NavigateCommand}"
                          CommandParameter="{Binding ClassManagementVM}">
                 <StackPanel Orientation="Horizontal">
@@ -158,6 +167,8 @@
             </RadioButton>
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ManageSubjects"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=SubjectManagementViewModel}"
                          Command="{Binding NavigateCommand}"
                          CommandParameter="{Binding SubjectManagementVM}">
                 <StackPanel Orientation="Horizontal">
@@ -171,8 +182,27 @@
                                VerticalAlignment="Center" />
                 </StackPanel>
             </RadioButton>
-
+            
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ManageTeachingAssign"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=TeachingAssignmentViewModel}"
+                         Command="{Binding NavigateCommand}"
+                         CommandParameter="{Binding TeachingAssignmentVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="CalendarAccountOutline"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Phân công giảng dạy"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+            
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ViewEmployeeList"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=EmployeeManagementViewModel}"
                          Command="{Binding NavigateCommand}"
                          CommandParameter="{Binding EmployeeManagementVM}">
                 <StackPanel Orientation="Horizontal">
@@ -180,19 +210,16 @@
                                              Width="20"
                                              Height="20"
                                              Margin="0,0,15,0" />
-                    <TextBlock Text="Quản lý nhân viên"
+                    <TextBlock Text="Danh sách nhân viên"
                                FontSize="14"
                                FontWeight="Medium"
                                VerticalAlignment="Center" />
                 </StackPanel>
             </RadioButton>
 
-            <Separator Background="#d9e7ff"
-                       Margin="20,10,20,10"
-                       Height="1"
-                       BorderThickness="0" />
-
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ViewRequests"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=EnrollmentChangeExecutionViewModel}"
                          Command="{Binding NavigateCommand}"
                          CommandParameter="{Binding EnrollmentChangeExecutionVM}">
                 <StackPanel Orientation="Horizontal">
@@ -208,6 +235,8 @@
             </RadioButton>
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ViewGlobalReports"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=GlobalSummaryReportViewModel}"
                          Command="{Binding NavigateCommand}"
                          CommandParameter="{Binding GlobalSummaryReportVM}">
                 <StackPanel Orientation="Horizontal">
@@ -223,6 +252,8 @@
             </RadioButton>
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ViewOwnGrades"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=GradeLookupViewModel}"
                          Command="{Binding NavigateCommand}"
                          CommandParameter="{Binding GradeLookupVM}">
                 <StackPanel Orientation="Horizontal">
@@ -236,43 +267,10 @@
                                VerticalAlignment="Center" />
                 </StackPanel>
             </RadioButton>
-
+            
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding PersoncalInfoLookupVM}">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="Person"
-                                             Width="20"
-                                             Height="20"
-                                             Margin="0,0,15,0" />
-                    <TextBlock Text="Thông tin cá nhân"
-                               FontSize="14"
-                               FontWeight="Medium"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-            </RadioButton>
-
-            <RadioButton Style="{StaticResource ModernSidebarMenu}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding TeachingAssignmentVM}">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="CalendarAccountOutline"
-                                             Width="20"
-                                             Height="20"
-                                             Margin="0,0,15,0" />
-                    <TextBlock Text="Phân công giảng dạy"
-                               FontSize="14"
-                               FontWeight="Medium"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-            </RadioButton>
-
-            <Separator Background="#d9e7ff"
-                       Margin="20,10,20,10"
-                       Height="1"
-                       BorderThickness="0" />
-
-            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         helpers:Permission.Feature="ManageSystemConfig"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=RegulationSettingsViewModel}"
                          Command="{Binding NavigateCommand}"
                          CommandParameter="{Binding RegulationSettingsVM}">
                 <StackPanel Orientation="Horizontal">
@@ -288,6 +286,23 @@
             </RadioButton>
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         Command="{Binding NavigateCommand}"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=PersonalInfoLookupViewModel}"
+                         CommandParameter="{Binding PersonalInfoLookupVM}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="Person"
+                                             Width="20"
+                                             Height="20"
+                                             Margin="0,0,15,0" />
+                    <TextBlock Text="Thông tin cá nhân"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+
+            <RadioButton Style="{StaticResource ModernSidebarMenu}"
+                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=SettingsViewModel}"
                          Command="{Binding NavigateCommand}"
                          CommandParameter="{Binding SettingsVM}">
                 <StackPanel Orientation="Horizontal">

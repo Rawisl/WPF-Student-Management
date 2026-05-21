@@ -50,7 +50,7 @@
             <StackPanel Grid.Column="1"
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
-                        Visibility="{Binding ActionVisibility}">
+                        helpers:Permission.Feature="ManageEmployees">
                 <Button Command="{Binding OpenAddDialogCommand}"
                         Height="42"
                         Padding="15,0,15,0"

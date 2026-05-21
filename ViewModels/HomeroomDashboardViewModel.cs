@@ -104,6 +104,9 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty] private string _passedStudents;
         [ObservableProperty] private string _passRate;
 
+        public Visibility ActionVisibility => PermissionService.HasFeature(PermissionService.Feature.ManageHomeroom)
+                                              ? Visibility.Visible : Visibility.Collapsed;
+
         // Sự kiện: Khi click chọn 1 Học sinh trong DataGrid
         [ObservableProperty]
         private HomeroomStudentGradeItem _selectedStudent;

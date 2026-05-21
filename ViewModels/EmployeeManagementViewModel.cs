@@ -15,8 +15,10 @@ namespace WPF_Student_Management.ViewModels
 
     public partial class EmployeeManagementViewModel : ObservableObject
     {
-        public bool IsReadOnly => CurrentUser.Instance.Role != (UserRole)2;
-        public Visibility ActionVisibility => IsReadOnly ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility ActionVisibility => PermissionService.HasFeature(PermissionService.Feature.ManageEmployees)
+                                      ? Visibility.Visible : Visibility.Collapsed;
+        public bool IsReadOnly => !PermissionService.HasFeature(PermissionService.Feature.ManageEmployees);
+        private bool CanModify() => !IsReadOnly;
 
         [ObservableProperty]
         private ObservableCollection<Staff> _staffList;
@@ -46,8 +48,6 @@ namespace WPF_Student_Management.ViewModels
                 NotificationHelper.ShowError("Lỗi tải dữ liệu:\n" + ex.Message);
             }
         }
-
-        private bool CanModify() => !IsReadOnly;
 
         [RelayCommand(CanExecute = nameof(CanModify))]
         private async void OpenAddDialog()

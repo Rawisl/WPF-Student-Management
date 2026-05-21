@@ -333,6 +333,7 @@
                 <StackPanel Grid.Column="0"
                             Orientation="Horizontal">
                     <Button Command="{Binding ResetPasswordCommand}"
+                            helpers:Permission.Feature="ResetHomeroomStudentPW"
                             IsEnabled="{Binding IsAccountActive}"
                             Content="CẤP LẠI MẬT KHẨU"
                             ToolTipService.ShowOnDisabled="True"
@@ -358,7 +359,7 @@
                     </Button>
 
                     <Button Command="{Binding OpenRequestFormCommand}"
-                            Visibility="{Binding IsCreateRequestVisible, Converter={StaticResource BoolToVisConverter}}"
+                            helpers:Permission.Feature="CreateRequestApplication"
                             Content="LẬP ĐƠN THAY ĐỔI"
                             ToolTip="Lập phiếu yêu cầu chuyển lớp hoặc thôi học cho học sinh này"
                             Height="40"

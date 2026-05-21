@@ -33,7 +33,7 @@ namespace WPF_Student_Management.ViewModels
                 // ==========================================
                 // LUỒNG 1: DÀNH CHO HỌC SINH (Giả sử Role 1 là Học sinh)
                 // ==========================================
-                if (roleId == 1)
+                if (roleId == 0)
                 {
                     string query = "SELECT * FROM Student WHERE AccountID = @AccountID";
                     DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@AccountID", currentAccountId) });
@@ -71,7 +71,13 @@ namespace WPF_Student_Management.ViewModels
                 // ==========================================
                 else
                 {
-                    string query = "SELECT * FROM Employee WHERE AccountID = @AccountID";
+                    // ĐÃ FIX: JOIN qua bảng Account để lấy RoleID thật sự của CSDL, không dùng số của Enum nữa
+                    string query = @"
+                        SELECT e.*, a.RoleID 
+                        FROM Employee e
+                        JOIN Account a ON e.AccountID = a.AccountID
+                        WHERE e.AccountID = @AccountID";
+
                     DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@AccountID", currentAccountId) });
 
                     if (dt.Rows.Count > 0)
@@ -90,13 +96,12 @@ namespace WPF_Student_Management.ViewModels
                             Status = row["Status"].ToString(),
                             Specialization = row["Specialization"] != DBNull.Value ? Convert.ToInt32(row["Specialization"]) : (int?)null,
                             AccountId = currentAccountId,
-                            RoleId = roleId
+
+                            // ĐÃ FIX: Dùng RoleID chuẩn từ bảng Account
+                            RoleId = Convert.ToInt32(row["RoleID"])
                         };
 
-                        // Khởi tạo Employee VM với tham số isReadOnly = true để tự động ẨN nút Lưu/Hủy
                         var employeeVM = new EmployeeProfileDetailViewModel(staffModel, isReadOnly: true);
-
-                        // Bắn VM vào ContentControl -> Tự động render form Nhân sự
                         CurrentProfileDataContext = employeeVM;
                     }
                     else

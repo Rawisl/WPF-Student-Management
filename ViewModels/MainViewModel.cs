@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using WPF_Student_Management.Helpers;
+using WPF_Student_Management.Services;
 
 namespace WPF_Student_Management.ViewModels
 
@@ -28,7 +29,7 @@ namespace WPF_Student_Management.ViewModels
         public GlobalSummaryReportViewModel GlobalSummaryReportVM { get; } = new GlobalSummaryReportViewModel();
         public GradeLookupViewModel GradeLookupVM { get; } = new GradeLookupViewModel();
         public TeachingAssignmentViewModel TeachingAssignmentVM { get; } = new TeachingAssignmentViewModel();
-        public PersonalInfoLookupViewModel PersoncalInfoLookupVM { get; } = new PersonalInfoLookupViewModel();
+        public PersonalInfoLookupViewModel PersonalInfoLookupVM { get; } = new PersonalInfoLookupViewModel();
 
         // Biến lưu trang hiện tại đang hiển thị trên ContentControl
         [ObservableProperty]
@@ -40,6 +41,37 @@ namespace WPF_Student_Management.ViewModels
         {
             CurrentView = ClassRosterVM; // Trang mặc định
             LogoutCommand = new RelayCommand<object>(ExecuteLogout);
+
+            SetDefaultViewByRole();
+        }
+
+        // HÀM ĐIỀU HƯỚNG TRANG CHỦ THEO QUYỀN
+        private void SetDefaultViewByRole()
+        {
+            // Rào chắn an toàn nhỡ chưa có ai đăng nhập
+            if (CurrentUser.Instance == null)
+            {
+                CurrentView = PersonalInfoLookupVM;
+                return;
+            }
+
+            // Dùng Switch Expression gán View theo Role cực kỳ gọn gàng
+            CurrentView = CurrentUser.Instance.Role switch
+            {
+                UserRole.HocSinh => GradeLookupVM,              // Học sinh: Vào phát xem điểm luôn cho nóng
+
+                UserRole.GVBM => SubjectGradebookVM,            // GVBM: Vào thẳng sổ điểm môn học
+
+                UserRole.GVCN => HomeroomDashboardVM,           // GVCN: Vào thẳng lớp mình đang chủ nhiệm
+
+                UserRole.GiaoVu => GlobalStudentManagementVM,   // Giáo vụ: Vào danh sách toàn trường để quản lý
+
+                UserRole.HieuTruong => GlobalSummaryReportVM,   // Hiệu trưởng: Vào đập ngay báo cáo tổng kết tiến độ
+
+                UserRole.ITAdmin => EmployeeManagementVM,       // IT Admin: Vào thẳng trang quản lý nhân viên/tài khoản
+
+                _ => PersonalInfoLookupVM                      // Mặc định (Fallback) an toàn
+            };
         }
 
         [RelayCommand]

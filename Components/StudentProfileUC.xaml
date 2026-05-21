@@ -8,11 +8,12 @@
              mc:Ignorable="d"
              d:DesignHeight="450"
              d:DesignWidth="800"
-             x:Name="RootStudentProfile" 
+             x:Name="RootStudentProfile"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
 
     <UserControl.Resources>
-        <helpers:BindingProxy x:Key="Proxy" Data="{Binding DataContext, ElementName=RootStudentProfile}" />
+        <helpers:BindingProxy x:Key="Proxy"
+                              Data="{Binding DataContext, ElementName=RootStudentProfile}" />
     </UserControl.Resources>
 
     <DataGrid HorizontalAlignment="Stretch"
@@ -27,33 +28,31 @@
                                 IsReadOnly="True"
                                 HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
                                 ElementStyle="{StaticResource GlobalCenterElementStyle}" />
-
             <DataGridTextColumn Header="Mã học sinh"
                                 Binding="{Binding StudentId}"
                                 Width="115"
                                 IsReadOnly="True"
                                 HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
                                 ElementStyle="{StaticResource GlobalCenterElementStyle}" />
-
             <DataGridTextColumn Header="Họ và Tên"
                                 Binding="{Binding FullName}"
                                 Width="*"
                                 IsReadOnly="True"
                                 HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
                 <DataGridTextColumn.ElementStyle>
-                    <Style TargetType="TextBlock" BasedOn="{StaticResource GlobalLeftElementStyle}">
-                        <Setter Property="FontWeight" Value="SemiBold" />
+                    <Style TargetType="TextBlock"
+                           BasedOn="{StaticResource GlobalLeftElementStyle}">
+                        <Setter Property="FontWeight"
+                                Value="SemiBold" />
                     </Style>
                 </DataGridTextColumn.ElementStyle>
             </DataGridTextColumn>
-
             <DataGridTextColumn Header="Giới tính"
                                 Binding="{Binding Gender}"
                                 Width="100"
                                 IsReadOnly="True"
                                 HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
                                 ElementStyle="{StaticResource GlobalCenterElementStyle}" />
-
             <DataGridTextColumn Header="Ngày Sinh"
                                 Binding="{Binding DateOfBirth, StringFormat=dd/MM/yyyy}"
                                 Width="150"
@@ -61,7 +60,6 @@
                                 Foreground="Gray"
                                 HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
                                 ElementStyle="{StaticResource GlobalCenterElementStyle}" />
-
             <DataGridTextColumn Header="SĐT"
                                 Binding="{Binding PhoneNumber}"
                                 Width="120"
@@ -73,17 +71,21 @@
                                     Header="Thao Tác"
                                     Width="120"
                                     HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
-                                    Visibility="{Binding Data.ActionVisibility, Source={StaticResource Proxy}, FallbackValue=Visible, TargetNullValue=Visible}">
+                                    Visibility="{Binding Data.ActionVisibility, Source={StaticResource Proxy}, FallbackValue=Collapsed}">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
                             <StackPanel.Style>
                                 <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Hidden" />
+                                    <Setter Property="Visibility"
+                                            Value="Hidden" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
+                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}"
+                                                     Value="True">
+                                            <Setter Property="Visibility"
+                                                    Value="Visible" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -91,21 +93,39 @@
 
                             <Button Command="{Binding EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
-                                    Foreground="#00B894" Background="Transparent"
+                                    Foreground="#00B894"
+                                    Background="Transparent"
                                     Style="{StaticResource MaterialDesignIconForegroundButton}"
-                                    BorderThickness="0" Width="35" Height="35" Margin="0,0,10,0" Padding="0" Cursor="Hand"
+                                    BorderThickness="0"
+                                    Width="35"
+                                    Height="35"
+                                    Margin="0,0,10,0"
+                                    Padding="0"
+                                    Cursor="Hand"
                                     ToolTip="Sửa thông tin">
-                                <materialDesign:PackIcon Kind="PencilOutline" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <materialDesign:PackIcon Kind="PencilOutline"
+                                                         Width="22"
+                                                         Height="22"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center" />
                             </Button>
 
                             <Button Command="{Binding DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
-                                    Visibility="{Binding DeleteButtonVisibility, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    Foreground="#FF4757" Background="Transparent"
+                                    Foreground="#FF4757"
+                                    Background="Transparent"
                                     Style="{StaticResource MaterialDesignIconForegroundButton}"
-                                    BorderThickness="0" Width="35" Height="35" Padding="0" Cursor="Hand"
+                                    BorderThickness="0"
+                                    Width="35"
+                                    Height="35"
+                                    Padding="0"
+                                    Cursor="Hand"
                                     ToolTip="Xóa học sinh">
-                                <materialDesign:PackIcon Kind="TrashCanOutline" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <materialDesign:PackIcon Kind="TrashCanOutline"
+                                                         Width="22"
+                                                         Height="22"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center" />
                             </Button>
                         </StackPanel>
                     </DataTemplate>

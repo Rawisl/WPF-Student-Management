@@ -62,8 +62,18 @@ namespace WPF_Student_Management.ViewModels
 
         private void LoadRoles()
         {
-            var roles = Role.GetAllRoles();
+            // Lấy tất cả trừ "Học sinh" (Giả sử RoleName trong DB là "Học sinh")
+            var roles = Role.GetAllRoles()
+                            .Where(r => !r.RoleName.Equals("Học sinh", StringComparison.OrdinalIgnoreCase))
+                            .ToList();
+
             RoleList = new ObservableCollection<Role>(roles);
+
+            // BỔ SUNG FIX BUG: Nếu tạo mới nhân viên (RoleId = 0), tự động gán cho họ Role đầu tiên trong list (VD: Giáo viên)
+            if (_isNewStaff && CurrentStaff.RoleId == 0 && RoleList.Any())
+            {
+                CurrentStaff.RoleId = RoleList.First().RoleId;
+            }
         }
 
         private void LoadSubjects()
