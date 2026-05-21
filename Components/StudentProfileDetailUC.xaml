@@ -6,25 +6,64 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
              mc:Ignorable="d"
-             d:Height="800"
-             d:Width="850">
+             Background="Transparent">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </UserControl.Resources>
 
-    <Border CornerRadius="16"
-            Background="White"
-            Margin="10"
-            MinWidth="800"
-            MaxWidth="800"
-            MinHeight="650"
-            MaxHeight="700">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="15"
-                              ShadowDepth="3"
-                              Opacity="0.2" />
-        </Border.Effect>
+    <Border Background="White">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="CornerRadius"
+                        Value="16" />
+                <Setter Property="Margin"
+                        Value="10" />
+                <Setter Property="MinWidth"
+                        Value="800" />
+                <Setter Property="MaxWidth"
+                        Value="800" />
+                <Setter Property="MinHeight"
+                        Value="650" />
+                <Setter Property="MaxHeight"
+                        Value="700" />
+                <Setter Property="HorizontalAlignment"
+                        Value="Center" />
+                <Setter Property="VerticalAlignment"
+                        Value="Center" />
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="15"
+                                          ShadowDepth="3"
+                                          Opacity="0.2" />
+                    </Setter.Value>
+                </Setter>
+
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsEditable}"
+                                 Value="False">
+                        <Setter Property="MinWidth"
+                                Value="0" />
+                        <Setter Property="MaxWidth"
+                                Value="Infinity" />
+                        <Setter Property="MinHeight"
+                                Value="0" />
+                        <Setter Property="MaxHeight"
+                                Value="Infinity" />
+                        <Setter Property="HorizontalAlignment"
+                                Value="Stretch" />
+                        <Setter Property="VerticalAlignment"
+                                Value="Stretch" />
+                        <Setter Property="Effect"
+                                Value="{x:Null}" />
+                        <Setter Property="CornerRadius"
+                                Value="0" />
+                        <Setter Property="Margin"
+                                Value="0" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
 
         <Grid Margin="20">
             <Grid.RowDefinitions>
@@ -39,7 +78,8 @@
                        FontWeight="Bold"
                        Foreground="#FF1A237E"
                        Margin="0,0,0,20"
-                       HorizontalAlignment="Center" />
+                       HorizontalAlignment="Center"
+                       Visibility="{Binding ActionVisibility}" />
 
             <Border Grid.Row="1"
                     HorizontalAlignment="Stretch"
@@ -48,7 +88,8 @@
                     CornerRadius="20"
                     BorderBrush="#E5E7EB"
                     BorderThickness="1.5"
-                    Padding="30,25,30,20">
+                    Padding="30,25,30,20"
+                    IsEnabled="{Binding IsEditable}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -105,7 +146,7 @@
 
                         <TextBox Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource RoundedTextBoxStyle}"
-                                 helpers:TextBoxHelper.IsLettersOnly="True"/>
+                                 helpers:TextBoxHelper.IsLettersOnly="True" />
 
                         <Label Content="Giới tính:"
                                FontWeight="SemiBold"
@@ -241,9 +282,9 @@
                                  Style="{StaticResource RoundedTextBoxStyle}"
                                  helpers:TextBoxHelper.IsAlphaNumericOnly="True"
                                  VerticalContentAlignment="Top"
-                                 Height="70" 
+                                 Height="70"
                                  Padding="10,5,0,0"
-                                 TextWrapping="Wrap"/>
+                                 TextWrapping="Wrap" />
 
                         <TextBlock FontSize="15"
                                    FontWeight="SemiBold"
@@ -282,7 +323,8 @@
             </Border>
 
             <Grid Grid.Row="2"
-                  Margin="0,20,0,0">
+                  Margin="0,20,0,0"
+                  Visibility="{Binding ActionVisibility}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />

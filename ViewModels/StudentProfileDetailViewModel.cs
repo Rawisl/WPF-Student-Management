@@ -4,6 +4,8 @@ using Microsoft.Data.SqlClient;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
 using WPF_Student_Management.Services;
@@ -12,7 +14,15 @@ namespace WPF_Student_Management.ViewModels
 {
     public partial class StudentProfileDetailViewModel : ObservableObject
     {
-        private readonly Student _originalItem; // Giữ tham chiếu để update lại UI bảng chính
+        private readonly Student _originalItem;
+
+        // --- BỔ SUNG CỜ PHÂN QUYỀN ĐỂ ĐỒNG BỘ VỚI UI TẮC KÈ HOA ---
+        [ObservableProperty]
+        private bool _isReadOnly;
+
+        public Visibility ActionVisibility => IsReadOnly ? Visibility.Collapsed : Visibility.Visible;
+        public bool IsEditable => !IsReadOnly;
+        // ------------------------------------------------------------
 
         [ObservableProperty] private string _studentID;
 
@@ -36,6 +46,7 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _phoneNumber;
+
         [ObservableProperty] private string _emailPrefix;
 
         [ObservableProperty]
@@ -57,23 +68,31 @@ namespace WPF_Student_Management.ViewModels
         private int _minAge = 15;
         private int _maxAge = 20;
 
-        // Cờ phân quyền: Chỉ GVCN mới được thấy nút Lập Đơn
         [ObservableProperty]
         private bool _isCreateRequestVisible;
 
-        public StudentProfileDetailViewModel(Student student)
+        // BỔ SUNG THAM SỐ isReadOnly VÀO CONSTRUCTOR
+        public StudentProfileDetailViewModel(Student student, bool isReadOnly = false)
         {
             _originalItem = student;
+            IsReadOnly = isReadOnly;
 
-            // --- BỔ SUNG LOGIC CHECK QUYỀN HIỆN NÚT LẬP ĐƠN ---
-            // Truyền userrole = 5 = GVCN vô
-            if (CurrentUser.Instance != null && CurrentUser.Instance.Role == (UserRole)5 )
+            // Logic check quyền hiện nút Lập đơn
+            // Nếu form đang ở chế độ Chỉ Đọc (Học sinh đang xem) thì chắc chắn ẨN nút Lập Đơn
+            if (IsReadOnly)
             {
-                IsCreateRequestVisible = true;
+                IsCreateRequestVisible = false;
             }
             else
             {
-                IsCreateRequestVisible = false; // Giáo vụ hoặc người khác vào xem sẽ bị ẩn
+                if (CurrentUser.Instance != null && CurrentUser.Instance.Role == (UserRole)5)
+                {
+                    IsCreateRequestVisible = true;
+                }
+                else
+                {
+                    IsCreateRequestVisible = false;
+                }
             }
 
             // 1. MAP DỮ LIỆU CƠ BẢN
@@ -81,7 +100,6 @@ namespace WPF_Student_Management.ViewModels
             FullName = student.FullName;
             IsAccountActive = Account.IsAccountActive(student.AccountId);
 
-            // Xử lý Giới tính cho RadioButton
             if (student.Gender == "Nam") IsMale = true;
             else IsFemale = true;
 
@@ -95,7 +113,6 @@ namespace WPF_Student_Management.ViewModels
             Address = student.Address;
             PhoneNumber = student.PhoneNumber;
 
-            // Xử lý Email: Cắt đuôi @gmail.com để ném lên UI
             if (!string.IsNullOrWhiteSpace(student.Email) && student.Email.EndsWith("@gmail.com"))
             {
                 EmailPrefix = student.Email.Replace("@gmail.com", "");
@@ -145,9 +162,10 @@ namespace WPF_Student_Management.ViewModels
                 AgeErrorMessage = string.Empty;
         }
 
-        // Kiểm tra điều kiện để cho bấm nút Lưu
         private bool CanSave()
         {
+            if (IsReadOnly) return false;
+
             string phoneRegexPattern = @"^0\d{9}$";
 
             return string.IsNullOrEmpty(AgeErrorMessage) &&
@@ -165,12 +183,10 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                // Chốt data từ UI
                 string finalGender = IsMale ? "Nam" : "Nữ";
                 string finalFamilyBg = IsFamilyNormal ? "Bình thường" : "Khó khăn";
                 string finalEmail = string.IsNullOrWhiteSpace(EmailPrefix) ? null : $"{EmailPrefix.Trim()}@gmail.com";
 
-                // Cập nhật dữ liệu mới vào object _originalItem
                 _originalItem.FullName = FullName.Trim();
                 _originalItem.Gender = finalGender;
                 _originalItem.DateOfBirth = DateOfBirth;
@@ -195,9 +211,6 @@ namespace WPF_Student_Management.ViewModels
             }
             catch (SqlException sqlEx)
             {
-                // Bắt lỗi trùng Email.
-                // 2601: Lỗi do vi phạm "Unique Index" (Tạo ra một dòng trùng lặp ở cột đã đánh dấu là Unique).
-                // 2627: Lỗi do vi phạm "Primary Key"(Khóa chính) hoặc "Unique Constraint"(Ràng buộc duy nhất).
                 if (sqlEx.Number == 2627 || sqlEx.Number == 2601)
                 {
                     NotificationHelper.ShowError("Lỗi: Email này đã được sử dụng cho một học sinh khác. Vui lòng kiểm tra lại!");
@@ -216,18 +229,15 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private void ResetPassword()
         {
-            //Rào chắn: Nếu tài khoản bị khóa thì không cho làm gì (UI đã chặn rồi, nhưng chặn thêm lớp code cho chắc)
             if (!IsAccountActive)
             {
                 NotificationHelper.ShowError("Không thể cấp lại mật khẩu do tài khoản của học sinh đang bị khóa. Vui lòng liên hệ IT Admin.");
                 return;
             }
 
-            //Hiện Pop-up xác nhận
             bool isConfirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn đặt lại mật khẩu của học sinh {_originalItem.FullName} về mặc định không?");
             if (!isConfirm) return;
 
-            //Tái tạo lại mật khẩu mặc định (ddMMyyyy + 4 số cuối SĐT)
             string defaultRawPassword = "";
             if (_originalItem.DateOfBirth.HasValue && !string.IsNullOrWhiteSpace(_originalItem.PhoneNumber) && _originalItem.PhoneNumber.Length >= 4)
             {
@@ -237,17 +247,13 @@ namespace WPF_Student_Management.ViewModels
             }
             else
             {
-                //Fallback nếu data học sinh bị thiếu (VD: Không có SĐT)
                 defaultRawPassword = "Password123";
             }
 
-            //Múc xuống CSDL
             bool isSuccess = Account.ResetPassword(_originalItem.AccountId, defaultRawPassword);
 
-            //Báo cáo kết quả
             if (isSuccess)
             {
-                //TODO(Note): Chỗ này backend phải có hàm Revoke Token để đá học sinh ra, nhưng tạm thời UI chỉ show thông báo
                 NotificationHelper.ShowSuccess($"Đã cấp lại mật khẩu mặc định thành công cho học sinh {_originalItem.FullName}!\n\nMật khẩu mới: {defaultRawPassword}");
             }
             else
@@ -255,6 +261,7 @@ namespace WPF_Student_Management.ViewModels
                 NotificationHelper.ShowError("Hệ thống lỗi: Không thể reset mật khẩu lúc này!");
             }
         }
+
         [RelayCommand]
         private void Cancel() => MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
 
@@ -263,13 +270,11 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                //Đóng cái Dialog Chi tiết học sinh hiện tại lại cho đỡ rối màn hình
                 MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
 
                 var requestVM = new EnrollmentChangeRequestViewModel(_originalItem);
                 var requestView = new WPF_Student_Management.Components.EnrollmentChangeRequestUC { DataContext = requestVM };
 
-                //Mở Dialog Lập đơn lên (Mở khóa dòng này khi tạo xong UC)
                 await MaterialDesignThemes.Wpf.DialogHost.Show(requestView, "RootDialog");
             }
             catch (Exception ex)
@@ -277,7 +282,7 @@ namespace WPF_Student_Management.ViewModels
                 NotificationHelper.ShowError("Lỗi khởi tạo form lập đơn:\n" + ex.Message);
             }
         }
-        // Logic đồng bộ RadioButton (chống check cả 2 cái cùng lúc)
+
         partial void OnIsMaleChanged(bool value) => IsFemale = !value;
         partial void OnIsFemaleChanged(bool value) => IsMale = !value;
         partial void OnIsFamilyNormalChanged(bool value) => IsFamilyHard = !value;

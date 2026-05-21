@@ -236,10 +236,10 @@
                                VerticalAlignment="Center" />
                 </StackPanel>
             </RadioButton>
-            
+
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding PersonalInfoLookupVM}">
+                         CommandParameter="{Binding PersoncalInfoLookupVM}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="Person"
                                              Width="20"

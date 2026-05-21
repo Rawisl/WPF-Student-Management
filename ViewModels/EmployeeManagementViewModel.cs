@@ -16,6 +16,7 @@ namespace WPF_Student_Management.ViewModels
     public partial class EmployeeManagementViewModel : ObservableObject
     {
         public bool IsReadOnly => CurrentUser.Instance.Role != (UserRole)2;
+        public Visibility ActionVisibility => IsReadOnly ? Visibility.Collapsed : Visibility.Visible;
 
         [ObservableProperty]
         private ObservableCollection<Staff> _staffList;

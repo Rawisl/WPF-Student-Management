@@ -23,7 +23,6 @@ namespace WPF_Student_Management.ViewModels
         public RegulationSettingsViewModel RegulationSettingsVM { get; } = new RegulationSettingsViewModel();
         public SettingsViewModel SettingsVM { get; } = new SettingsViewModel();
         public GlobalStudentManagementViewModel GlobalStudentManagementVM { get; } = new GlobalStudentManagementViewModel();
-
         public EmployeeManagementViewModel EmployeeManagementVM { get; } = new EmployeeManagementViewModel();
         public EnrollmentChangeExecutionViewModel EnrollmentChangeExecutionVM { get; } = new EnrollmentChangeExecutionViewModel();
         public GlobalSummaryReportViewModel GlobalSummaryReportVM { get; } = new GlobalSummaryReportViewModel();

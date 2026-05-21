@@ -46,6 +46,11 @@ namespace WPF_Student_Management.ViewModels
         // Constructor nhận vào Staff, Cờ phân quyền, và một Callback để báo cho View cha biết khi lưu xong
         public EmployeeProfileDetailViewModel(Staff staff, bool isReadOnly = false, Action onSaveSuccess = null)
         {
+            if (staff.Specialization == null)
+            {
+                staff.Specialization = 0;
+            }
+
             CurrentStaff = staff;
             IsReadOnly = isReadOnly;
             _onSaveSuccess = onSaveSuccess;
@@ -108,6 +113,10 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
+                if (CurrentStaff.Specialization == 0)
+                {
+                    CurrentStaff.Specialization = null;
+                }
                 bool isSuccess = false;
 
                 if (_isNewStaff)
