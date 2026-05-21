@@ -1,44 +1,40 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Data.SqlClient;
 using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Input;
 using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.ViewModels
 {
-    public class ForceChangePasswordViewModel : INotifyPropertyChanged
+    // Kế thừa ObservableObject thay vì INotifyPropertyChanged dài dòng
+    public partial class ForceChangePasswordViewModel : ObservableObject
     {
+        // Khai báo biến và dặn C# tự báo hiệu cho nút Lưu (ChangePasswordCommand) mỗi khi gõ chữ
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(ChangePasswordCommand))]
         private string _newPassword;
-        public string NewPassword
-        {
-            get => _newPassword;
-            set { _newPassword = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(ChangePasswordCommand))]
         private string _confirmPassword;
-        public string ConfirmPassword
-        {
-            get => _confirmPassword;
-            set { _confirmPassword = value; OnPropertyChanged(); }
-        }
 
-        public ICommand ChangePasswordCommand { get; }
-
+        // Constructor giờ trống trơn, sạch sẽ!
         public ForceChangePasswordViewModel()
         {
-            ChangePasswordCommand = new RelayCommand(ExecuteChangePassword, CanExecuteChangePassword);
         }
 
-        private bool CanExecuteChangePassword(object obj)
+        // Hàm check điều kiện: Đủ 2 ô mới cho bấm nút
+        private bool CanChangePassword()
         {
             return !string.IsNullOrWhiteSpace(NewPassword) &&
                    !string.IsNullOrWhiteSpace(ConfirmPassword);
         }
 
-        private void ExecuteChangePassword(object obj)
+        // Tự động sinh RelayCommand<Window> vì tham số truyền vào là Window
+        [RelayCommand(CanExecute = nameof(CanChangePassword))]
+        private void ChangePassword(Window currentWindow)
         {
             if (NewPassword != ConfirmPassword)
             {
@@ -72,8 +68,8 @@ namespace WPF_Student_Management.ViewModels
                 {
                     NotificationHelper.ShowSuccess("Đổi mật khẩu thành công! Chào mừng bạn đến với hệ thống.");
 
-                    // Mở MainWindow và đóng cửa sổ hiện tại (Window được truyền vào qua CommandParameter)
-                    if (obj is Window currentWindow)
+                    // Chuyển form cực mượt mà không cần ép kiểu "obj is Window" nữa
+                    if (currentWindow != null)
                     {
                         MainWindow main = new MainWindow();
                         main.Show();
@@ -89,12 +85,6 @@ namespace WPF_Student_Management.ViewModels
             {
                 NotificationHelper.ShowError("Lỗi hệ thống: " + ex.Message);
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

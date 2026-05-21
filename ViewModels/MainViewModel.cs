@@ -29,6 +29,7 @@ namespace WPF_Student_Management.ViewModels
         public GlobalSummaryReportViewModel GlobalSummaryReportVM { get; } = new GlobalSummaryReportViewModel();
         public GradeLookupViewModel GradeLookupVM { get; } = new GradeLookupViewModel();
         public TeachingAssignmentViewModel TeachingAssignmentVM { get; } = new TeachingAssignmentViewModel();
+        public PersonalInfoLookupViewModel PersoncalInfoLookupVM { get; } = new PersonalInfoLookupViewModel();
 
         // Biến lưu trang hiện tại đang hiển thị trên ContentControl
         [ObservableProperty]
@@ -39,7 +40,7 @@ namespace WPF_Student_Management.ViewModels
         public MainViewModel()
         {
             CurrentView = ClassRosterVM; // Trang mặc định
-            LogoutCommand = new RelayCommand(ExecuteLogout);
+            LogoutCommand = new RelayCommand<object>(ExecuteLogout);
         }
 
         [RelayCommand]

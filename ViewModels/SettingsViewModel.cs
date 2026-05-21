@@ -1,51 +1,43 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Data.SqlClient;
 using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using System.Windows.Input;
 using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.ViewModels
 {
-    public class SettingsViewModel : INotifyPropertyChanged
+    public partial class SettingsViewModel : ObservableObject
     {
+        // Gắn cờ để khi gõ chữ vào TextBox, nút Lưu tự động đánh giá xem có sáng lên không
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(ChangePasswordCommand))]
         private string _oldPassword;
-        public string OldPassword
-        {
-            get => _oldPassword;
-            set { _oldPassword = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(ChangePasswordCommand))]
         private string _newPassword;
-        public string NewPassword
-        {
-            get => _newPassword;
-            set { _newPassword = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(ChangePasswordCommand))]
         private string _confirmPassword;
-        public string ConfirmPassword
-        {
-            get => _confirmPassword;
-            set { _confirmPassword = value; OnPropertyChanged(); }
-        }
-
-        public ICommand ChangePasswordCommand { get; }
 
         public SettingsViewModel()
         {
-            ChangePasswordCommand = new RelayCommand(ExecuteChangePassword, CanExecuteChangePassword);
+            // Constructor giờ trống trơn, sạch sẽ
         }
 
-        private bool CanExecuteChangePassword(object obj)
+        // Đổi tên hàm check và bỏ tham số (object obj)
+        private bool CanChangePassword()
         {
             return !string.IsNullOrWhiteSpace(OldPassword) &&
                    !string.IsNullOrWhiteSpace(NewPassword) &&
                    !string.IsNullOrWhiteSpace(ConfirmPassword);
         }
 
-        private void ExecuteChangePassword(object obj)
+        // Tự động sinh ra lệnh ChangePasswordCommand
+        [RelayCommand(CanExecute = nameof(CanChangePassword))]
+        private void ChangePassword()
         {
             if (NewPassword != ConfirmPassword)
             {
@@ -99,6 +91,8 @@ namespace WPF_Student_Management.ViewModels
                 if (rowsAffected > 0)
                 {
                     NotificationHelper.ShowSuccess("Đổi mật khẩu thành công!");
+
+                    // Reset lại form cho gọn
                     OldPassword = "";
                     NewPassword = "";
                     ConfirmPassword = "";
@@ -112,12 +106,6 @@ namespace WPF_Student_Management.ViewModels
             {
                 NotificationHelper.ShowError("Lỗi hệ thống: " + ex.Message);
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
