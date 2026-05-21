@@ -16,9 +16,9 @@ namespace WPF_Student_Management.ViewModels
     public partial class GlobalStudentManagementViewModel : ObservableObject
     {
         //KIỂM TRA ROLE ĐỂ KHÓA GIAO DIỆN HIỆU TRƯỞNG ---
-        public Visibility ActionVisibility => ((int)CurrentUser.Instance.Role == 6 || (int)CurrentUser.Instance.Role == 2) ? Visibility.Visible : Visibility.Collapsed;
-        private bool CanModify() => (int)CurrentUser.Instance.Role == 6 || (int)CurrentUser.Instance.Role == 2;
-        private bool CanModifyStudent(Student student) => (int)CurrentUser.Instance.Role == 6 || (int)CurrentUser.Instance.Role == 2;
+        public Visibility ActionVisibility => PermissionService.HasFeature(PermissionService.Feature.ManageGlobalStudents) ? Visibility.Visible : Visibility.Collapsed;
+        private bool CanModify() => PermissionService.HasFeature(PermissionService.Feature.ManageGlobalStudents);
+        private bool CanModifyStudent(Student student) => PermissionService.HasFeature(PermissionService.Feature.ManageGlobalStudents);
 
         //TẠO 2 BIẾN LƯU TRỮ QUY ĐỊNH LÚC VỪA MỞ FORM(Cho số mặc định lỡ DB lỗi)
         private int _minAge = 15;

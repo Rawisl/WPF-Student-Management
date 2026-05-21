@@ -1,68 +1,54 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Data;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
-    public class AccountManagementViewModel : INotifyPropertyChanged
+    // ĐÃ FIX: Kế thừa ObservableObject thay vì tự viết INotifyPropertyChanged
+    public partial class AccountManagementViewModel : ObservableObject
     {
-        // --- PROPETIES ---
+        // --- PROPETIES (Dùng [ObservableProperty] để code tự sinh getter/setter) ---
+
+        [ObservableProperty]
         private ObservableCollection<Staff> _staffList;
-        public ObservableCollection<Staff> StaffList
-        {
-            get => _staffList;
-            set { _staffList = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
+        private ObservableCollection<Role> _roleList;
+
+        [ObservableProperty]
         private Staff _selectedStaff;
-        public Staff SelectedStaff
-        {
-            get => _selectedStaff;
-            set
-            {
-                _selectedStaff = value;
-                OnPropertyChanged();
-                UpdateAccountInfo();
-            }
-        }
 
-        public ObservableCollection<Role> RoleList { get; set; }
-
+        [ObservableProperty]
         private int _selectedRoleId;
-        public int SelectedRoleId
-        {
-            get => _selectedRoleId;
-            set { _selectedRoleId = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _username;
-        public string Username
-        {
-            get => _username;
-            set { _username = value; OnPropertyChanged(); }
-        }
-
-        // --- COMMANDS ---
-        public ICommand LoadCommand { get; }
-        public ICommand SaveAccountCommand { get; }
 
         // --- CONSTRUCTOR ---
         public AccountManagementViewModel()
         {
-            LoadCommand = new RelayCommand(p => ExecuteLoad());
-            SaveAccountCommand = new RelayCommand(p => ExecuteSave(), p => SelectedStaff != null);
-
-            ExecuteLoad();
+            // Tự động load dữ liệu khi khởi tạo
+            Load();
         }
 
-        // --- METHODS ---
-        private void ExecuteLoad()
+        // --- HÀM LẮNG NGHE SỰ THAY ĐỔI (Tự động kích hoạt khi SelectedStaff thay đổi) ---
+        partial void OnSelectedStaffChanged(Staff value)
+        {
+            UpdateAccountInfo();
+            // Đánh thức hàm kiểm tra điều kiện của nút Save để nó sáng/tối tùy lúc
+            SaveAccountCommand.NotifyCanExecuteChanged();
+        }
+
+        // --- COMMANDS ---
+
+        [RelayCommand]
+        private void Load()
         {
             StaffList = new ObservableCollection<Staff>(Staff.GetAllStaff());
             RoleList = new ObservableCollection<Role>(Role.GetAllRoles());
@@ -79,7 +65,7 @@ namespace WPF_Student_Management.ViewModels
             // Đồng bộ RoleID từ Staff sang UI Dropdown
             SelectedRoleId = SelectedStaff.RoleId;
 
-            // Tìm Username của Account này để hiển thị lên TextBlock/TextBox
+            // Tìm Username của Account này để hiển thị
             string query = "SELECT Username FROM Account WHERE AccountID = @AccID";
             SqlParameter[] param = { new SqlParameter("@AccID", SelectedStaff.AccountId) };
             DataTable dt = DatabaseHelper.ExecuteQuery(query, param);
@@ -90,12 +76,14 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        private void ExecuteSave()
+        // Hàm kiểm tra điều kiện: Nút Save chỉ sáng khi có Staff được chọn
+        private bool CanSaveAccount() => SelectedStaff != null;
+
+        [RelayCommand(CanExecute = nameof(CanSaveAccount))]
+        private void SaveAccount()
         {
             try
             {
-                // Bảng Employee bắt buộc có AccountID (NOT NULL). 
-                // Do đó, ta chỉ cần duy nhất logic UPDATE RoleID.
                 string updateQuery = "UPDATE Account SET RoleID = @RoleID WHERE AccountID = @AccID";
 
                 SqlParameter[] updateParams = {
@@ -107,11 +95,8 @@ namespace WPF_Student_Management.ViewModels
                 {
                     NotificationHelper.ShowConfirm("Cập nhật phân quyền thành công!");
 
-                    // Cập nhật lại Object local để UI ko bị lag
                     SelectedStaff.RoleId = SelectedRoleId;
-
-                    // Reload lại Grid để đảm bảo đồng bộ
-                    ExecuteLoad();
+                    Load(); // Reload Grid
                 }
                 else
                 {
@@ -123,10 +108,5 @@ namespace WPF_Student_Management.ViewModels
                 NotificationHelper.ShowError("Lỗi hệ thống: " + ex.Message);
             }
         }
-
-        // --- INOTIFYPROPERTYCHANGED ---
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

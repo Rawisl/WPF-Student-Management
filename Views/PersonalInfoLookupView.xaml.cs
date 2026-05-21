@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace WPF_Student_Management.Components
+namespace WPF_Student_Management.Views
 {
     /// <summary>
-    /// Interaction logic for EmployeeDetailDialog.xaml
+    /// Interaction logic for PersonalInfoLookupView.xaml
     /// </summary>
-    public partial class EmployeeDetailDialog : UserControl
+    public partial class PersonalInfoLookupView : UserControl
     {
-        public EmployeeDetailDialog()
+        public PersonalInfoLookupView()
         {
             InitializeComponent();
         }

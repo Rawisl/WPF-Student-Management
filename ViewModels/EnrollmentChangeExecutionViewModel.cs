@@ -7,6 +7,7 @@ using System.Data;
 using System.Windows;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
+using WPF_Student_Management.Services;
 
 namespace WPF_Student_Management.ViewModels
 {
@@ -52,7 +53,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
     }
-
     public partial class EnrollmentChangeExecutionViewModel : ObservableObject
     {
         [ObservableProperty]
@@ -63,12 +63,15 @@ namespace WPF_Student_Management.ViewModels
 
         private PendingRequestItem _processingItem;
 
-        // Biến điều khiển UI: Hiện cột Thao tác nếu là HT (Role 3) hoặc GV (Role 6)
-        public Visibility ActionColumnVisibility => ((int)CurrentUser.Instance.Role == 3 || (int)CurrentUser.Instance.Role == 6) ? Visibility.Visible : Visibility.Collapsed;
+        // ĐÃ FIX: Tận dụng PermissionService để ẩn/hiện cột Thao tác (Chỉ Hiệu trưởng và Giáo vụ thấy)
+        public Visibility ActionColumnVisibility =>
+            (PermissionService.HasFeature(PermissionService.Feature.ApproveRequests) ||
+             PermissionService.HasFeature(PermissionService.Feature.ExecuteRequests))
+            ? Visibility.Visible : Visibility.Collapsed;
 
-        // Tiêu đề form thay đổi theo Role
-        public string FormTitle => (int)CurrentUser.Instance.Role == 5 ? "Lịch sử đơn từ đã lập" : "Xử lý đơn chuyển lớp / thôi học";
-        public string FormDescription => (int)CurrentUser.Instance.Role == 5 ? "Theo dõi tiến độ duyệt các lá đơn do bạn tạo ra." : "Danh sách các đơn yêu cầu đang chờ bạn xét duyệt và thực thi.";
+        // ĐÃ FIX: Dùng Enum chuẩn thay vì Magic Number
+        public string FormTitle => CurrentUser.Instance.Role == UserRole.GVCN ? "Lịch sử đơn từ đã lập" : "Xử lý đơn chuyển lớp / thôi học";
+        public string FormDescription => CurrentUser.Instance.Role == UserRole.GVCN ? "Theo dõi tiến độ duyệt các lá đơn do bạn tạo ra." : "Danh sách các đơn yêu cầu đang chờ bạn xét duyệt và thực thi.";
 
         public EnrollmentChangeExecutionViewModel()
         {
@@ -88,16 +91,17 @@ namespace WPF_Student_Management.ViewModels
             PendingRequests.Clear();
             try
             {
-                int roleId = (int)CurrentUser.Instance.Role;
+                var currentRole = CurrentUser.Instance.Role;
                 int empId = GetCurrentEmployeeId();
 
-                string whereClause = "1=0"; // Mặc định không cho xem gì cả
+                string whereClause = "1=0";
 
-                if (roleId == 5) // GVCN: Xem tất cả đơn do mình tạo (Mọi trạng thái)
+                // ĐÃ FIX: So sánh chuẩn bằng Enum UserRole
+                if (currentRole == UserRole.GVCN) // GVCN: Xem đơn do mình tạo
                     whereClause = "a.CreatedByTeacherID = @EmpID";
-                else if (roleId == 3) // Hiệu trưởng: Xem các đơn chờ duyệt (Status = 1)
+                else if (currentRole == UserRole.HieuTruong) // Hiệu trưởng: Xem các đơn chờ duyệt (Status = 1)
                     whereClause = "a.StatusID = 1";
-                else if (roleId == 6) // Giáo vụ: Xem các đơn HT đã duyệt (Status = 2)
+                else if (currentRole == UserRole.GiaoVu) // Giáo vụ: Xem các đơn HT đã duyệt (Status = 2)
                     whereClause = "a.StatusID = 2";
 
                 string query = $@"
@@ -140,14 +144,13 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- 1. THỰC THI HOẶC DUYỆT ĐƠN ---
         [RelayCommand]
         private void ExecuteRequest(PendingRequestItem item)
         {
             if (item == null) return;
-            int roleId = (int)CurrentUser.Instance.Role;
+            var currentRole = CurrentUser.Instance.Role;
 
-            if (roleId == 3) // LÀ HIỆU TRƯỞNG (Chỉ chuyển status sang 2)
+            if (currentRole == UserRole.HieuTruong)
             {
                 bool confirm = NotificationHelper.ShowConfirm($"Bạn có duyệt đơn {item.RequestTypeDisplay} của học sinh {item.FullName} để chuyển xuống cho Giáo vụ thực thi không?");
                 if (!confirm) return;
@@ -158,7 +161,7 @@ namespace WPF_Student_Management.ViewModels
                 NotificationHelper.ShowSuccess("Đã duyệt! Đơn đã được chuyển cho Giáo vụ.");
                 LoadPendingRequests();
             }
-            else if (roleId == 6) // LÀ GIÁO VỤ (Thực thi Data và chuyển status sang 4)
+            else if (currentRole == UserRole.GiaoVu)
             {
                 bool confirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn THỰC THI đơn {item.RequestTypeDisplay} của học sinh {item.FullName}?");
                 if (!confirm) return;
@@ -166,14 +169,12 @@ namespace WPF_Student_Management.ViewModels
                 string currentSemester = "Học kỳ 1";
                 string currentYear = "2025-2026";
 
-                // Kiểm tra khóa sổ lớp cũ
                 if (item.CurrentClassId.HasValue && ClassReport.IsClassReportLocked(item.CurrentClassId.Value, currentSemester, currentYear))
                 {
                     NotificationHelper.ShowError($"Lớp cũ ({item.CurrentClassName}) đã khóa sổ!\nKhông thể rút học sinh. Vui lòng chọn Trả đơn.");
                     return;
                 }
 
-                // Kiểm tra khóa sổ lớp mới
                 if (item.RequestType == "ClassTransfer" && item.TargetClassId.HasValue && ClassReport.IsClassReportLocked(item.TargetClassId.Value, currentSemester, currentYear))
                 {
                     NotificationHelper.ShowError($"Lớp đích ({item.TargetClassName}) đã khóa sổ!\nKhông thể thêm học sinh. Vui lòng chọn Trả đơn.");
@@ -190,7 +191,8 @@ namespace WPF_Student_Management.ViewModels
                             if (item.RequestType == "DropOut")
                             {
                                 new SqlCommand($"UPDATE Student SET Status = 'Inactive' WHERE StudentID = '{item.StudentId}'", conn, transaction).ExecuteNonQuery();
-                                new SqlCommand($"DELETE FROM ClassPlacement WHERE StudentID = '{item.StudentId}'", conn, transaction).ExecuteNonQuery();
+                                // ĐÃ FIX: Chỉ xóa dòng ClassPlacement HIỆN TẠI để bảo toàn lịch sử học tập các năm trước
+                                new SqlCommand($"DELETE FROM ClassPlacement WHERE StudentID = '{item.StudentId}' AND EffectiveTo IS NULL", conn, transaction).ExecuteNonQuery();
                             }
                             else if (item.RequestType == "ClassTransfer")
                             {
@@ -204,7 +206,8 @@ namespace WPF_Student_Management.ViewModels
                                     return;
                                 }
 
-                                new SqlCommand($"UPDATE ClassPlacement SET ClassID = {item.TargetClassId} WHERE StudentID = '{item.StudentId}'", conn, transaction).ExecuteNonQuery();
+                                // ĐÃ FIX: Cập nhật đúng dòng đang Active
+                                new SqlCommand($"UPDATE ClassPlacement SET ClassID = {item.TargetClassId} WHERE StudentID = '{item.StudentId}' AND EffectiveTo IS NULL", conn, transaction).ExecuteNonQuery();
                             }
 
                             new SqlCommand($"UPDATE Application SET StatusID = 4, RespondedAt = GETDATE() WHERE RequestID = {item.RequestId}", conn, transaction).ExecuteNonQuery();
@@ -223,7 +226,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- 2. TRẢ ĐƠN (REJECT) ---
         [RelayCommand]
         private async void OpenRejectDialog(PendingRequestItem item)
         {
@@ -253,7 +255,6 @@ namespace WPF_Student_Management.ViewModels
 
             try
             {
-                // Cả HT và Giáo vụ khi từ chối đều chuyển StatusID về 3
                 string query = "UPDATE Application SET StatusID = 3, FeedbackNote = @Reason, RespondedAt = GETDATE() WHERE RequestID = @ReqID";
                 DatabaseHelper.ExecuteNonQuery(query, new[] {
                     new SqlParameter("@Reason", RejectReason.Trim()),

@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Data.SqlClient;
 using System;
@@ -7,10 +8,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using WPF_Student_Management.Helpers;
@@ -53,107 +52,90 @@ namespace WPF_Student_Management.ViewModels
         public ObservableCollection<FailedSubjectItem> FailedSubjectsList { get; set; }
     }
 
-    public class HomeroomDashboardViewModel : INotifyPropertyChanged
+    // ĐÃ FIX: Kế thừa ObservableObject thay vì INotifyPropertyChanged
+    public partial class HomeroomDashboardViewModel : ObservableObject
     {
-        // --- BỔ SUNG: BIẾN KIỂM SOÁT THỜI GIAN ---
-        private string _currentSemester = "Học kỳ 1";
-        public string CurrentSemester
-        {
-            get => _currentSemester;
-            set { _currentSemester = value; OnPropertyChanged(); LoadHomeroomData(); }
-        }
+        // --- PROPETIES TỰ ĐỘNG BẰNG [ObservableProperty] ---
 
+        [ObservableProperty]
+        private string _currentSemester = "Học kỳ 1";
+        partial void OnCurrentSemesterChanged(string value) => LoadHomeroomData();
+
+        [ObservableProperty]
         private string _currentAcademicYear = "2025-2026";
-        public string CurrentAcademicYear
-        {
-            get => _currentAcademicYear;
-            set { _currentAcademicYear = value; OnPropertyChanged(); LoadHomeroomData(); }
-        }
-        // ----------------------------------------
+        partial void OnCurrentAcademicYearChanged(string value) => LoadHomeroomData();
 
         private ObservableCollection<HomeroomStudentGradeItem> _allStudents;
 
+        [ObservableProperty]
         private ObservableCollection<HomeroomStudentGradeItem> _displayStudents;
-        public ObservableCollection<HomeroomStudentGradeItem> DisplayStudents
-        {
-            get => _displayStudents;
-            set { _displayStudents = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
         private string _searchText;
-        public string SearchText
-        {
-            get => _searchText;
-            set { _searchText = value; OnPropertyChanged(); FilterData(); }
-        }
+        partial void OnSearchTextChanged(string value) => FilterData();
 
-        public ObservableCollection<string> GenderList { get; set; }
+        [ObservableProperty]
+        private ObservableCollection<string> _genderList;
 
+        [ObservableProperty]
         private string _selectedGender;
-        public string SelectedGender
-        {
-            get => _selectedGender;
-            set { _selectedGender = value; OnPropertyChanged(); FilterData(); }
-        }
+        partial void OnSelectedGenderChanged(string value) => FilterData();
 
+        [ObservableProperty]
         private string _classTitle;
-        public string ClassTitle
-        {
-            get => _classTitle;
-            set { _classTitle = value; OnPropertyChanged(); }
-        }
 
         private int _currentClassId = 0;
-        private int _currentTeacherId = 0; // Thêm biến lưu ID giáo viên để cắm vào Report
+        private int _currentTeacherId = 0;
 
+        [ObservableProperty]
         private ObservableCollection<ReportItem> _reportList;
-        public ObservableCollection<ReportItem> ReportList
-        {
-            get => _reportList;
-            set { _reportList = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowConfirmButton))]
         private bool _isReportGenerated = false;
-        public bool IsReportGenerated
-        {
-            get => _isReportGenerated;
-            set { _isReportGenerated = value; OnPropertyChanged(); OnPropertyChanged(nameof(ShowConfirmButton)); }
-        }
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowConfirmButton))]
         private bool _isClassLocked = false;
-        public bool IsClassLocked
-        {
-            get => _isClassLocked;
-            set { _isClassLocked = value; OnPropertyChanged(); OnPropertyChanged(nameof(ShowConfirmButton)); }
-        }
 
         public bool ShowConfirmButton => IsReportGenerated && !IsClassLocked;
 
-        private string _totalStudents;
-        public string TotalStudents { get => _totalStudents; set { _totalStudents = value; OnPropertyChanged(); } }
+        [ObservableProperty] private string _totalStudents;
+        [ObservableProperty] private string _passedStudents;
+        [ObservableProperty] private string _passRate;
 
-        private string _passedStudents;
-        public string PassedStudents { get => _passedStudents; set { _passedStudents = value; OnPropertyChanged(); } }
+        public Visibility ActionVisibility => PermissionService.HasFeature(PermissionService.Feature.ManageHomeroom)
+                                              ? Visibility.Visible : Visibility.Collapsed;
 
-        private string _passRate;
-        public string PassRate { get => _passRate; set { _passRate = value; OnPropertyChanged(); } }
+        // Sự kiện: Khi click chọn 1 Học sinh trong DataGrid
+        [ObservableProperty]
+        private HomeroomStudentGradeItem _selectedStudent;
+        partial void OnSelectedStudentChanged(HomeroomStudentGradeItem value)
+        {
+            if (value != null)
+            {
+                OpenStudentDetail(value); // Mở Popup
+                // Tự động bỏ chọn để lần sau click lại vẫn ăn event
+                System.Windows.Application.Current.Dispatcher.InvokeAsync(() => SelectedStudent = null);
+            }
+        }
 
-        // --- COMMANDS ---
-        public ICommand GenerateReportCommand { get; }
-        public ICommand ConfirmReportCommand { get; }
-        public ICommand CancelReportCommand { get; }
-        public ICommand ViewDetailCommand { get; }
-        public ICommand OpenStudentDetailCommand { get; }
+        // Sự kiện: Khi click chọn 1 Báo cáo
+        [ObservableProperty]
+        private ReportItem _selectedReportItem;
+        partial void OnSelectedReportItemChanged(ReportItem value)
+        {
+            if (value != null)
+            {
+                ViewDetail(value);
+                System.Windows.Application.Current.Dispatcher.InvokeAsync(() => SelectedReportItem = null);
+            }
+        }
 
+        // --- CONSTRUCTOR ---
         public HomeroomDashboardViewModel()
         {
             GenderList = new ObservableCollection<string> { "Tất cả", "Nam", "Nữ" };
-
-            GenerateReportCommand = new RelayCommand(ExecuteGenerateReport, CanExecuteReportActions);
-            ConfirmReportCommand = new RelayCommand(ExecuteConfirmReport, CanExecuteReportActions);
-            CancelReportCommand = new RelayCommand(ExecuteCancelReport, CanExecuteReportActions);
-            ViewDetailCommand = new RelayCommand<object>(ExecuteViewDetail, CanExecuteReportActions);
-            OpenStudentDetailCommand = new RelayCommand<HomeroomStudentGradeItem>(ExecuteOpenStudentDetail);
 
             bool isDesignMode = DesignerProperties.GetIsInDesignMode(new DependencyObject());
             if (!isDesignMode)
@@ -167,7 +149,9 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        private bool CanExecuteReportActions(object obj) => _currentClassId > 0;
+        // --- METHODS VÀ COMMANDS ĐÃ ĐƯỢC ÉP XUNG ---
+
+        private bool CanExecuteReportActions() => _currentClassId > 0;
 
         private void LoadHomeroomData()
         {
@@ -201,7 +185,6 @@ namespace WPF_Student_Management.ViewModels
                     return;
                 }
 
-                // ĐÃ FIX: Dùng bảng StudentAverage, check ClassPlacement lịch sử, bỏ GROUP BY cồng kềnh
                 string query = @"
                 SELECT 
                     c.ClassID, e.EmployeeID, ISNULL(cr.IsLocked, 0) AS IsLocked,
@@ -230,6 +213,13 @@ namespace WPF_Student_Management.ViewModels
                 {
                     _currentClassId = Convert.ToInt32(dt.Rows[0]["ClassID"]);
                     _currentTeacherId = Convert.ToInt32(dt.Rows[0]["EmployeeID"]);
+
+                    // Cập nhật trạng thái các Command sau khi có ClassID mới
+                    GenerateReportCommand.NotifyCanExecuteChanged();
+                    ConfirmReportCommand.NotifyCanExecuteChanged();
+                    CancelReportCommand.NotifyCanExecuteChanged();
+                    ViewDetailCommand.NotifyCanExecuteChanged();
+
                     IsClassLocked = Convert.ToBoolean(dt.Rows[0]["IsLocked"]);
                     ClassTitle = $"Danh sách học tập lớp {dt.Rows[0]["ClassName"]} - {CurrentSemester}";
 
@@ -261,6 +251,11 @@ namespace WPF_Student_Management.ViewModels
                 else
                 {
                     ClassTitle = "Tài khoản này hiện chưa được phân công chủ nhiệm lớp nào trong năm học này.";
+                    _currentClassId = 0;
+                    GenerateReportCommand.NotifyCanExecuteChanged();
+                    ConfirmReportCommand.NotifyCanExecuteChanged();
+                    CancelReportCommand.NotifyCanExecuteChanged();
+                    ViewDetailCommand.NotifyCanExecuteChanged();
                 }
 
                 FilterData();
@@ -271,7 +266,8 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        private void ExecuteGenerateReport(object obj)
+        [RelayCommand(CanExecute = nameof(CanExecuteReportActions))]
+        private void GenerateReport()
         {
             try
             {
@@ -311,7 +307,6 @@ namespace WPF_Student_Management.ViewModels
                 DataTable dtParam = DatabaseHelper.ExecuteQuery(getPassingGradeQuery);
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
-                // ĐÃ FIX: Lấy điểm chuẩn từ StudentAverage, không tự tính bằng AVG nữa
                 string query = @"
                     SELECT 
                         s.StudentID, s.FullName,
@@ -363,7 +358,8 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        private void ExecuteConfirmReport(object obj)
+        [RelayCommand(CanExecute = nameof(CanExecuteReportActions))]
+        private void ConfirmReport()
         {
             try
             {
@@ -385,8 +381,7 @@ namespace WPF_Student_Management.ViewModels
                     new SqlParameter("@ClassID", _currentClassId),
                     new SqlParameter("@Semester", CurrentSemester),
                     new SqlParameter("@AcademicYear", CurrentAcademicYear),
-                    new SqlParameter("@TeacherID", _currentTeacherId),       
-                    // ĐÃ THÊM 2 THAM SỐ NÀY ĐỂ TRUYỀN DỮ LIỆU XUỐNG SQL
+                    new SqlParameter("@TeacherID", _currentTeacherId),
                     new SqlParameter("@Total", int.Parse(TotalStudents)),
                 };
 
@@ -404,11 +399,11 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        private void ExecuteCancelReport(object obj)
+        [RelayCommand(CanExecute = nameof(CanExecuteReportActions))]
+        private void CancelReport()
         {
             try
             {
-                // SỬA LOGIC: Mở khóa trên bảng ClassReport
                 string query = "UPDATE ClassReport SET IsLocked = 0 WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";
 
                 SqlParameter[] parameters = {
@@ -431,103 +426,72 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        private HomeroomStudentGradeItem _selectedStudent;
-        public HomeroomStudentGradeItem SelectedStudent
+        [RelayCommand]
+        private async Task OpenStudentDetail(HomeroomStudentGradeItem item)
         {
-            get => _selectedStudent;
-            set
+            if (item == null) return;
+
+            try
             {
-                _selectedStudent = value;
-                OnPropertyChanged();
+                // Truy vấn ngược DB để lấy Full Object Student
+                string query = "SELECT * FROM Student WHERE StudentID = @ID";
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@ID", item.StudentId) });
 
-                if (value != null)
+                if (dt.Rows.Count > 0)
                 {
-                    ExecuteOpenDetail(value);
-
-                    System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                    DataRow row = dt.Rows[0];
+                    Student fullStudent = new Student
                     {
-                        _selectedStudent = null;
-                        OnPropertyChanged();
-                    });
-                }
-            }
-        }
-
-        private ReportItem _selectedReportItem;
-        public ReportItem SelectedReportItem
-        {
-            get => _selectedReportItem;
-            set
-            {
-                _selectedReportItem = value;
-                OnPropertyChanged();
-
-                if (value != null)
-                {
-                    ExecuteViewDetail(value);
-
-                    System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        _selectedReportItem = null;
-                        OnPropertyChanged(nameof(SelectedReportItem));
-                    });
-                }
-            }
-        }
-
-        //code này là code bẩn, khởi tạo giao diện trong viewmodel thì quá rác nhưng t đéo biết làm j khác
-        private async void ExecuteOpenDetail(HomeroomStudentGradeItem student)
-        {
-            var detailVM = new StudentGradeDetailViewModel(student.StudentId, student.FullName, CurrentSemester, CurrentAcademicYear);
-
-            var detailView = new WPF_Student_Management.Components.StudentGradeDetailUC
-            {
-                DataContext = detailVM
-            };
-
-            var popupContainer = new System.Windows.Controls.Border
-            {
-                Background = Brushes.White,
-                CornerRadius = new CornerRadius(12),
-                Padding = new Thickness(10),
-                Effect = new DropShadowEffect
-                {
-                    BlurRadius = 15,
-                    ShadowDepth = 3,
-                    Color = (System.Windows.Media.Color)ColorConverter.ConvertFromString("#DDDDDD"),
-                    Opacity = 0.5
-                },
-                Width = 850,                 // Ép size cho Pop-up
-                Height = 600,
-                Child = detailView           // Nhét cái ruột vào trong vỏ
-            };
-
-            await MaterialDesignThemes.Wpf.DialogHost.Show(popupContainer, "RootDialog");
-        }
-
-        private async void ExecuteViewDetail(object obj)
-        {
-            if (obj is ReportItem selectedStudent)
-            {
-                if (selectedStudent.Status.Trim().Equals("Đạt", StringComparison.OrdinalIgnoreCase)) return;
-
-                if (selectedStudent.Status.Trim().Equals("Không đạt", StringComparison.OrdinalIgnoreCase))
-                {
-                    var failedList = GetFailedSubjectsFromDB(selectedStudent.StudentId);
-
-                    var detailVM = new FailedSubjectViewModel
-                    {
-                        StudentName = selectedStudent.FullName,
-                        FailedSubjectsList = new ObservableCollection<FailedSubjectItem>(failedList)
+                        StudentId = row["StudentID"].ToString(),
+                        FullName = row["FullName"].ToString(),
+                        Gender = row["Gender"].ToString(),
+                        DateOfBirth = row["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(row["DateOfBirth"]) : null,
+                        PhoneNumber = row["PhoneNumber"].ToString(),
+                        Email = row["Email"].ToString(),
+                        Address = row["Address"].ToString(),
+                        FamilyBackground = row["FamilyBackground"].ToString(),
+                        GuardianName = row["GuardianName"].ToString(),
+                        GuardianPhoneNumber = row["GuardianPhoneNumber"].ToString(),
+                        AccountId = row["AccountID"] != DBNull.Value ? Convert.ToInt32(row["AccountID"]) : 0
                     };
 
-                    var detailUC = new WPF_Student_Management.Components.FailedSubjectDetailUC
-                    {
-                        DataContext = detailVM
-                    };
+                    var detailVM = new StudentProfileDetailViewModel(fullStudent);
+                    var detailUC = new WPF_Student_Management.Components.StudentProfileDetailUC { DataContext = detailVM };
 
                     await MaterialDesignThemes.Wpf.DialogHost.Show(detailUC, "RootDialog");
+
+                    // Tùy chọn: Sau khi đóng popup reload lại lưới
+                    LoadHomeroomData();
                 }
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi khi mở hồ sơ: " + ex.Message);
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanExecuteReportActions))]
+        private async Task ViewDetail(ReportItem selectedStudent)
+        {
+            if (selectedStudent == null) return;
+            if (selectedStudent.Status.Trim().Equals("Đạt", StringComparison.OrdinalIgnoreCase)) return;
+
+            if (selectedStudent.Status.Trim().Equals("Không đạt", StringComparison.OrdinalIgnoreCase))
+            {
+                var failedList = GetFailedSubjectsFromDB(selectedStudent.StudentId);
+
+                var detailVM = new FailedSubjectViewModel
+                {
+                    StudentName = selectedStudent.FullName,
+                    FailedSubjectsList = new ObservableCollection<FailedSubjectItem>(failedList)
+                };
+
+                var detailUC = new WPF_Student_Management.Components.FailedSubjectDetailUC
+                {
+                    DataContext = detailVM
+                };
+
+                await MaterialDesignThemes.Wpf.DialogHost.Show(detailUC, "RootDialog");
             }
         }
 
@@ -540,7 +504,6 @@ namespace WPF_Student_Management.ViewModels
                 DataTable dtParam = DatabaseHelper.ExecuteQuery(paramQuery);
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
-                // SỬA CÂU QUERY: Thêm bộ lọc Semester và AcademicYear
                 string query = @"
                     SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore 
                     FROM Score sc
@@ -593,54 +556,6 @@ namespace WPF_Student_Management.ViewModels
             for (int i = 0; i < resultList.Count; i++) resultList[i].STT = i + 1;
 
             DisplayStudents = new ObservableCollection<HomeroomStudentGradeItem>(resultList);
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-        private async void ExecuteOpenStudentDetail(HomeroomStudentGradeItem item)
-        {
-            if (item == null) return;
-
-            try
-            {
-                // Truy vấn ngược DB để lấy Full Object Student dựa vào StudentId
-                string query = "SELECT * FROM Student WHERE StudentID = @ID";
-                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@ID", item.StudentId) });
-
-                if (dt.Rows.Count > 0)
-                {
-                    DataRow row = dt.Rows[0];
-                    Student fullStudent = new Student
-                    {
-                        StudentId = row["StudentID"].ToString(),
-                        FullName = row["FullName"].ToString(),
-                        Gender = row["Gender"].ToString(),
-                        DateOfBirth = row["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(row["DateOfBirth"]) : null,
-                        PhoneNumber = row["PhoneNumber"].ToString(),
-                        Email = row["Email"].ToString(),
-                        Address = row["Address"].ToString(),
-                        FamilyBackground = row["FamilyBackground"].ToString(),
-                        GuardianName = row["GuardianName"].ToString(),
-                        GuardianPhoneNumber = row["GuardianPhoneNumber"].ToString(),
-                        AccountId = row["AccountID"] != DBNull.Value ? Convert.ToInt32(row["AccountID"]) : 0
-                    };
-
-                    // Gọi popup StudentProfileDetailUC lên
-                    var detailVM = new StudentProfileDetailViewModel(fullStudent);
-                    var detailUC = new WPF_Student_Management.Components.StudentProfileDetailUC { DataContext = detailVM };
-
-                    await MaterialDesignThemes.Wpf.DialogHost.Show(detailUC, "RootDialog");
-
-                    // Tùy chọn: Sau khi đóng popup có thể gọi FilterData() để reload lại lưới nếu data thay đổi
-                    LoadHomeroomData();
-                }
-            }
-            catch (Exception ex)
-            {
-                NotificationHelper.ShowError("Lỗi khi mở hồ sơ: " + ex.Message);
-            }
         }
     }
 }

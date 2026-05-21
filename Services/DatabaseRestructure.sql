@@ -526,6 +526,7 @@ INSERT INTO Subject (SubjectName, GradeType, IsDeleted) VALUES
 (N'Giáo dục thể chất',   'PassFail', 0);  -- 9
 
 -- Accounts 
+-- Passwords are pre-hashed using SHA-256 for: admin123, principal123, staff123, teacher123, student123
 INSERT INTO Account (RoleID, Username, PasswordHash, IsRequiredChangePassword, IsActive) VALUES
 (2, 'admin_system',  '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 1, 1),
 (3, 'ht_daott',      '3549f22fb8622a6d216ef2dcd592e04ed1f1e604cef032d7e5c425e8e72a878e', 1, 1),

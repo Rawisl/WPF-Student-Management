@@ -7,111 +7,201 @@
              xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
              xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
              mc:Ignorable="d"
-             d:DesignHeight="700" d:DesignWidth="1000">
+             d:DesignHeight="700"
+             d:DesignWidth="1000">
 
     <UserControl.Resources>
-        <helpers:BindingProxy x:Key="Proxy" Data="{Binding}" />
+        <helpers:BindingProxy x:Key="Proxy"
+                              Data="{Binding}" />
 
-        <Style x:Key="WrapTextElementStyle" TargetType="TextBlock" BasedOn="{StaticResource GlobalLeftElementStyle}">
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Padding" Value="5" />
+        <Style x:Key="WrapTextElementStyle"
+               TargetType="TextBlock"
+               BasedOn="{StaticResource GlobalLeftElementStyle}">
+            <Setter Property="TextWrapping"
+                    Value="Wrap" />
+            <Setter Property="VerticalAlignment"
+                    Value="Center" />
+            <Setter Property="Padding"
+                    Value="5" />
         </Style>
     </UserControl.Resources>
-    
-    <materialDesign:DialogHost Identifier="ExecutionDialogHost" DialogBackground="Transparent" DialogMargin="0">
+
+    <materialDesign:DialogHost Identifier="ExecutionDialogHost"
+                               DialogBackground="Transparent"
+                               DialogMargin="0">
         <Grid Margin="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                <TextBlock Text="{Binding FormTitle}" FontSize="28" FontWeight="Bold" Foreground="#1A237E" />
-                <TextBlock Text="{Binding FormDescription}" FontSize="15" Foreground="#878A99" Margin="0,5,0,0" />
+            <StackPanel Grid.Row="0"
+                        Margin="0,0,0,20">
+                <TextBlock Text="{Binding FormTitle}"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#1A237E" />
+                <TextBlock Text="{Binding FormDescription}"
+                           FontSize="15"
+                           Foreground="#878A99"
+                           Margin="0,5,0,0" />
             </StackPanel>
 
-            <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="15">
+            <Border Grid.Row="1"
+                    Background="White"
+                    CornerRadius="12"
+                    Padding="15">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="1" Color="#DDDDDD" Opacity="0.5" />
+                    <DropShadowEffect BlurRadius="10"
+                                      ShadowDepth="1"
+                                      Color="#DDDDDD"
+                                      Opacity="0.5" />
                 </Border.Effect>
 
                 <DataGrid ItemsSource="{Binding PendingRequests}"
                           Style="{StaticResource GlobalDataGridStyle}"
                           CellStyle="{StaticResource GlobalDataGridCellStyle}"
-                          AutoGenerateColumns="False" CanUserAddRows="False"
-                          CanUserDeleteRows="False" CanUserReorderColumns="False"
-                          CanUserResizeColumns="False" HeadersVisibility="Column"
-                          Background="Transparent" MinRowHeight="50" VerticalScrollBarVisibility="Auto">
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserReorderColumns="False"
+                          CanUserResizeColumns="False"
+                          HeadersVisibility="Column"
+                          Background="Transparent"
+                          MinRowHeight="50"
+                          VerticalScrollBarVisibility="Auto">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="STT" Binding="{Binding STT}" IsReadOnly="True" Width="60" CanUserSort="False"
-                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+                        <DataGridTextColumn Header="STT"
+                                            Binding="{Binding STT}"
+                                            IsReadOnly="True"
+                                            Width="60"
+                                            CanUserSort="False"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}" />
 
-                        <DataGridTextColumn Header="Học sinh" Binding="{Binding FullName}" IsReadOnly="True" Width="*"
+                        <DataGridTextColumn Header="Học sinh"
+                                            Binding="{Binding FullName}"
+                                            IsReadOnly="True"
+                                            Width="*"
                                             HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock" BasedOn="{StaticResource GlobalLeftElementStyle}">
-                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                <Style TargetType="TextBlock"
+                                       BasedOn="{StaticResource GlobalLeftElementStyle}">
+                                    <Setter Property="FontWeight"
+                                            Value="SemiBold" />
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Lớp hiện tại" Binding="{Binding CurrentClassName}" IsReadOnly="True" Width="100"
-                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+                        <DataGridTextColumn Header="Lớp hiện tại"
+                                            Binding="{Binding CurrentClassName}"
+                                            IsReadOnly="True"
+                                            Width="100"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}" />
 
-                        <DataGridTemplateColumn Header="Loại yêu cầu" Width="120" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                        <DataGridTemplateColumn Header="Loại yêu cầu"
+                                                Width="120"
+                                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding RequestTypeDisplay}" Foreground="{Binding RequestTypeTextColor}" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding RequestTypeDisplay}"
+                                               Foreground="{Binding RequestTypeTextColor}"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTemplateColumn Header="Trạng thái" Width="2*" HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                        <DataGridTemplateColumn Header="Trạng thái"
+                                                Width="1.2*"
+                                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding StatusDisplay}" Foreground="{Binding StatusTextColor}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding StatusDisplay}"
+                                               Foreground="{Binding StatusTextColor}"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTextColumn Header="Lớp đích" Binding="{Binding TargetClassName}" IsReadOnly="True" Width="100"
-                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}" ElementStyle="{StaticResource GlobalCenterElementStyle}" />
+                        <DataGridTextColumn Header="Lớp đích"
+                                            Binding="{Binding TargetClassName}"
+                                            IsReadOnly="True"
+                                            Width="100"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}" />
 
-                        <DataGridTextColumn Header="Lý do" Binding="{Binding Reason}" IsReadOnly="True" Width="*"
-                    HeaderStyle="{StaticResource GlobalLeftHeaderStyle}" 
-                    ElementStyle="{StaticResource WrapTextElementStyle}" />
+                        <DataGridTextColumn Header="Lý do"
+                                            Binding="{Binding Reason}"
+                                            IsReadOnly="True"
+                                            Width="*"
+                                            HeaderStyle="{StaticResource GlobalLeftHeaderStyle}"
+                                            ElementStyle="{StaticResource WrapTextElementStyle}" />
 
-                        <DataGridTemplateColumn Header="Thao tác" Width="110" CanUserSort="False" 
-                        HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
-                        Visibility="{Binding Data.ActionColumnVisibility, Source={StaticResource Proxy}}">
+                        <DataGridTemplateColumn Header="Thao tác"
+                                                Width="110"
+                                                CanUserSort="False"
+                                                HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                                Visibility="{Binding Data.ActionColumnVisibility, Source={StaticResource Proxy}}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center">
 
                                         <StackPanel.Style>
                                             <Style TargetType="StackPanel">
-                                                <Setter Property="Visibility" Value="Hidden" />
+                                                <Setter Property="Visibility"
+                                                        Value="Hidden" />
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
-                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}"
+                                                                 Value="True">
+                                                        <Setter Property="Visibility"
+                                                                Value="Visible" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </StackPanel.Style>
 
                                         <Button Command="{Binding Data.ExecuteRequestCommand, Source={StaticResource Proxy}}"
-                        CommandParameter="{Binding}" ToolTip="Duyệt / Thực thi đơn này"
-                        Foreground="#00B894" Background="Transparent" Style="{StaticResource MaterialDesignIconForegroundButton}"
-                        BorderThickness="0" Width="35" Height="35" Margin="0,0,10,0" Padding="0" Cursor="Hand">
-                                            <materialDesign:PackIcon Kind="CheckBold" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                CommandParameter="{Binding}"
+                                                ToolTip="Duyệt / Thực thi đơn này"
+                                                Foreground="#00B894"
+                                                Background="Transparent"
+                                                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                                BorderThickness="0"
+                                                Width="35"
+                                                Height="35"
+                                                Margin="0,0,10,0"
+                                                Padding="0"
+                                                Cursor="Hand">
+                                            <materialDesign:PackIcon Kind="CheckBold"
+                                                                     Width="22"
+                                                                     Height="22"
+                                                                     HorizontalAlignment="Center"
+                                                                     VerticalAlignment="Center" />
                                         </Button>
 
                                         <Button Command="{Binding Data.OpenRejectDialogCommand, Source={StaticResource Proxy}}"
-                        CommandParameter="{Binding}" ToolTip="Từ chối / Trả đơn"
-                        Foreground="#FF4757" Background="Transparent" Style="{StaticResource MaterialDesignIconForegroundButton}"
-                        BorderThickness="0" Width="35" Height="35" Padding="0" Cursor="Hand">
-                                            <materialDesign:PackIcon Kind="CloseThick" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                CommandParameter="{Binding}"
+                                                ToolTip="Từ chối / Trả đơn"
+                                                Foreground="#FF4757"
+                                                Background="Transparent"
+                                                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                                BorderThickness="0"
+                                                Width="35"
+                                                Height="35"
+                                                Padding="0"
+                                                Cursor="Hand">
+                                            <materialDesign:PackIcon Kind="CloseThick"
+                                                                     Width="22"
+                                                                     Height="22"
+                                                                     HorizontalAlignment="Center"
+                                                                     VerticalAlignment="Center" />
                                         </Button>
                                     </StackPanel>
                                 </DataTemplate>

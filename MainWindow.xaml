@@ -78,6 +78,10 @@
         <DataTemplate DataType="{x:Type viewmodels:TeachingAssignmentViewModel}">
             <views:TeachingAssignmentView />
         </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type viewmodels:PersonalInfoLookupViewModel}">
+            <views:PersonalInfoLookupView />
+        </DataTemplate>
     </Window.Resources>
 
 

@@ -1,110 +1,42 @@
-﻿using MaterialDesignThemes.Wpf;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MaterialDesignThemes.Wpf;
 using Microsoft.Data.SqlClient;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Input;
 using WPF_Student_Management.Helpers;
 using WPF_Student_Management.Models;
+using WPF_Student_Management.Services;
 
 namespace WPF_Student_Management.ViewModels
 {
-    public class SubjectItem
-    {
-        public int? SubjectId { get; set; }
-        public string SubjectName { get; set; }
-    }
-    public class EmployeeManagementViewModel : INotifyPropertyChanged
-    {
-        // KIỂM TRA ROLE ĐỂ KHÓA GIAO DIỆN HIỆU TRƯỞNG ---
-        public bool IsReadOnly => (int)CurrentUser.Instance.Role != 2;
-        public Visibility ActionVisibility => IsReadOnly ? Visibility.Collapsed : Visibility.Visible;
-        private bool CanModify(object obj) => !IsReadOnly;
 
+    public partial class EmployeeManagementViewModel : ObservableObject
+    {
+        public Visibility ActionVisibility => PermissionService.HasFeature(PermissionService.Feature.ManageEmployees)
+                                      ? Visibility.Visible : Visibility.Collapsed;
+        public bool IsReadOnly => !PermissionService.HasFeature(PermissionService.Feature.ManageEmployees);
+        private bool CanModify() => !IsReadOnly;
+
+        [ObservableProperty]
         private ObservableCollection<Staff> _staffList;
-
-        public ObservableCollection<string> GenderList { get; } = new ObservableCollection<string> { "Nam", "Nữ" };
-        public ObservableCollection<string> StatusList { get; } = new ObservableCollection<string> { "Active", "Inactive" };
-
-        public ObservableCollection<Role> RoleList { get; set; }
-
-        public ObservableCollection<SubjectItem> SubjectList { get; set; } = new();
-
-        public ObservableCollection<Staff> StaffList
-        {
-            get => _staffList;
-            set { _staffList = value; OnPropertyChanged(); }
-        }
-
-        private Staff _currentStaff;
-        public Staff CurrentStaff
-        {
-            get => _currentStaff;
-            set { _currentStaff = value; OnPropertyChanged(); }
-        }
-
-        public ICommand LoadCommand { get; }
-        public ICommand SaveCommand { get; }
-        public ICommand DeleteCommand { get; }
-        public ICommand OpenAddDialogCommand { get; }
-        public ICommand EditCommand { get; }
 
         public EmployeeManagementViewModel()
         {
-            LoadCommand = new RelayCommand(ExecuteLoad);
-
-            // Gắn rào chắn CanModify vào tất cả các Command hành động
-            SaveCommand = new RelayCommand(ExecuteSave, CanExecuteSave);
-            DeleteCommand = new RelayCommand(ExecuteDelete, CanModify);
-            OpenAddDialogCommand = new RelayCommand(ExecuteOpenAddDialog, CanModify);
-            EditCommand = new RelayCommand(ExecuteEdit, CanModify);
-
             bool isDesignMode = DesignerProperties.GetIsInDesignMode(new DependencyObject());
             if (!isDesignMode)
             {
                 Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    ExecuteLoad(null);
+                    LoadData();
                 }), System.Windows.Threading.DispatcherPriority.Loaded);
             }
-
-            RoleList = new ObservableCollection<Role>(Role.GetAllRoles());
-
-            LoadSubjects();
         }
 
-        // Hàm load các môn học còn Active
-        private void LoadSubjects()
-        {
-            SubjectList.Clear();
-            // Thay ID "" thành null
-            SubjectList.Add(new SubjectItem { SubjectId = null, SubjectName = "-- Trống --" });
-
-            try
-            {
-                string query = "SELECT SubjectID, SubjectName FROM Subject WHERE IsDeleted = 0"; // Sửa lại đk IsDeleted = 0 dựa theo Schema của bạn
-                var dt = DatabaseHelper.ExecuteQuery(query);
-                foreach (System.Data.DataRow row in dt.Rows)
-                {
-                    SubjectList.Add(new SubjectItem
-                    {
-                        // Ép kiểu về số
-                        SubjectId = Convert.ToInt32(row["SubjectID"]),
-                        SubjectName = row["SubjectName"].ToString()
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                NotificationHelper.ShowError("Lỗi tải danh sách môn học: " + ex.Message);
-            }
-        }
-
-        private void ExecuteLoad(object obj)
+        [RelayCommand]
+        private void LoadData()
         {
             try
             {
@@ -117,11 +49,10 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- CÁC HÀM XỬ LÝ DIALOG ---
-        private async void ExecuteOpenAddDialog(object obj)
+        [RelayCommand(CanExecute = nameof(CanModify))]
+        private async void OpenAddDialog()
         {
-            // Reset form
-            CurrentStaff = new Staff
+            var newStaff = new Staff
             {
                 StaffId = 0,
                 AccountId = 0,
@@ -132,136 +63,55 @@ namespace WPF_Student_Management.ViewModels
                 Specialization = null
             };
 
-            // Gọi UserControl Dialog mới tạo
-            var dialog = new Components.EmployeeDetailDialog { DataContext = this };
+            // Khởi tạo ViewModel con, truyền dữ liệu và con trỏ hàm LoadData
+            var detailVM = new EmployeeProfileDetailViewModel(newStaff, false, LoadData);
+            var dialog = new Components.EmployeeProfileDetailUC { DataContext = detailVM };
+
             await DialogHost.Show(dialog, "RootDialog");
         }
 
-        private async void ExecuteEdit(object obj)
+        [RelayCommand(CanExecute = nameof(CanModify))]
+        private async void Edit(Staff staff)
         {
-            if (obj is Staff staff)
-            {
-                CurrentStaff = staff;
-                var dialog = new Components.EmployeeDetailDialog { DataContext = this };
-                await DialogHost.Show(dialog, "RootDialog");
-            }
+            if (staff == null) return;
+
+            var detailVM = new EmployeeProfileDetailViewModel(staff, false, LoadData);
+            var dialog = new Components.EmployeeProfileDetailUC { DataContext = detailVM };
+
+            await DialogHost.Show(dialog, "RootDialog");
         }
 
-        private int GetRoleId(string roleName)
+        [RelayCommand(CanExecute = nameof(CanModify))]
+        private void Delete(Staff staff)
         {
-            string query = $"SELECT RoleID FROM Role WHERE RoleName = N'{roleName}'";
-            var data = DatabaseHelper.ExecuteQuery(query);
-            if (data != null && data.Rows.Count > 0)
-                return Convert.ToInt32(data.Rows[0][0]);
-            return 4;
-        }
+            if (staff == null || staff.StaffId <= 0) return;
 
-        private void ExecuteSave(object obj)
-        {
-            try
-            {
-                bool isNewStaff = (CurrentStaff.StaffId == 0);
-                bool isSuccess = false;
-
-                if (isNewStaff)
-                {
-                    var accountInfo = CurrentStaff.ReceiveNewStaff();
-                    if (accountInfo != null)
-                    {
-                        NotificationHelper.ShowSuccess(
-                            $"Tiếp nhận giáo viên thành công!\n\n" +
-                            $"Tài khoản: {accountInfo.Value.Username}\n" +
-                            $"Mật khẩu: {accountInfo.Value.Password}\n\n" +
-                            $"Lưu ý: Mật khẩu mặc định là tên + 4 số cuối SĐT.");
-                        isSuccess = true;
-                    }
-                }
-                else
-                {
-                    if (CurrentStaff.AccountId == CurrentUser.Instance.UserId && CurrentStaff.Status == "Inactive")
-                    {
-                        NotificationHelper.ShowError("Hành động bị từ chối!\nBạn không thể chuyển trạng thái sang Inactive cho tài khoản đang đăng nhập.");
-                        return;
-                    }
-
-                    // CẬP NHẬT THÔNG TIN CHO NHÂN VIÊN ĐÃ CÓ
-                    isSuccess = CurrentStaff.UpdateStaff();
-                    if (isSuccess) NotificationHelper.ShowSuccess("Cập nhật thông tin thành công!");
-                }
-
-                // Nếu mọi thứ ok thì load lại danh sách và đóng cửa sổ
-                if (isSuccess)
-                {
-                    ExecuteLoad(null);
-                    DialogHost.Close("RootDialog");
-                }
-                else if (isNewStaff)
-                {
-                    NotificationHelper.ShowError("Tiếp nhận thất bại. Có thể do trùng số CCCD hoặc Số điện thoại trong hệ thống!");
-                }
-            }
-            catch (Exception ex)
-            {
-                NotificationHelper.ShowError("Lỗi hệ thống: " + ex.Message);
-            }
-        }
-
-        private bool CanExecuteSave(object obj)
-        {
-            if (IsReadOnly || CurrentStaff == null) return false;
-
-            // Kiểm tra Họ Tên: Phải có ít nhất 2 từ (Họ và Tên)
-            if (string.IsNullOrWhiteSpace(CurrentStaff.FullName) ||
-                CurrentStaff.FullName.Trim().Split(' ').Length < 2) return false;
-
-            // Kiểm tra SĐT: Phải đúng 10 số và bắt đầu bằng số 0
-            string phonePattern = @"^0\d{9}$";
-            if (string.IsNullOrWhiteSpace(CurrentStaff.PhoneNumber) ||
-                !Regex.IsMatch(CurrentStaff.PhoneNumber, phonePattern)) return false;
-
-            // Kiểm tra CCCD: Ít nhất 9 hoặc 12 số
-            if (string.IsNullOrWhiteSpace(CurrentStaff.NationalId) ||
-                CurrentStaff.NationalId.Length < 9) return false;
-
-            // Kiểm tra Email chuẩn
-            string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            if (string.IsNullOrWhiteSpace(CurrentStaff.Email) ||
-                !Regex.IsMatch(CurrentStaff.Email, emailPattern)) return false;
-
-            return true;
-        }
-
-        private void ExecuteDelete(object obj)
-        {
-            var staffToDelete = obj as Staff ?? CurrentStaff;
-            if (staffToDelete == null || staffToDelete.StaffId <= 0) return;
-
-            if (staffToDelete.AccountId == CurrentUser.Instance.UserId)
+            if (staff.AccountId == CurrentUser.Instance.UserId)
             {
                 NotificationHelper.ShowError("Không thể xóa nhân viên đang đăng nhập vào hệ thống!");
                 return;
             }
 
-            bool result = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa HOÀN TOÀN nhân viên '{staffToDelete.FullName}' khỏi hệ thống không?\n\nHành động này không thể hoàn tác!");
+            bool result = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa HOÀN TOÀN nhân viên '{staff.FullName}' khỏi hệ thống không?\n\nHành động này không thể hoàn tác!");
 
             if (result)
             {
                 try
                 {
-                    int accountIdToDelete = staffToDelete.AccountId;
-                    bool isDeleted = Staff.DeleteStaff(staffToDelete.StaffId);
+                    int accountIdToDelete = staff.AccountId;
+                    bool isDeleted = Staff.DeleteStaff(staff.StaffId);
 
                     if (isDeleted)
                     {
                         Account.DeleteAccount(accountIdToDelete);
                         NotificationHelper.ShowSuccess("Đã xóa nhân viên thành công!");
-                        ExecuteLoad(null);
+                        LoadData();
                     }
                 }
                 catch (SqlException sqlEx)
                 {
                     if (sqlEx.Number == 547)
-                        NotificationHelper.ShowWarning("Xóa dữ liệu thất bại!\n\nNhân viên này đang có dữ liệu liên kết ở bảng khác.\nVui lòng gỡ bỏ các liên kết này trước khi xóa.");
+                        NotificationHelper.ShowWarning("Xóa dữ liệu thất bại!\nNhân viên này đang có dữ liệu liên kết ở bảng khác.");
                     else
                         NotificationHelper.ShowError("Lỗi cơ sở dữ liệu:\n" + sqlEx.Message);
                 }
@@ -271,32 +121,5 @@ namespace WPF_Student_Management.ViewModels
                 }
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    public class RelayCommand : ICommand
-    {
-        private readonly Action<object> _execute;
-        private readonly Predicate<object> _canExecute;
-
-        public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public event EventHandler CanExecuteChanged
-        {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
-        }
-
-        public bool CanExecute(object parameter) => _canExecute == null || _canExecute(parameter);
-        public void Execute(object parameter) => _execute(parameter);
     }
 }

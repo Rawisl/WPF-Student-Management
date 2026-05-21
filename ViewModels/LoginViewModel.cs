@@ -1,58 +1,52 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Data.SqlClient;
 using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Data;
 using System.Windows;
-using System.Windows.Input;
 using WPF_Student_Management.Helpers;
+using WPF_Student_Management.Models;
 using WPF_Student_Management.Services;
 using WPF_Student_Management.Views;
 
 namespace WPF_Student_Management.ViewModels
 {
-    public class LoginViewModel : INotifyPropertyChanged
+    public partial class LoginViewModel : ObservableObject
     {
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(LoginCommand))]
         private string _username;
-        public string Username
-        {
-            get => _username;
-            set { _username = value; OnPropertyChanged(); }
-        }
 
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(LoginCommand))]
         private string _password;
-        public string Password
-        {
-            get => _password;
-            set { _password = value; OnPropertyChanged(); }
-        }
-
-        public ICommand LoginCommand { get; }
 
         public LoginViewModel()
         {
-            LoginCommand = new RelayCommand(ExecuteLogin, CanExecuteLogin);
         }
 
-        private bool CanExecuteLogin(object obj)
-        {
-            return !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
-        }
+        private bool CanLogin() => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
 
-        private void ExecuteLogin(object obj)
+        [RelayCommand(CanExecute = nameof(CanLogin))]
+        private void Login(Window loginWindow)
         {
             try
             {
-                // Băm mật khẩu người dùng nhập vào
                 string hashedPassword = PasswordHasher.HashPassword(Password);
 
-                string query = "SELECT * FROM Account WHERE Username = @Username AND PasswordHash = @PasswordHash";
-                SqlParameter[] parameters = new SqlParameter[]
-                {
+                // ĐÃ FIX: JOIN bảng Role để lấy RoleName thay vì chỉ lấy RoleID
+                string query = @"
+                    SELECT a.*, r.RoleName 
+                    FROM Account a
+                    JOIN Role r ON a.RoleID = r.RoleID
+                    WHERE a.Username = @Username AND a.PasswordHash = @PasswordHash";
+
+                SqlParameter[] parameters = {
                     new SqlParameter("@Username", Username),
                     new SqlParameter("@PasswordHash", hashedPassword)
                 };
 
-                var data = DatabaseHelper.ExecuteQuery(query, parameters);
+                DataTable data = DatabaseHelper.ExecuteQuery(query, parameters);
 
                 if (data.Rows.Count > 0)
                 {
@@ -66,31 +60,25 @@ namespace WPF_Student_Management.ViewModels
                     }
 
                     int accountId = Convert.ToInt32(row["AccountID"]);
-                    int roleId = Convert.ToInt32(row["RoleID"]);
                     bool isRequiredChangePwd = Convert.ToBoolean(row["IsRequiredChangePassword"]);
 
-                    // Map RoleID từ DB sang UserRole Enum (Giả sử 1:Học Sinh, 2:IT Admin, 3:Hiệu Trưởng, 4:GVBM, 5:GVCN, 6:Giáo vụ)
-                    UserRole userRole = (UserRole)roleId;
+                    // Lấy chữ RoleName từ DB và dùng hàm MapRole để chuyển thành Enum
+                    string roleNameDB = row["RoleName"].ToString();
+                    UserRole userRole = MapRoleNameToEnum(roleNameDB);
 
-                    // Khởi tạo CurrentUser
+                    // Khởi tạo CurrentUser an toàn tuyệt đối
                     CurrentUser.Instance.Login(accountId, Username, userRole);
 
                     if (isRequiredChangePwd)
                     {
-                        // Mở cửa sổ bắt buộc đổi mật khẩu
-                        ForceChangePasswordWindow forceWindow = new ForceChangePasswordWindow();
-                        forceWindow.Show();
-
-                        // Đóng LoginWindow
-                        if (obj is Window loginWindow) loginWindow.Close();
+                        new ForceChangePasswordWindow().Show();
                     }
                     else
                     {
-                        // Vào thẳng MainWindow như bình thường
-                        MainWindow main = new MainWindow();
-                        main.Show();
-                        if (obj is Window loginWindow) loginWindow.Close();
+                        new MainWindow().Show();
                     }
+
+                    loginWindow?.Close();
                 }
                 else
                 {
@@ -103,10 +91,35 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        // HÀM BIÊN DỊCH: Dịch từ chữ của Database sang Enum của C# (KHÔNG PHÂN BIỆT HOA THƯỜNG)
+        private UserRole MapRoleNameToEnum(string roleName)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (string.IsNullOrWhiteSpace(roleName)) return UserRole.HocSinh;
+
+            // Xóa khoảng trắng 2 đầu
+            string cleanRole = roleName.Trim();
+
+            // So sánh không phân biệt in hoa in thường (Bỏ qua dấu câu và kiểu chữ)
+            if (cleanRole.Equals("IT Admin", StringComparison.OrdinalIgnoreCase)) return UserRole.ITAdmin;
+
+            if (cleanRole.Equals("Hiệu trưởng", StringComparison.OrdinalIgnoreCase)) return UserRole.HieuTruong;
+
+            if (cleanRole.Equals("Giáo vụ", StringComparison.OrdinalIgnoreCase)) return UserRole.GiaoVu;
+
+            // Xử lý các trường hợp viết tắt cho GVCN
+            if (cleanRole.Equals("GVCN", StringComparison.OrdinalIgnoreCase) ||
+                cleanRole.Equals("Giáo viên chủ nhiệm", StringComparison.OrdinalIgnoreCase))
+                return UserRole.GVCN;
+
+            // Xử lý các trường hợp viết tắt cho GVBM
+            if (cleanRole.Equals("GVBM", StringComparison.OrdinalIgnoreCase) ||
+                cleanRole.Equals("Giáo viên bộ môn", StringComparison.OrdinalIgnoreCase))
+                return UserRole.GVBM;
+
+            if (cleanRole.Equals("Học sinh", StringComparison.OrdinalIgnoreCase)) return UserRole.HocSinh;
+
+            // Mặc định an toàn
+            return UserRole.HocSinh;
         }
     }
 }
