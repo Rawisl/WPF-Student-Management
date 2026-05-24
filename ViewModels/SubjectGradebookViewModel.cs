@@ -27,6 +27,9 @@ namespace WPF_Student_Management.ViewModels
         // Cờ theo dõi trạng thái chỉnh sửa
         public bool IsDirty { get; set; } = false;
 
+        [ObservableProperty] private bool _hasPendingApplication = false;
+
+
         private double? _regularScore;
         public double? RegularScore
         {
@@ -381,6 +384,11 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand(CanExecute = nameof(CanLoadGradeData))]
         private void LoadGradeData()
         {
+            ExecuteLoadGradeData(false);
+        }
+
+        private void ExecuteLoadGradeData(bool silent)
+        {
             if (HasUnsavedChanges)
             {
                 bool confirm = NotificationHelper.ShowConfirm("Bạn đang có điểm chưa lưu trên màn hình!\nNếu lấy danh sách mới, các điểm vừa nhập sẽ bị mất. Bạn có chắc chắn tiếp tục không?");
@@ -394,13 +402,13 @@ namespace WPF_Student_Management.ViewModels
 
                 CheckLockStatus(); // Gọi hàm kiểm tra khóa sổ
 
-                if (IsClassLockedByGVCN)
+                // Chỉ hiện cảnh báo nếu silent = false (người dùng tự bấm nút Lấy danh sách)
+                if (!silent)
                 {
-                    NotificationHelper.ShowWarning("Lớp này đã được GVCN lập báo cáo tổng kết!\nBạn chỉ có quyền xem, không thể sửa điểm.");
-                }
-                else if (IsSubjectLocked)
-                {
-                    NotificationHelper.ShowWarning("Bạn đã chốt sổ môn này rồi!\nHãy mở khóa môn nếu muốn tiếp tục sửa điểm.");
+                    if (IsClassLockedByGVCN)
+                        NotificationHelper.ShowWarning("Lớp này đã được GVCN lập báo cáo tổng kết!\nBạn chỉ có quyền xem, không thể sửa điểm.");
+                    else if (IsSubjectLocked)
+                        NotificationHelper.ShowWarning("Bạn đã chốt sổ môn này rồi!\nHãy mở khóa môn nếu muốn tiếp tục sửa điểm.");
                 }
 
                 GradebookTitle = $"Nhập điểm môn {SelectedSubject.Name} - Lớp {SelectedClass.Name} ({SelectedSemester} - {SelectedAcademicYear})";
@@ -415,7 +423,7 @@ namespace WPF_Student_Management.ViewModels
                                       AND sc.SubjectID = @SubjectID 
                                       AND sc.Semester = @Semester 
                                       AND sc.AcademicYear = @AcademicYear
-                    WHERE cp.ClassID = @ClassID
+                    WHERE cp.ClassID = @ClassID AND s.Status = 'Active'
                     ORDER BY s.FullName";
 
                 SqlParameter[] sqlParams = {
@@ -457,6 +465,14 @@ namespace WPF_Student_Management.ViewModels
                 foreach (var hs in StudentGrades)
                 {
                     hs.IsDirty = false;
+
+                    string pendingQuery = @"
+                        SELECT COUNT(*) 
+                        FROM Application 
+                        WHERE StudentID = @StudentID AND StatusID IN (1, 2)";
+                    DataTable dtPending = DatabaseHelper.ExecuteQuery(pendingQuery,
+                        new[] { new SqlParameter("@StudentID", hs.StudentID) });
+                    hs.HasPendingApplication = Convert.ToInt32(dtPending.Rows[0][0]) > 0;
                 }
             }
             catch (Exception ex)
@@ -470,7 +486,6 @@ namespace WPF_Student_Management.ViewModels
         {
             if (StudentGrades.Count == 0) return;
 
-            // Kiểm tra kép trước khi lưu
             CheckLockStatus();
             if (IsClassLockedByGVCN || IsSubjectLocked)
             {
@@ -482,8 +497,47 @@ namespace WPF_Student_Management.ViewModels
 
             foreach (var hs in StudentGrades)
             {
+                if (!hs.IsDirty) continue; // Tối ưu: Chỉ chạy DB cho những em có điểm bị sửa
                 if (!hs.RegularScore.HasValue && !hs.MidSemScore.HasValue && !hs.FinalScore.HasValue) continue;
 
+                // =========================================================================
+                // XUNG ĐỘT SỐ 2: Kiểm tra trạng thái học sinh & Đơn từ chờ xử lý
+                // =========================================================================
+                string checkStudentQuery = @"
+                    SELECT s.Status, 
+                           (SELECT COUNT(*) FROM Application a WHERE a.StudentID = s.StudentID AND a.StatusID IN (1, 2)) AS PendingCount
+                    FROM Student s 
+                    WHERE s.StudentID = @StudentID";
+
+                DataTable dtStudent = DatabaseHelper.ExecuteQuery(checkStudentQuery, new[] { new SqlParameter("@StudentID", hs.StudentID) });
+
+                if (dtStudent.Rows.Count > 0)
+                {
+                    // 1. Chặn nếu đã nghỉ học hoặc chuyển đi
+                    if (dtStudent.Rows[0]["Status"].ToString() == "Inactive")
+                    {
+                        NotificationHelper.ShowError($"Thao tác thất bại!\nHọc sinh {hs.FullName} đã thôi học hoặc chuyển lớp. Dữ liệu điểm của học sinh này không thể cập nhật.");
+
+                        // ĐÃ FIX: Tắt cờ chưa lưu để ép hệ thống âm thầm Reset điểm
+                        foreach (var student in StudentGrades) student.IsDirty = false;
+                        ExecuteLoadGradeData(true);
+                        return; // Dừng toàn bộ việc lưu
+                    }
+
+                    // 2. Chặn nếu đang có đơn xin Chuyển lớp/Thôi học chờ xử lý
+                    int pendingCount = Convert.ToInt32(dtStudent.Rows[0]["PendingCount"]);
+                    if (pendingCount > 0)
+                    {
+                        NotificationHelper.ShowError($"Thao tác thất bại!\nHọc sinh {hs.FullName} đang có đơn xin chuyển lớp/thôi học chưa xử lý xong.\nHệ thống tạm thời KHÓA BĂNG điểm của học sinh này cho đến khi đơn được duyệt hoặc từ chối.");
+
+                        // ĐÃ FIX: Tắt cờ chưa lưu để ép hệ thống âm thầm Reset điểm
+                        foreach (var student in StudentGrades) student.IsDirty = false;
+                        ExecuteLoadGradeData(true);
+                        return; // Dừng toàn bộ việc lưu
+                    }
+                }
+
+                // Nếu an toàn -> Bắt đầu ghi điểm vào DB
                 string mergeQuery = @"
                     MERGE Score AS target
                     USING (SELECT @StudentID AS StudentID, @SubjectID AS SubjectID, @Semester AS Semester, @AcademicYear AS AcademicYear) AS source
@@ -520,7 +574,7 @@ namespace WPF_Student_Management.ViewModels
                 }
 
                 NotificationHelper.ShowSuccess($"Đã lưu thành công điểm của {successCount} học sinh!");
-                LoadGradeData(); // Nạp lại DataGrid để lấy ScoreID mới cập nhật
+                ExecuteLoadGradeData(true);
             }
             else
             {

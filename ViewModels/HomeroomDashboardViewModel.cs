@@ -363,6 +363,27 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
+                string pendingCheckQuery = @"
+                SELECT COUNT(*) 
+                FROM Application a
+                JOIN ClassPlacement cp ON a.StudentID = cp.StudentID 
+                                       AND cp.EffectiveTo IS NULL
+                WHERE cp.ClassID = @ClassID 
+                  AND a.StatusID IN (1, 2)";
+
+                DataTable dtPending = DatabaseHelper.ExecuteQuery(pendingCheckQuery,
+                    new[] { new SqlParameter("@ClassID", _currentClassId) });
+
+                int pendingCount = Convert.ToInt32(dtPending.Rows[0][0]);
+                if (pendingCount > 0)
+                {
+                    NotificationHelper.ShowError(
+                        $"Không thể chốt sổ!\n" +
+                        $"Lớp đang có {pendingCount} học sinh với đơn chuyển lớp/thôi học chưa xử lý xong.\n" +
+                        $"Vui lòng chờ Hiệu trưởng và Giáo vụ xử lý hết đơn trước khi chốt sổ.");
+                    return;
+                }
+
                 string query = @"
                 IF EXISTS (SELECT 1 FROM ClassReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear)
                 BEGIN
