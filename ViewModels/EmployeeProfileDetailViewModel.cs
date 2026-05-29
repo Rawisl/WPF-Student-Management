@@ -42,16 +42,21 @@ namespace WPF_Student_Management.ViewModels
 
         private readonly Action _onSaveSuccess;
         private readonly bool _isNewStaff;
+        private readonly Staff.StaffConcurrencySnapshot _originalSnapshot;
 
         // Constructor nhận vào Staff, Cờ phân quyền, và một Callback để báo cho View cha biết khi lưu xong
         public EmployeeProfileDetailViewModel(Staff staff, bool isReadOnly = false, Action onSaveSuccess = null)
         {
-            if (staff.Specialization == null)
+            // Chặn xung đột: chỉnh sửa trên bản sao để thao tác hủy / dữ liệu cũ không làm thay đổi ngay item trên lưới.
+            var editableStaff = staff.CloneForEditing();
+            if (editableStaff.Specialization == null)
             {
-                staff.Specialization = 0;
+                editableStaff.Specialization = 0;
             }
 
-            CurrentStaff = staff;
+            // Chặn xung đột: lưu lại dữ liệu gốc để kiểm tra optimistic concurrency thủ công khi bấm lưu.
+            _originalSnapshot = staff.CreateConcurrencySnapshot();
+            CurrentStaff = editableStaff;
             IsReadOnly = isReadOnly;
             _onSaveSuccess = onSaveSuccess;
             _isNewStaff = (staff.StaffId == 0);
@@ -150,8 +155,19 @@ namespace WPF_Student_Management.ViewModels
                         return;
                     }
 
-                    isSuccess = CurrentStaff.UpdateStaff();
-                    if (isSuccess) NotificationHelper.ShowSuccess("Cập nhật thông tin thành công!");
+                    // Chặn xung đột: chỉ lưu nếu thông tin nhân viên vẫn còn khớp với dữ liệu tại thời điểm mở dialog.
+                    isSuccess = CurrentStaff.UpdateStaff(_originalSnapshot);
+                    if (isSuccess)
+                    {
+                        NotificationHelper.ShowSuccess("Cập nhật thông tin thành công!");
+                    }
+                    else
+                    {
+                        NotificationHelper.ShowWarning("Dữ liệu nhân viên đã được thay đổi hoặc vô hiệu hóa bởi người dùng khác. Vui lòng tải lại danh sách trước khi chỉnh sửa tiếp.");
+                        _onSaveSuccess?.Invoke();
+                        DialogHost.Close("RootDialog");
+                        return;
+                    }
                 }
 
                 if (isSuccess)

@@ -11,6 +11,22 @@ namespace WPF_Student_Management.Models
     // BẮT BUỘC KẾ THỪA INotifyPropertyChanged ĐỂ HỖ TRỢ XÁM/SÁNG NÚT LƯU
     public class Staff : INotifyPropertyChanged
     {
+        public class StaffConcurrencySnapshot
+        {
+            public int StaffId { get; set; }
+            public int AccountId { get; set; }
+            public int RoleId { get; set; }
+            public string FullName { get; set; } = string.Empty;
+            public string? Gender { get; set; }
+            public int? Specialization { get; set; }
+            public string? Email { get; set; }
+            public DateTime? HireDate { get; set; }
+            public string? HometownAddress { get; set; }
+            public string? PhoneNumber { get; set; }
+            public string? NationalId { get; set; }
+            public string? Status { get; set; }
+        }
+
         public int StaffId { get; set; }
         public int AccountId { get; set; }
 
@@ -112,23 +128,88 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        public bool UpdateStaff()
+        public StaffConcurrencySnapshot CreateConcurrencySnapshot()
+        {
+            return new StaffConcurrencySnapshot
+            {
+                StaffId = StaffId,
+                AccountId = AccountId,
+                RoleId = RoleId,
+                FullName = FullName,
+                Gender = Gender,
+                Specialization = Specialization,
+                Email = Email,
+                HireDate = HireDate,
+                HometownAddress = HometownAddress,
+                PhoneNumber = PhoneNumber,
+                NationalId = NationalId,
+                Status = Status
+            };
+        }
+
+        public Staff CloneForEditing()
+        {
+            return new Staff
+            {
+                StaffId = StaffId,
+                AccountId = AccountId,
+                RoleId = RoleId,
+                FullName = FullName,
+                Gender = Gender,
+                Specialization = Specialization,
+                Email = Email,
+                HireDate = HireDate,
+                HometownAddress = HometownAddress,
+                PhoneNumber = PhoneNumber,
+                NationalId = NationalId,
+                Status = Status
+            };
+        }
+
+        // Cập nhật an toàn khi có concurrency: chỉ lưu nếu dữ liệu nhân viên / tài khoản vẫn còn khớp với lúc mở dialog.
+        public bool UpdateStaff(StaffConcurrencySnapshot original)
         {
             int isActive = (this.Status == "Active") ? 1 : 0;
 
             string query = @"
             BEGIN TRAN;
             BEGIN TRY
-                UPDATE Employee SET 
-                    FullName = @FullName, Gender = @Gender, Specialization = @Specialization, 
-                    Email = @Email, HireDate = @HireDate, HometownAddress = @HometownAddress, 
-                    PhoneNumber = @PhoneNumber, NationalID = @NationalID, Status = @Status 
-                WHERE EmployeeID = @EmployeeID;
+                UPDATE Employee SET
+                    FullName = @FullName, Gender = @Gender, Specialization = @Specialization,
+                    Email = @Email, HireDate = @HireDate, HometownAddress = @HometownAddress,
+                    PhoneNumber = @PhoneNumber, NationalID = @NationalID, Status = @Status
+                WHERE EmployeeID = @EmployeeID
+                  AND AccountID = @OriginalAccountID
+                  AND FullName = @OriginalFullName
+                  AND ISNULL(Gender, N'') = ISNULL(@OriginalGender, N'')
+                  AND ISNULL(Specialization, -1) = ISNULL(@OriginalSpecialization, -1)
+                  AND ISNULL(Email, '') = ISNULL(@OriginalEmail, '')
+                  AND ISNULL(HireDate, '19000101') = ISNULL(@OriginalHireDate, '19000101')
+                  AND ISNULL(HometownAddress, N'') = ISNULL(@OriginalHometownAddress, N'')
+                  AND ISNULL(PhoneNumber, '') = ISNULL(@OriginalPhoneNumber, '')
+                  AND ISNULL(NationalID, '') = ISNULL(@OriginalNationalID, '')
+                  AND ISNULL(Status, '') = ISNULL(@OriginalStatus, '');
 
-                -- ĐÃ SỬA: Cập nhật thêm cột IsActive cho bảng Account
-                UPDATE Account SET RoleID = @RoleID, IsActive = @IsActive WHERE AccountID = @AccountID;
+                IF @@ROWCOUNT = 0
+                BEGIN
+                    ROLLBACK TRAN;
+                    SELECT CAST(0 AS INT) AS Result;
+                    RETURN;
+                END
+
+                UPDATE Account SET RoleID = @RoleID, IsActive = @IsActive
+                WHERE AccountID = @AccountID
+                  AND RoleID = @OriginalRoleID;
+
+                IF @@ROWCOUNT = 0
+                BEGIN
+                    ROLLBACK TRAN;
+                    SELECT CAST(0 AS INT) AS Result;
+                    RETURN;
+                END
 
                 COMMIT TRAN;
+                SELECT CAST(1 AS INT) AS Result;
             END TRY
             BEGIN CATCH
                 ROLLBACK TRAN;
@@ -148,10 +229,88 @@ namespace WPF_Student_Management.Models
                 new SqlParameter("@NationalID", this.NationalId ?? (object)DBNull.Value),
                 new SqlParameter("@Status", this.Status ?? (object)DBNull.Value),
                 new SqlParameter("@RoleID", this.RoleId),
-                new SqlParameter("@IsActive", isActive)
+                new SqlParameter("@IsActive", isActive),
+                new SqlParameter("@OriginalAccountID", original.AccountId),
+                new SqlParameter("@OriginalRoleID", original.RoleId),
+                new SqlParameter("@OriginalFullName", original.FullName),
+                new SqlParameter("@OriginalGender", original.Gender ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalSpecialization", original.Specialization ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalEmail", original.Email ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalHireDate", original.HireDate ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalHometownAddress", original.HometownAddress ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalPhoneNumber", original.PhoneNumber ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalNationalID", original.NationalId ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalStatus", original.Status ?? (object)DBNull.Value)
             };
 
-            return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
+            DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
+            return result.Rows.Count > 0 && Convert.ToInt32(result.Rows[0]["Result"]) == 1;
+        }
+
+        // Vô hiệu hóa an toàn khi có concurrency: giữ nguyên dữ liệu liên kết và từ chối nếu bản ghi đã bị người khác sửa sau lúc tải lưới.
+        public static bool DeactivateStaff(StaffConcurrencySnapshot original)
+        {
+            string query = @"
+            BEGIN TRAN;
+            BEGIN TRY
+                UPDATE Employee
+                SET Status = N'Inactive'
+                WHERE EmployeeID = @EmployeeID
+                  AND AccountID = @AccountID
+                  AND FullName = @OriginalFullName
+                  AND ISNULL(Gender, N'') = ISNULL(@OriginalGender, N'')
+                  AND ISNULL(Specialization, -1) = ISNULL(@OriginalSpecialization, -1)
+                  AND ISNULL(Email, '') = ISNULL(@OriginalEmail, '')
+                  AND ISNULL(HireDate, '19000101') = ISNULL(@OriginalHireDate, '19000101')
+                  AND ISNULL(HometownAddress, N'') = ISNULL(@OriginalHometownAddress, N'')
+                  AND ISNULL(PhoneNumber, '') = ISNULL(@OriginalPhoneNumber, '')
+                  AND ISNULL(NationalID, '') = ISNULL(@OriginalNationalID, '')
+                  AND ISNULL(Status, '') = ISNULL(@OriginalStatus, '');
+
+                IF @@ROWCOUNT = 0
+                BEGIN
+                    ROLLBACK TRAN;
+                    SELECT CAST(0 AS INT) AS Result;
+                    RETURN;
+                END
+
+                UPDATE Account
+                SET IsActive = 0
+                WHERE AccountID = @AccountID
+                  AND RoleID = @OriginalRoleID;
+
+                IF @@ROWCOUNT = 0
+                BEGIN
+                    ROLLBACK TRAN;
+                    SELECT CAST(0 AS INT) AS Result;
+                    RETURN;
+                END
+
+                COMMIT TRAN;
+                SELECT CAST(1 AS INT) AS Result;
+            END TRY
+            BEGIN CATCH
+                ROLLBACK TRAN;
+                THROW;
+            END CATCH";
+
+            SqlParameter[] parameters = new SqlParameter[] {
+                new SqlParameter("@EmployeeID", original.StaffId),
+                new SqlParameter("@AccountID", original.AccountId),
+                new SqlParameter("@OriginalRoleID", original.RoleId),
+                new SqlParameter("@OriginalFullName", original.FullName),
+                new SqlParameter("@OriginalGender", original.Gender ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalSpecialization", original.Specialization ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalEmail", original.Email ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalHireDate", original.HireDate ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalHometownAddress", original.HometownAddress ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalPhoneNumber", original.PhoneNumber ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalNationalID", original.NationalId ?? (object)DBNull.Value),
+                new SqlParameter("@OriginalStatus", original.Status ?? (object)DBNull.Value)
+            };
+
+            DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
+            return result.Rows.Count > 0 && Convert.ToInt32(result.Rows[0]["Result"]) == 1;
         }
 
         public static bool DeleteStaff(int staffId)

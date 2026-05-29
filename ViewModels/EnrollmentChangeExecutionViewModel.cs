@@ -177,58 +177,125 @@ namespace WPF_Student_Management.ViewModels
                     {
                         try
                         {
-                            //Check lớp nguồn
-                            if (item.CurrentClassId.HasValue &&
-                                ClassReport.IsClassReportLocked(item.CurrentClassId.Value, currentSemester, currentYear))
+                            // Chặn xung đột: chiếm quyền xử lý đơn ngay trong transaction để chỉ một giáo vụ thực thi được đơn này.
+                            var claimCommand = new SqlCommand(@"
+                                UPDATE Application
+                                SET StatusID = 4,
+                                    RespondedAt = GETDATE()
+                                WHERE RequestID = @ReqID AND StatusID = 2", conn, transaction);
+                            claimCommand.Parameters.AddWithValue("@ReqID", item.RequestId);
+
+                            if (claimCommand.ExecuteNonQuery() == 0)
                             {
                                 transaction.Rollback();
-                                NotificationHelper.ShowError($"Lớp cũ ({item.CurrentClassName}) đã khóa sổ! Không thể thực thi.");
+                                NotificationHelper.ShowWarning("Đơn này đã được giáo vụ khác xử lý trước!");
+                                LoadPendingRequests();
                                 return;
                             }
 
-                            if (item.RequestType == "ClassTransfer" && item.TargetClassId.HasValue)
+                            // Tải lại trạng thái đơn ngay trong transaction để tránh dùng dữ liệu cũ còn sót trên UI.
+                            var loadCommand = new SqlCommand(@"
+                                SELECT a.StudentID, a.RequestType, a.NewClassID,
+                                       cp.ClassID AS CurrentClassID
+                                FROM Application a
+                                LEFT JOIN ClassPlacement cp ON cp.StudentID = a.StudentID AND cp.EffectiveTo IS NULL
+                                WHERE a.RequestID = @ReqID", conn, transaction);
+                            loadCommand.Parameters.AddWithValue("@ReqID", item.RequestId);
+
+                            string studentId;
+                            string requestType;
+                            int? currentClassId;
+                            int? targetClassId;
+
+                            using (var reader = loadCommand.ExecuteReader())
                             {
-                                string targetLockQuery = @"
-                            SELECT ISNULL(IsLocked, 0) 
-                            FROM ClassReport 
-                            WHERE ClassID = @ClassID 
-                              AND Semester = @Semester 
-                              AND AcademicYear = @AcademicYear";
+                                if (!reader.Read()) throw new Exception("Không tìm thấy thông tin đơn cần xử lý.");
+                                studentId = reader["StudentID"].ToString() ?? string.Empty;
+                                requestType = reader["RequestType"].ToString() ?? string.Empty;
+                                currentClassId = reader["CurrentClassID"] != DBNull.Value ? Convert.ToInt32(reader["CurrentClassID"]) : null;
+                                targetClassId = reader["NewClassID"] != DBNull.Value ? Convert.ToInt32(reader["NewClassID"]) : null;
+                            }
 
-                                DataTable dtTargetLock = DatabaseHelper.ExecuteQuery(targetLockQuery, new[] {
-                            new SqlParameter("@ClassID", item.TargetClassId.Value),
-                            new SqlParameter("@Semester", currentSemester),
-                            new SqlParameter("@AcademicYear", currentYear)
-                        });
+                            // Kiểm tra lại trạng thái khóa sổ bằng chính transaction hiện tại để tránh race giữa nhiều kết nối.
+                            if (currentClassId.HasValue)
+                            {
+                                var sourceLockCommand = new SqlCommand(@"
+                                    SELECT ISNULL(IsLocked, 0)
+                                    FROM ClassReport
+                                    WHERE ClassID = @ClassID
+                                      AND Semester = @Semester
+                                      AND AcademicYear = @AcademicYear", conn, transaction);
+                                sourceLockCommand.Parameters.AddWithValue("@ClassID", currentClassId.Value);
+                                sourceLockCommand.Parameters.AddWithValue("@Semester", currentSemester);
+                                sourceLockCommand.Parameters.AddWithValue("@AcademicYear", currentYear);
 
-                                bool isTargetLocked = dtTargetLock.Rows.Count > 0
-                                                      && Convert.ToBoolean(dtTargetLock.Rows[0][0]);
-                                if (isTargetLocked)
+                                if (Convert.ToBoolean(sourceLockCommand.ExecuteScalar() ?? 0))
                                 {
-                                    transaction.Rollback();
-                                    NotificationHelper.ShowError(
-                                        $"Lớp đích ({item.TargetClassName}) đã được GVCN chốt sổ!\n" +
-                                        $"Không thể chuyển học sinh sang lớp này.");
-                                    return;
+                                    throw new Exception($"Lớp cũ ({item.CurrentClassName}) đã khóa sổ! Không thể thực thi.");
                                 }
                             }
 
-                            // Thực thi thay đổi 
-                            if (item.RequestType == "DropOut")
+                            // Kiểm tra lại khóa sổ của lớp đích trước khi thực hiện chuyển lớp.
+                            if (requestType == "ClassTransfer")
                             {
-                                new SqlCommand($"UPDATE Student SET Status = 'Inactive' WHERE StudentID = '{item.StudentId}'", conn, transaction).ExecuteNonQuery();
-                                new SqlCommand($"DELETE FROM ClassPlacement WHERE StudentID = '{item.StudentId}' AND EffectiveTo IS NULL", conn, transaction).ExecuteNonQuery();
-                            }
-                            else if (item.RequestType == "ClassTransfer")
-                            {
-                                new SqlCommand($"UPDATE ClassPlacement SET ClassID = {item.TargetClassId} WHERE StudentID = '{item.StudentId}' AND EffectiveTo IS NULL", conn, transaction).ExecuteNonQuery();
+                                if (!targetClassId.HasValue) throw new Exception("Đơn chuyển lớp không có lớp đích hợp lệ.");
+
+                                var targetLockCommand = new SqlCommand(@"
+                                    SELECT ISNULL(IsLocked, 0)
+                                    FROM ClassReport
+                                    WHERE ClassID = @ClassID
+                                      AND Semester = @Semester
+                                      AND AcademicYear = @AcademicYear", conn, transaction);
+                                targetLockCommand.Parameters.AddWithValue("@ClassID", targetClassId.Value);
+                                targetLockCommand.Parameters.AddWithValue("@Semester", currentSemester);
+                                targetLockCommand.Parameters.AddWithValue("@AcademicYear", currentYear);
+
+                                if (Convert.ToBoolean(targetLockCommand.ExecuteScalar() ?? 0))
+                                {
+                                    throw new Exception($"Lớp đích ({item.TargetClassName}) đã được GVCN chốt sổ!\nKhông thể chuyển học sinh sang lớp này.");
+                                }
                             }
 
-                            // Đánh dấu đơn đã xong
-                            SqlCommand cmd = new SqlCommand(
-                                $"UPDATE Application SET StatusID = 4, RespondedAt = GETDATE() WHERE RequestID = {item.RequestId} AND StatusID = 2",
-                                conn, transaction);
-                            if (cmd.ExecuteNonQuery() == 0) throw new Exception("Đơn đã được xử lý bởi người khác!");
+                            // Giữ lại lịch sử xếp lớp: không ghi đè / xóa dòng placement hiện tại mà đóng dòng cũ rồi tạo dòng mới khi cần.
+                            if (requestType == "DropOut")
+                            {
+                                var updateStudentCommand = new SqlCommand(@"
+                                    UPDATE Student
+                                    SET Status = 'Inactive'
+                                    WHERE StudentID = @StudentID AND Status <> 'Inactive'", conn, transaction);
+                                updateStudentCommand.Parameters.AddWithValue("@StudentID", studentId);
+                                updateStudentCommand.ExecuteNonQuery();
+
+                                var closePlacementCommand = new SqlCommand(@"
+                                    UPDATE ClassPlacement
+                                    SET EffectiveTo = CAST(GETDATE() AS DATE)
+                                    WHERE StudentID = @StudentID AND EffectiveTo IS NULL", conn, transaction);
+                                closePlacementCommand.Parameters.AddWithValue("@StudentID", studentId);
+                                closePlacementCommand.ExecuteNonQuery();
+                            }
+                            else if (requestType == "ClassTransfer")
+                            {
+                                if (!currentClassId.HasValue) throw new Exception("Học sinh không còn lớp hiện tại hợp lệ để chuyển.");
+
+                                var closePlacementCommand = new SqlCommand(@"
+                                    UPDATE ClassPlacement
+                                    SET EffectiveTo = CAST(GETDATE() AS DATE)
+                                    WHERE StudentID = @StudentID AND EffectiveTo IS NULL", conn, transaction);
+                                closePlacementCommand.Parameters.AddWithValue("@StudentID", studentId);
+
+                                if (closePlacementCommand.ExecuteNonQuery() == 0)
+                                {
+                                    throw new Exception("Học sinh không còn thuộc lớp hiện tại. Đơn có thể đã được xử lý trước đó.");
+                                }
+
+                                var insertPlacementCommand = new SqlCommand(@"
+                                    INSERT INTO ClassPlacement (StudentID, ClassID, AcademicYear, EffectiveFrom)
+                                    VALUES (@StudentID, @ClassID, @AcademicYear, CAST(GETDATE() AS DATE))", conn, transaction);
+                                insertPlacementCommand.Parameters.AddWithValue("@StudentID", studentId);
+                                insertPlacementCommand.Parameters.AddWithValue("@ClassID", targetClassId!.Value);
+                                insertPlacementCommand.Parameters.AddWithValue("@AcademicYear", currentYear);
+                                insertPlacementCommand.ExecuteNonQuery();
+                            }
 
                             transaction.Commit();
                             NotificationHelper.ShowSuccess("Thực thi yêu cầu thành công!");
@@ -238,6 +305,7 @@ namespace WPF_Student_Management.ViewModels
                         {
                             transaction.Rollback();
                             NotificationHelper.ShowError("Lỗi: " + ex.Message);
+                            LoadPendingRequests();
                         }
                     }
                 }

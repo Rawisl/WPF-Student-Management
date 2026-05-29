@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -252,11 +253,33 @@ namespace WPF_Student_Management.ViewModels
                    Regex.IsMatch(GuardianPhoneNumber?.Trim() ?? "", phoneRegexPattern);
         }
 
+        // Kiểm tra sớm theo hướng an toàn cho concurrency: báo trùng email sớm cho người dùng, nhưng ràng buộc UNIQUE trong DB vẫn là lớp chặn cuối cùng.
+        private bool IsStudentEmailAvailable(string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email)) return true;
+
+            string query = "SELECT COUNT(*) FROM Student WHERE Email = @Email";
+            DataTable dt = DatabaseHelper.ExecuteQuery(query, new[]
+            {
+                new SqlParameter("@Email", email)
+            });
+
+            return dt.Rows.Count == 0 || Convert.ToInt32(dt.Rows[0][0]) == 0;
+        }
+
         [RelayCommand(CanExecute = nameof(CanSave))]
         private void Save()
         {
             try
             {
+                // Chuẩn hóa email trước khi kiểm tra trùng để các người dùng đồng thời so sánh trên cùng một giá trị chuẩn.
+                string? normalizedEmail = string.IsNullOrWhiteSpace(this.EmailPrefix) ? null : $"{this.EmailPrefix.Trim().ToLowerInvariant()}@gmail.com";
+                if (!IsStudentEmailAvailable(normalizedEmail))
+                {
+                    NotificationHelper.ShowError("Lỗi: Email này đã tồn tại trong hệ thống. Vui lòng kiểm tra lại!");
+                    return;
+                }
+
                 var newDbStudent = new Student
                 {
                     StudentId = "",
@@ -264,7 +287,7 @@ namespace WPF_Student_Management.ViewModels
                     Gender = IsMale ? "Nam" : "Nữ",
                     DateOfBirth = this.DateOfBirth,
                     PhoneNumber = this.PhoneNumber,
-                    Email = string.IsNullOrWhiteSpace(this.EmailPrefix) ? null : $"{this.EmailPrefix.Trim()}@gmail.com",
+                    Email = normalizedEmail,
                     Address = this.Address,
                     FamilyBackground = IsFamilyNormal ? "Bình thường" : "Khó khăn",
                     GuardianName = this.GuardianName,

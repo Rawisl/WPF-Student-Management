@@ -92,32 +92,33 @@ namespace WPF_Student_Management.ViewModels
                 return;
             }
 
-            bool result = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa HOÀN TOÀN nhân viên '{staff.FullName}' khỏi hệ thống không?\n\nHành động này không thể hoàn tác!");
+            bool result = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn vô hiệu hóa nhân viên '{staff.FullName}' không?\n\nTài khoản sẽ không thể đăng nhập, nhưng dữ liệu liên kết vẫn được giữ lại.");
 
             if (result)
             {
                 try
                 {
-                    int accountIdToDelete = staff.AccountId;
-                    bool isDeleted = Staff.DeleteStaff(staff.StaffId);
+                    // Chặn xung đột: chỉ vô hiệu hóa nếu bản ghi này vẫn còn khớp với dữ liệu đang hiển thị trên lưới.
+                    bool isDeactivated = Staff.DeactivateStaff(staff.CreateConcurrencySnapshot());
 
-                    if (isDeleted)
+                    if (isDeactivated)
                     {
-                        Account.DeleteAccount(accountIdToDelete);
-                        NotificationHelper.ShowSuccess("Đã xóa nhân viên thành công!");
+                        NotificationHelper.ShowSuccess("Đã vô hiệu hóa nhân viên thành công!");
+                        LoadData();
+                    }
+                    else
+                    {
+                        NotificationHelper.ShowWarning("Dữ liệu nhân viên đã được thay đổi hoặc vô hiệu hóa bởi người dùng khác. Danh sách sẽ được tải lại.");
                         LoadData();
                     }
                 }
                 catch (SqlException sqlEx)
                 {
-                    if (sqlEx.Number == 547)
-                        NotificationHelper.ShowWarning("Xóa dữ liệu thất bại!\nNhân viên này đang có dữ liệu liên kết ở bảng khác.");
-                    else
-                        NotificationHelper.ShowError("Lỗi cơ sở dữ liệu:\n" + sqlEx.Message);
+                    NotificationHelper.ShowError("Lỗi cơ sở dữ liệu:\n" + sqlEx.Message);
                 }
                 catch (Exception ex)
                 {
-                    NotificationHelper.ShowError("Không thể xóa nhân viên.\nLỗi chi tiết: " + ex.Message);
+                    NotificationHelper.ShowError("Không thể vô hiệu hóa nhân viên.\nLỗi chi tiết: " + ex.Message);
                 }
             }
         }
