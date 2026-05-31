@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.SqlClient;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
@@ -493,7 +494,18 @@ namespace WPF_Student_Management.ViewModels
                 return;
             }
 
+            // Chặn xung đột: nếu giáo viên mở sổ điểm từ trước nhưng môn đã bị xóa sau đó thì không cho lưu nữa.
+            string subjectActiveQuery = "SELECT COUNT(*) FROM Subject WHERE SubjectID = @SubjectID AND IsDeleted = 0";
+            DataTable dtSubjectActive = DatabaseHelper.ExecuteQuery(subjectActiveQuery, new[] { new SqlParameter("@SubjectID", SelectedSubject.Id) });
+            if (dtSubjectActive.Rows.Count == 0 || Convert.ToInt32(dtSubjectActive.Rows[0][0]) == 0)
+            {
+                NotificationHelper.ShowError("Môn học này đã bị xóa hoặc ngưng sử dụng. Không thể tiếp tục chỉnh sửa điểm.");
+                RefreshData();
+                return;
+            }
+
             int successCount = 0;
+            List<string> failedRows = new();
 
             foreach (var hs in StudentGrades)
             {
@@ -537,16 +549,23 @@ namespace WPF_Student_Management.ViewModels
                     }
                 }
 
-                // Nếu an toàn -> Bắt đầu ghi điểm vào DB
+                // Chặn xung đột: chính câu MERGE cũng kiểm tra Subject.IsDeleted nên nếu môn bị xóa sau bước pre-check thì vẫn chặn được lúc lưu.
                 string mergeQuery = @"
-                    MERGE Score AS target
-                    USING (SELECT @StudentID AS StudentID, @SubjectID AS SubjectID, @Semester AS Semester, @AcademicYear AS AcademicYear) AS source
-                    ON (target.StudentID = source.StudentID AND target.SubjectID = source.SubjectID AND target.Semester = source.Semester AND target.AcademicYear = source.AcademicYear)
-                    WHEN MATCHED THEN 
-                        UPDATE SET RegularTestScore = @Reg, MidTermScore = @Mid, FinalTermScore = @Fin
-                    WHEN NOT MATCHED THEN
-                        INSERT (StudentID, SubjectID, Semester, AcademicYear, RegularTestScore, MidTermScore, FinalTermScore)
-                        VALUES (@StudentID, @SubjectID, @Semester, @AcademicYear, @Reg, @Mid, @Fin);";
+                    IF EXISTS (SELECT 1 FROM Subject WHERE SubjectID = @SubjectID AND IsDeleted = 0)
+                    BEGIN
+                        MERGE Score AS target
+                        USING (SELECT @StudentID AS StudentID, @SubjectID AS SubjectID, @Semester AS Semester, @AcademicYear AS AcademicYear) AS source
+                        ON (target.StudentID = source.StudentID AND target.SubjectID = source.SubjectID AND target.Semester = source.Semester AND target.AcademicYear = source.AcademicYear)
+                        WHEN MATCHED THEN
+                            UPDATE SET RegularTestScore = @Reg, MidTermScore = @Mid, FinalTermScore = @Fin
+                        WHEN NOT MATCHED THEN
+                            INSERT (StudentID, SubjectID, Semester, AcademicYear, RegularTestScore, MidTermScore, FinalTermScore)
+                            VALUES (@StudentID, @SubjectID, @Semester, @AcademicYear, @Reg, @Mid, @Fin);
+                    END
+                    ELSE
+                    BEGIN
+                        THROW 51001, N'Môn học đã bị xóa, không thể cập nhật điểm.', 1;
+                    END";
 
                 SqlParameter[] parameters = {
                     new SqlParameter("@StudentID", hs.StudentID),
@@ -563,7 +582,11 @@ namespace WPF_Student_Management.ViewModels
                     DatabaseHelper.ExecuteNonQuery(mergeQuery, parameters);
                     successCount++;
                 }
-                catch { /* Nuốt lỗi cục bộ để lưu tiếp các row sau */ }
+                catch (Exception ex)
+                {
+                    // Phản hồi xung đột: vẫn tiếp tục lưu các dòng khác nhưng ghi nhận rõ học sinh nào bị lỗi và lý do.
+                    failedRows.Add($"{hs.FullName}: {ex.Message}");
+                }
             }
 
             if (successCount > 0)
@@ -574,11 +597,22 @@ namespace WPF_Student_Management.ViewModels
                 }
 
                 NotificationHelper.ShowSuccess($"Đã lưu thành công điểm của {successCount} học sinh!");
+                if (failedRows.Count > 0)
+                {
+                    NotificationHelper.ShowWarning($"Có {failedRows.Count} học sinh chưa lưu được:\n" + string.Join("\n", failedRows.Take(5)));
+                }
                 ExecuteLoadGradeData(true);
             }
             else
             {
-                NotificationHelper.ShowWarning("Không có thay đổi điểm số nào được lưu.");
+                if (failedRows.Count > 0)
+                {
+                    NotificationHelper.ShowWarning($"Không có điểm nào được lưu. Lỗi đầu tiên:\n{failedRows.First()}");
+                }
+                else
+                {
+                    NotificationHelper.ShowWarning("Không có thay đổi điểm số nào được lưu.");
+                }
             }
         }
 
