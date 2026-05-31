@@ -1,7 +1,9 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,11 +12,11 @@ namespace WPF_Student_Management.Helpers
 {
     class DatabaseHelper
     {
-        /// <summary>
-        /// REQUIREMENTS: SQL Server Express LocalDB 2019+
-        /// </summary>
-        /// // ĐÃ FIX: Bơm thêm "Initial Catalog=StudentManagementDB;" để né lỗi độ dài tên 128 ký tự của LocalDB
-        public static string connectionString = @"Server=(localdb)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Services\StudentManagementDB.mdf;Initial Catalog=StudentManagementDB;Integrated Security=True;TrustServerCertificate=True;";     /// </summary>
+        public static string connectionString = new ConfigurationBuilder()
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .Build()
+            .GetConnectionString("Default")!;
         public static DataTable ExecuteQuery(string query, SqlParameter[]? parameters = null)
         {
             DataTable data = new DataTable();
