@@ -110,22 +110,30 @@ namespace WPF_Student_Management.ViewModels
         {
             if (IsReadOnly || CurrentStaff == null) return false;
 
-            if (string.IsNullOrWhiteSpace(CurrentStaff.FullName) || CurrentStaff.FullName.Trim().Split(' ').Length < 2) return false;
+            //check fullname
+            if (string.IsNullOrWhiteSpace(CurrentStaff.FullName) || CurrentStaff.FullName.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length < 2) return false;
 
+            //check phone
             string phonePattern = @"^0\d{9}$";
             if (string.IsNullOrWhiteSpace(CurrentStaff.PhoneNumber) || !Regex.IsMatch(CurrentStaff.PhoneNumber, phonePattern)) return false;
 
             if (string.IsNullOrWhiteSpace(CurrentStaff.NationalId) || CurrentStaff.NationalId.Length < 9) return false;
 
+            //check email
             string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             if (string.IsNullOrWhiteSpace(CurrentStaff.Email) || !Regex.IsMatch(CurrentStaff.Email, emailPattern)) return false;
 
             return true;
         }
 
-        [RelayCommand(CanExecute = nameof(CanExecuteSave))]
+        [RelayCommand]
         private void Save()
         {
+            if (!CanExecuteSave())
+            {
+                NotificationHelper.ShowWarning("Vui lòng nhập đầy đủ thông tin hợp lệ (Họ tên ít nhất 2 từ, SĐT 10 số, CCCD đủ 12 số và đúng định dạng email@...)");
+                return;
+            }
             try
             {
                 if (CurrentStaff.Specialization == 0)

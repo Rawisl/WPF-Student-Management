@@ -1,9 +1,8 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Data;
-using System.Runtime.CompilerServices;
 using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.ViewModels
@@ -15,20 +14,25 @@ namespace WPF_Student_Management.ViewModels
         public string MidTermScore { get; set; }
         public string FinalTermScore { get; set; }
         public string AverageScore { get; set; }
+        public bool IsFailed { get; set; }
     }
 
-    public class StudentGradeDetailViewModel : INotifyPropertyChanged
+    // ĐÃ FIX: Đổi sang kế thừa ObservableObject để UI tự động cập nhật
+    public partial class StudentGradeDetailViewModel : ObservableObject
     {
-        public string StudentName { get; set; }
-        public ObservableCollection<GradeDetailItem> ScoreList { get; set; }
+        [ObservableProperty]
+        private string _studentName;
 
-        public bool IsCloseButtonVisible { get; set; }
+        [ObservableProperty]
+        private ObservableCollection<GradeDetailItem> _scoreList;
 
-        // SỬA: Nhận thêm Semester và AcademicYear
+        [ObservableProperty]
+        private bool _isCloseButtonVisible;
+
         public StudentGradeDetailViewModel(string studentId, string studentName, string semester, string academicYear, bool showCloseButton = true)
         {
-            IsCloseButtonVisible = showCloseButton; //mặc định hiện button
-            StudentName = studentName + $" ({semester} - {academicYear})"; // Thêm dòng này để tiêu đề UI rõ ràng hơn
+            IsCloseButtonVisible = showCloseButton; // UI sẽ bắt được cái này lập tức nhờ [ObservableProperty]
+            StudentName = studentName + $" ({semester} - {academicYear})";
             LoadScores(studentId, semester, academicYear);
         }
 
@@ -36,39 +40,49 @@ namespace WPF_Student_Management.ViewModels
         {
             ScoreList = new ObservableCollection<GradeDetailItem>();
 
-            // SỬA: Thêm điều kiện lọc Semester và AcademicYear vào JOIN
-            string query = @"
-                SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore
-                FROM Subject sub
-                LEFT JOIN Score sc ON sub.SubjectID = sc.SubjectID 
-                                  AND sc.StudentID = @StudentID 
-                                  AND sc.Semester = @Semester 
-                                  AND sc.AcademicYear = @AcademicYear
-                WHERE sub.IsDeleted = 0";
-
-            var parameters = new[] {
-                new SqlParameter("@StudentID", studentId),
-                new SqlParameter("@Semester", semester),
-                new SqlParameter("@AcademicYear", academicYear)
-            };
-
-            var dt = DatabaseHelper.ExecuteQuery(query, parameters);
-
-            foreach (DataRow row in dt.Rows)
+            try
             {
-                ScoreList.Add(new GradeDetailItem
+                string paramQuery = "SELECT ISNULL((SELECT Value FROM Parameter WHERE ParameterName = 'NumPassingGrade'), 5.0) as PassingGrade";
+                DataTable dtParam = DatabaseHelper.ExecuteQuery(paramQuery);
+                decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
+
+                string query = @"
+                    SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore
+                    FROM Subject sub
+                    LEFT JOIN Score sc ON sub.SubjectID = sc.SubjectID 
+                                      AND sc.StudentID = @StudentID 
+                                      AND sc.Semester = @Semester 
+                                      AND sc.AcademicYear = @AcademicYear
+                    WHERE sub.IsDeleted = 0";
+
+                var parameters = new[] {
+                    new SqlParameter("@StudentID", studentId),
+                    new SqlParameter("@Semester", semester),
+                    new SqlParameter("@AcademicYear", academicYear)
+                };
+
+                var dt = DatabaseHelper.ExecuteQuery(query, parameters);
+
+                foreach (DataRow row in dt.Rows)
                 {
-                    SubjectName = row["SubjectName"].ToString(),
-                    RegularScore = row["RegularTestScore"] != DBNull.Value ? Convert.ToDecimal(row["RegularTestScore"]).ToString("0.0") : "-",
-                    MidTermScore = row["MidTermScore"] != DBNull.Value ? Convert.ToDecimal(row["MidTermScore"]).ToString("0.0") : "-",
-                    FinalTermScore = row["FinalTermScore"] != DBNull.Value ? Convert.ToDecimal(row["FinalTermScore"]).ToString("0.0") : "-",
-                    AverageScore = row["AverageScore"] != DBNull.Value ? Convert.ToDecimal(row["AverageScore"]).ToString("0.0") : "-"
-                });
+                    decimal? avgScore = row["AverageScore"] != DBNull.Value ? Convert.ToDecimal(row["AverageScore"]) : null;
+                    bool isFailed = avgScore.HasValue && avgScore.Value < passingGrade;
+
+                    ScoreList.Add(new GradeDetailItem
+                    {
+                        SubjectName = row["SubjectName"].ToString(),
+                        RegularScore = row["RegularTestScore"] != DBNull.Value ? Convert.ToDecimal(row["RegularTestScore"]).ToString("0.0") : "-",
+                        MidTermScore = row["MidTermScore"] != DBNull.Value ? Convert.ToDecimal(row["MidTermScore"]).ToString("0.0") : "-",
+                        FinalTermScore = row["FinalTermScore"] != DBNull.Value ? Convert.ToDecimal(row["FinalTermScore"]).ToString("0.0") : "-",
+                        AverageScore = avgScore.HasValue ? avgScore.Value.ToString("0.0") : "-",
+                        IsFailed = isFailed
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi tải chi tiết điểm: " + ex.Message);
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

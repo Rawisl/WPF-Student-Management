@@ -100,7 +100,7 @@
 
             <components:StudentProfileUC ItemsSource="{Binding DisplayStudents}"
                                          EditCommand="{Binding OpenStudentDetailCommand}"
-                                         DeleteButtonVisibility="Collapsed" />
+                                         DeleteButtonVisibility="Collapsed"/>
 
         </Border>
     </Grid>

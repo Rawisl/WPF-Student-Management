@@ -107,16 +107,73 @@ namespace WPF_Student_Management.ViewModels
         public Visibility ActionVisibility => PermissionService.HasFeature(PermissionService.Feature.ManageHomeroom)
                                               ? Visibility.Visible : Visibility.Collapsed;
 
-        // Sự kiện: Khi click chọn 1 Học sinh trong DataGrid
+        // --- CÁC BIẾN CHỈ DÙNG ĐỂ HIGHLIGHT DÒNG ĐƯỢC CHỌN TRÊN LƯỚI ---
         [ObservableProperty]
-        private HomeroomStudentGradeItem _selectedStudent;
-        partial void OnSelectedStudentChanged(HomeroomStudentGradeItem value)
+        private HomeroomStudentGradeItem _selectedProfileStudent;
+
+        [ObservableProperty]
+        private HomeroomStudentGradeItem _selectedGradeStudent;
+
+        // =========================================================================
+        // SỰ KIỆN KHI DOUBLE-CLICK VÀO TAB DANH SÁCH (Sửa thông tin)
+        // =========================================================================
+        [RelayCommand]
+        private async Task OpenStudentDetail(HomeroomStudentGradeItem item)
         {
-            if (value != null)
+            if (item == null)
+                return;
+            try
             {
-                OpenStudentDetail(value); // Mở Popup
-                // Tự động bỏ chọn để lần sau click lại vẫn ăn event
-                System.Windows.Application.Current.Dispatcher.InvokeAsync(() => SelectedStudent = null);
+                string query = "SELECT * FROM Student WHERE StudentID = @ID";
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@ID", item.StudentId) });
+
+                if (dt.Rows.Count > 0)
+                {
+                    DataRow row = dt.Rows[0];
+                    Student fullStudent = new Student
+                    {
+                        StudentId = row["StudentID"].ToString(),
+                        FullName = row["FullName"].ToString(),
+                        Gender = row["Gender"].ToString(),
+                        DateOfBirth = row["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(row["DateOfBirth"]) : null,
+                        PhoneNumber = row["PhoneNumber"].ToString(),
+                        Email = row["Email"].ToString(),
+                        Address = row["Address"].ToString(),
+                        FamilyBackground = row["FamilyBackground"].ToString(),
+                        GuardianName = row["GuardianName"].ToString(),
+                        GuardianPhoneNumber = row["GuardianPhoneNumber"].ToString(),
+                        AccountId = row["AccountID"] != DBNull.Value ? Convert.ToInt32(row["AccountID"]) : 0
+                    };
+
+                    var detailVM = new StudentProfileDetailViewModel(fullStudent);
+                    var detailUC = new WPF_Student_Management.Components.StudentProfileDetailUC { DataContext = detailVM };
+                    await MaterialDesignThemes.Wpf.DialogHost.Show(detailUC, "RootDialog");
+                    LoadHomeroomData();
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi khi mở hồ sơ: " + ex.Message);
+            }
+        }
+
+        // =========================================================================
+        // SỰ KIỆN KHI DOUBLE-CLICK VÀO TAB BẢNG ĐIỂM (Xem điểm chi tiết bôi đỏ)
+        // =========================================================================
+        [RelayCommand] // <--- QUAN TRỌNG: Phải có dòng này UI mới móc nối được
+        private async Task OpenGradeDetail(HomeroomStudentGradeItem item)
+        {
+            if (item == null)
+                return;
+            try
+            {
+                var gradeVM = new StudentGradeDetailViewModel(item.StudentId, item.FullName, CurrentSemester, CurrentAcademicYear);
+                var gradeUC = new WPF_Student_Management.Components.StudentGradeDetailUC { DataContext = gradeVM };
+                await MaterialDesignThemes.Wpf.DialogHost.Show(gradeUC, "RootDialog");
+            }
+            catch (Exception ex)
+            {
+                NotificationHelper.ShowError("Lỗi khi mở bảng điểm chi tiết: " + ex.Message);
             }
         }
 
@@ -447,50 +504,7 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        [RelayCommand]
-        private async Task OpenStudentDetail(HomeroomStudentGradeItem item)
-        {
-            if (item == null) return;
-
-            try
-            {
-                // Truy vấn ngược DB để lấy Full Object Student
-                string query = "SELECT * FROM Student WHERE StudentID = @ID";
-                DataTable dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@ID", item.StudentId) });
-
-                if (dt.Rows.Count > 0)
-                {
-                    DataRow row = dt.Rows[0];
-                    Student fullStudent = new Student
-                    {
-                        StudentId = row["StudentID"].ToString(),
-                        FullName = row["FullName"].ToString(),
-                        Gender = row["Gender"].ToString(),
-                        DateOfBirth = row["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(row["DateOfBirth"]) : null,
-                        PhoneNumber = row["PhoneNumber"].ToString(),
-                        Email = row["Email"].ToString(),
-                        Address = row["Address"].ToString(),
-                        FamilyBackground = row["FamilyBackground"].ToString(),
-                        GuardianName = row["GuardianName"].ToString(),
-                        GuardianPhoneNumber = row["GuardianPhoneNumber"].ToString(),
-                        AccountId = row["AccountID"] != DBNull.Value ? Convert.ToInt32(row["AccountID"]) : 0
-                    };
-
-                    var detailVM = new StudentProfileDetailViewModel(fullStudent);
-                    var detailUC = new WPF_Student_Management.Components.StudentProfileDetailUC { DataContext = detailVM };
-
-                    await MaterialDesignThemes.Wpf.DialogHost.Show(detailUC, "RootDialog");
-
-                    // Tùy chọn: Sau khi đóng popup reload lại lưới
-                    LoadHomeroomData();
-                }
-            }
-            catch (Exception ex)
-            {
-                NotificationHelper.ShowError("Lỗi khi mở hồ sơ: " + ex.Message);
-            }
-        }
-
+       
         [RelayCommand(CanExecute = nameof(CanExecuteReportActions))]
         private async Task ViewDetail(ReportItem selectedStudent)
         {

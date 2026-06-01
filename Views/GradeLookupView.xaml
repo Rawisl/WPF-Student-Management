@@ -88,9 +88,6 @@
                         HorizontalAlignment="Right" />
             </Grid>
         </Border>
-        <!--asdasdsadasd-->
-
-
         <Border Grid.Row="2"
                 Background="White"
                 CornerRadius="12"
@@ -102,7 +99,23 @@
                                   Opacity="0.5" />
             </Border.Effect>
             <Grid>
-                <StackPanel Visibility="{Binding IsMessageVisible, Converter={StaticResource BoolToVis}}" />
+                <StackPanel Visibility="{Binding IsMessageVisible, Converter={StaticResource BoolToVis}}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Margin="0,60,0,60">
+                    <materialDesign:PackIcon Kind="FileDocumentRemoveOutline"
+                                             Width="70"
+                                             Height="70"
+                                             Foreground="#CFD8DC"
+                                             HorizontalAlignment="Center"
+                                             Margin="0,0,0,15" />
+                    <TextBlock Text="{Binding EmptyMessage}"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#90A4AE"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+
                 <components:StudentGradeDetailUC DataContext="{Binding GradeDetailVM}"
                                                  Visibility="{Binding IsTableVisible, Converter={StaticResource BoolToVis}}"
                                                  HorizontalAlignment="Stretch"
