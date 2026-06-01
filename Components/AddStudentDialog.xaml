@@ -170,10 +170,14 @@
                                      Padding="10,0"
                                      FontSize="15" />
                         </Border>
-                        <Label Content="Email:"
-                               FontWeight="SemiBold"
-                               FontSize="15"
-                               Foreground="#3e4c82" />
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Margin="5,0,0,5">
+                            <Run Text="Email"
+                                 Foreground="#3e4c82" />
+                            <Run Text="*"
+                                 Foreground="#FF4757" />
+                        </TextBlock>
 
                         <Border Style="{StaticResource InputWrapperBorderStyle}">
                             <Grid>

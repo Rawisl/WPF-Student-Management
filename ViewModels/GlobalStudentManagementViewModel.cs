@@ -53,6 +53,7 @@ namespace WPF_Student_Management.ViewModels
         private string _address = string.Empty;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private string _emailPrefix = string.Empty;
 
         //người bảo hộ của học sinh
@@ -247,6 +248,7 @@ namespace WPF_Student_Management.ViewModels
                    !string.IsNullOrWhiteSpace(FullName) &&
                    !string.IsNullOrWhiteSpace(Address) &&
                    !string.IsNullOrWhiteSpace(PhoneNumber) &&
+                   !string.IsNullOrWhiteSpace(EmailPrefix) &&
                    !string.IsNullOrEmpty(GuardianName) &&
                    !string.IsNullOrEmpty(GuardianPhoneNumber) &&
                    Regex.IsMatch(PhoneNumber?.Trim() ?? "", phoneRegexPattern) &&

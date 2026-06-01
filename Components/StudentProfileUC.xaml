@@ -21,6 +21,11 @@
               ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=UserControl}}"
               Style="{StaticResource GlobalDataGridStyle}"
               CellStyle="{StaticResource GlobalDataGridCellStyle}">
+        <DataGrid.InputBindings>
+            <MouseBinding MouseAction="LeftDoubleClick"
+                          Command="{Binding EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+        </DataGrid.InputBindings>
         <DataGrid.Columns>
             <DataGridTextColumn Header="STT"
                                 Binding="{Binding STT}"

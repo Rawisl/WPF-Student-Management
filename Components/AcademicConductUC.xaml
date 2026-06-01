@@ -118,11 +118,16 @@
                                   Opacity="0.5" />
             </Border.Effect>
             <DataGrid ItemsSource="{Binding DisplayStudents}"
-                      SelectedItem="{Binding SelectedStudent}"
+                      SelectedItem="{Binding SelectedGradeStudent}"
                       Cursor="Hand"
                       Style="{StaticResource GlobalDataGridStyle}"
                       CellStyle="{StaticResource GlobalDataGridCellStyle}"
                       FontSize="15">
+                <DataGrid.InputBindings>
+                    <MouseBinding MouseAction="LeftDoubleClick"
+                                  Command="{Binding OpenGradeDetailCommand}"
+                                  CommandParameter="{Binding SelectedGradeStudent}" />
+                </DataGrid.InputBindings>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="STT"
                                         Binding="{Binding STT}"

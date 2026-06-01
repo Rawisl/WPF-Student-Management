@@ -130,8 +130,9 @@
                                        FontWeight="SemiBold"
                                        Margin="5,0,0,5">
                                 <Run Text="Họ Tên"
-                                     Foreground="#3e4c82" /><Run Text="*"
-                                                                 Foreground="#FF4757" />
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
                             <TextBox Text="{Binding CurrentStaff.FullName, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource RoundedTextBoxStyle}"
@@ -141,8 +142,9 @@
                                        FontWeight="SemiBold"
                                        Margin="5,0,0,5">
                                 <Run Text="Giới tính"
-                                     Foreground="#3e4c82" /><Run Text="*"
-                                                                 Foreground="#FF4757" />
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
                             <StackPanel Orientation="Horizontal"
                                         Margin="0,2,0,12"
@@ -163,12 +165,19 @@
                                        FontWeight="SemiBold"
                                        Margin="5,10,0,5">
                                 <Run Text="CCCD/CMND"
-                                     Foreground="#3e4c82" /><Run Text="*"
-                                                                 Foreground="#FF4757" />
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
-                            <TextBox Text="{Binding CurrentStaff.NationalId, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource RoundedTextBoxStyle}"
-                                     helpers:TextBoxHelper.IsNumericOnly="True" />
+                            <Border Style="{StaticResource InputWrapperBorderStyle}">
+
+                                <TextBox Text="{Binding CurrentStaff.NationalId, UpdateSourceTrigger=PropertyChanged}"
+                                         helpers:TextBoxHelper.IsNumericOnly="True"
+                                         MaxLength="12"
+                                         VerticalContentAlignment="Center"
+                                         Padding="10,0"
+                                         FontSize="15" />
+                            </Border>
 
                             <TextBlock FontSize="15"
                                        FontWeight="SemiBold"
@@ -191,8 +200,9 @@
                                        FontWeight="SemiBold"
                                        Margin="5,0,0,5">
                                 <Run Text="Vai trò / Quyền hạn"
-                                     Foreground="#3e4c82" /><Run Text="*"
-                                                                 Foreground="#FF4757" />
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
                             <ComboBox ItemsSource="{Binding RoleList}"
                                       SelectedValue="{Binding CurrentStaff.RoleId}"
@@ -218,8 +228,9 @@
                                        FontWeight="SemiBold"
                                        Margin="5,0,0,5">
                                 <Run Text="Số điện thoại"
-                                     Foreground="#3e4c82" /><Run Text="*"
-                                                                 Foreground="#FF4757" />
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
                             <Border Style="{StaticResource InputWrapperBorderStyle}">
                                 <TextBox Text="{Binding CurrentStaff.PhoneNumber, UpdateSourceTrigger=PropertyChanged}"
@@ -236,8 +247,9 @@
                                        FontWeight="SemiBold"
                                        Margin="5,0,0,5">
                                 <Run Text="Email"
-                                     Foreground="#3e4c82" /><Run Text="*"
-                                                                 Foreground="#FF4757" />
+                                     Foreground="#3e4c82" />
+                                <Run Text="*"
+                                     Foreground="#FF4757" />
                             </TextBlock>
                             <TextBox Text="{Binding CurrentStaff.Email, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource RoundedTextBoxStyle}" />
@@ -267,8 +279,9 @@
                                                FontWeight="SemiBold"
                                                Margin="0,0,0,3">
                                         <Run Text="Ngày vào làm"
-                                             Foreground="#3e4c82" /><Run Text="*"
-                                                                         Foreground="#FF4757" />
+                                             Foreground="#3e4c82" />
+                                        <Run Text="*"
+                                             Foreground="#FF4757" />
                                     </TextBlock>
                                     <Border Style="{StaticResource InputWrapperBorderStyle}">
                                         <DatePicker SelectedDate="{Binding CurrentStaff.HireDate}"
@@ -286,8 +299,9 @@
                                                FontWeight="SemiBold"
                                                Margin="0,0,0,3">
                                         <Run Text="Trạng thái tài khoản"
-                                             Foreground="#3e4c82" /><Run Text="*"
-                                                                         Foreground="#FF4757" />
+                                             Foreground="#3e4c82" />
+                                        <Run Text="*"
+                                             Foreground="#FF4757" />
                                     </TextBlock>
                                     <ComboBox ItemsSource="{Binding StatusList}"
                                               SelectedItem="{Binding CurrentStaff.Status}"
