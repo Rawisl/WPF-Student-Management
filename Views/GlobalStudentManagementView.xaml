@@ -129,6 +129,22 @@
                           VerticalContentAlignment="Center" />
             </StackPanel>
 
+            <StackPanel Orientation="Vertical"
+                        Margin="20,0,0,0">
+                <TextBlock Text="Lớp:"
+                           Foreground="#878A99"
+                           FontWeight="SemiBold"
+                           FontSize="13"
+                           Margin="5,0,0,5" />
+
+                <ComboBox ItemsSource="{Binding ClassList}"
+                          SelectedItem="{Binding SelectedClass}"
+                          Height="42"
+                          Width="120"
+                          FontSize="15"
+                          VerticalContentAlignment="Center" />
+            </StackPanel>
+
         </StackPanel>
 
         <Border Grid.Row="2"

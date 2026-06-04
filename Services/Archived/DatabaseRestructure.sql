@@ -1,4 +1,18 @@
-﻿IF OBJECT_ID('dbo.vw_ClassSize', 'V') IS NOT NULL DROP VIEW dbo.vw_ClassSize;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+
+-- Create the database
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'StudentManagementDB')
+BEGIN
+    CREATE DATABASE StudentManagementDB;
+END
+GO
+
+USE StudentManagementDB;
+GO
+
+IF OBJECT_ID('dbo.vw_ClassSize', 'V') IS NOT NULL DROP VIEW dbo.vw_ClassSize;
 IF OBJECT_ID('dbo.vw_DeletedSubjects', 'V') IS NOT NULL DROP VIEW dbo.vw_DeletedSubjects;
 GO
 DROP TABLE IF EXISTS StudentAverage;
@@ -680,10 +694,36 @@ INSERT INTO ClassPlacement (StudentID, ClassID, AcademicYear, EffectiveFrom) VAL
 ('hs250039', 9, '2025-2026', '2025-09-05'), ('hs250040', 9, '2025-2026', '2025-09-05');
 
 -- TeachingAssignment  (Semester + AcademicYear dùng default)
-INSERT INTO TeachingAssignment (EmployeeID, ClassID, SubjectID) VALUES
-(4, 1, 1), (5, 2, 7), (6, 3, 2),
-(13, 1, 8), (14, 5, 9),
-(8, 5, 4), (11, 8, 7), (12, 9, 1);
+-- TeachingAssignment: Complete assignments for 10A1 and 10A2 (all 9 subjects each)
+INSERT INTO TeachingAssignment (EmployeeID, ClassID, SubjectID, Semester, AcademicYear) VALUES
+-- 10A1 (ClassID=1) - All 9 subjects
+(4, 1, 1, N'Học kỳ 1', '2025-2026'),  -- Phạm Văn Cán teaches Toán học to 10A1
+(6, 1, 2, N'Học kỳ 1', '2025-2026'),  -- Vũ Văn Khoa teaches Vật Lý to 10A1
+(7, 1, 3, N'Học kỳ 1', '2025-2026'),  -- Đặng Thị Hóa teaches Hóa học to 10A1
+(8, 1, 4, N'Học kỳ 1', '2025-2026'),  -- Bùi Văn Sinh teaches Sinh học to 10A1
+(9, 1, 5, N'Học kỳ 1', '2025-2026'),  -- Đỗ Thị Sử teaches Lịch sử to 10A1
+(10, 1, 6, N'Học kỳ 1', '2025-2026'), -- Hồ Văn Địa teaches Địa lý to 10A1
+(5, 1, 7, N'Học kỳ 1', '2025-2026'),  -- Hoàng Thị Ngữ teaches Ngữ Văn to 10A1
+(13, 1, 8, N'Học kỳ 1', '2025-2026'), -- Lý Thị Đức teaches GDCD to 10A1
+(14, 1, 9, N'Học kỳ 1', '2025-2026'), -- Mai Văn Lực teaches GDTC to 10A1
+
+-- 10A2 (ClassID=2) - All 9 subjects
+(4, 2, 1, N'Học kỳ 1', '2025-2026'),  -- Phạm Văn Cán teaches Toán học to 10A2
+(6, 2, 2, N'Học kỳ 1', '2025-2026'),  -- Vũ Văn Khoa teaches Vật Lý to 10A2
+(7, 2, 3, N'Học kỳ 1', '2025-2026'),  -- Đặng Thị Hóa teaches Hóa học to 10A2
+(8, 2, 4, N'Học kỳ 1', '2025-2026'),  -- Bùi Văn Sinh teaches Sinh học to 10A2
+(9, 2, 5, N'Học kỳ 1', '2025-2026'),  -- Đỗ Thị Sử teaches Lịch sử to 10A2
+(10, 2, 6, N'Học kỳ 1', '2025-2026'), -- Hồ Văn Địa teaches Địa lý to 10A2
+(5, 2, 7, N'Học kỳ 1', '2025-2026'),  -- Hoàng Thị Ngữ teaches Ngữ Văn to 10A2
+(13, 2, 8, N'Học kỳ 1', '2025-2026'), -- Lý Thị Đức teaches GDCD to 10A2
+(14, 2, 9, N'Học kỳ 1', '2025-2026'), -- Mai Văn Lực teaches GDTC to 10A2
+
+-- Other classes (partial assignments for existing mock data)
+(6, 3, 2, N'Học kỳ 1', '2025-2026'),  -- 10A3 - Vật Lý
+(14, 5, 9, N'Học kỳ 1', '2025-2026'), -- 11A1 - GDTC
+(8, 5, 4, N'Học kỳ 1', '2025-2026'),  -- 11A1 - Sinh học
+(11, 8, 7, N'Học kỳ 1', '2025-2026'), -- 12A1 - Ngữ Văn
+(12, 9, 1, N'Học kỳ 1', '2025-2026'); -- 12A2 - Toán học
 
 -- Scores  (AverageScore tự tính, không cần INSERT)
 -- Môn tính điểm
@@ -737,11 +777,48 @@ INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType,
 ('hs250025', 8,  6,    'ClassTransfer', N'Không theo kịp chương trình nâng cao',           N'Chuyển sang lớp 11A2',           4, '2024-05-15 14:00:00'),
 ('hs250040', 12, NULL, 'DropOut',       N'Lý do sức khỏe',                                 NULL,                              1, NULL);
 
+-- ============================================================================
+-- MOCK DATA FOR DEMONSTRATION: 3 SCENARIOS
+-- ============================================================================
+-- Scenario 1: 10A3 - No SubjectReports, No ClassReport (clean slate)
+-- Scenario 2: 10A2 - Has SubjectReports, but No ClassReport yet (pending)
+-- Scenario 3: 10A1 - Has SubjectReports AND ClassReport (complete)
+-- ============================================================================
+
+-- SubjectReport data for 10A1 (ClassID=1) - All 9 subjects
+INSERT INTO SubjectReport (ClassID, SubjectID, Semester, AcademicYear, TotalStudents, PassedStudents, IsLocked, CreatedByTeacherID, CreatedAt)
+VALUES
+(1, 1, N'Học kỳ 1', '2025-2026', 6, 4, 1, 4, GETDATE()),  -- 10A1 - Toán học (4/6 passed = 66.67%)
+(1, 2, N'Học kỳ 1', '2025-2026', 6, 5, 1, 4, GETDATE()),  -- 10A1 - Vật Lý (5/6 passed = 83.33%)
+(1, 3, N'Học kỳ 1', '2025-2026', 6, 5, 1, 4, GETDATE()),  -- 10A1 - Hóa học (5/6 passed = 83.33%)
+(1, 4, N'Học kỳ 1', '2025-2026', 6, 6, 1, 4, GETDATE()),  -- 10A1 - Sinh học (6/6 passed = 100%)
+(1, 5, N'Học kỳ 1', '2025-2026', 6, 5, 1, 4, GETDATE()),  -- 10A1 - Lịch sử (5/6 passed = 83.33%)
+(1, 6, N'Học kỳ 1', '2025-2026', 6, 5, 1, 4, GETDATE()),  -- 10A1 - Địa lý (5/6 passed = 83.33%)
+(1, 7, N'Học kỳ 1', '2025-2026', 6, 6, 1, 4, GETDATE()),  -- 10A1 - Ngữ Văn (6/6 passed = 100%)
+(1, 8, N'Học kỳ 1', '2025-2026', 6, 6, 1, 4, GETDATE()),  -- 10A1 - Giáo dục công dân (6/6 passed = 100%)
+(1, 9, N'Học kỳ 1', '2025-2026', 6, 6, 1, 4, GETDATE());  -- 10A1 - Giáo dục thể chất (6/6 passed = 100%)
+
+-- SubjectReport data for 10A2 (ClassID=2) - All 9 subjects
+INSERT INTO SubjectReport (ClassID, SubjectID, Semester, AcademicYear, TotalStudents, PassedStudents, IsLocked, CreatedByTeacherID, CreatedAt)
+VALUES
+(2, 1, N'Học kỳ 1', '2025-2026', 5, 3, 1, 5, GETDATE()),  -- 10A2 - Toán học (3/5 passed = 60%)
+(2, 2, N'Học kỳ 1', '2025-2026', 5, 4, 1, 5, GETDATE()),  -- 10A2 - Vật Lý (4/5 passed = 80%)
+(2, 3, N'Học kỳ 1', '2025-2026', 5, 4, 1, 5, GETDATE()),  -- 10A2 - Hóa học (4/5 passed = 80%)
+(2, 4, N'Học kỳ 1', '2025-2026', 5, 5, 1, 5, GETDATE()),  -- 10A2 - Sinh học (5/5 passed = 100%)
+(2, 5, N'Học kỳ 1', '2025-2026', 5, 4, 1, 5, GETDATE()),  -- 10A2 - Lịch sử (4/5 passed = 80%)
+(2, 6, N'Học kỳ 1', '2025-2026', 5, 4, 1, 5, GETDATE()),  -- 10A2 - Địa lý (4/5 passed = 80%)
+(2, 7, N'Học kỳ 1', '2025-2026', 5, 5, 1, 5, GETDATE()),  -- 10A2 - Ngữ Văn (5/5 passed = 100%)
+(2, 8, N'Học kỳ 1', '2025-2026', 5, 5, 1, 5, GETDATE()),  -- 10A2 - Giáo dục công dân (5/5 passed = 100%)
+(2, 9, N'Học kỳ 1', '2025-2026', 5, 5, 1, 5, GETDATE());  -- 10A2 - Giáo dục thể chất (5/5 passed = 100%)
+
+-- ClassReport data - ONLY for 10A1 (Scenario 3: Complete)
+-- 10A2 will NOT have ClassReport (Scenario 2: Pending)
+-- 10A3 will NOT have SubjectReports or ClassReport (Scenario 1: Clean slate)
 INSERT INTO ClassReport (ClassID, Semester, AcademicYear, TotalStudents, IsLocked, CreatedByTeacherID, CreatedAt)
 VALUES
-(1, N'Học kỳ 1', '2025-2026', 5, 1, 4, GETDATE()),  -- Lớp 10A1 (Sĩ số: 5, GVCN: Phạm Văn Cán)
-(2, N'Học kỳ 1', '2025-2026', 5, 1, 5, GETDATE()),  -- Lớp 10A2 (Sĩ số: 5, GVCN: Hoàng Thị Ngữ)
-(3, N'Học kỳ 1', '2025-2026', 5, 1, 6, GETDATE()),  -- Lớp 10A3 (Sĩ số: 5, GVCN: Vũ Văn Khoa)
+(1, N'Học kỳ 1', '2025-2026', 6, 1, 4, GETDATE()),  -- Lớp 10A1 (Sĩ số: 6, GVCN: Phạm Văn Cán) ✅ COMPLETE
+-- (2, N'Học kỳ 1', '2025-2026', 5, 1, 5, GETDATE()),  -- Lớp 10A2 - COMMENTED OUT (Scenario 2: has SubjectReports only)
+-- (3, N'Học kỳ 1', '2025-2026', 5, 1, 6, GETDATE()),  -- Lớp 10A3 - COMMENTED OUT (Scenario 1: no reports at all)
 (4, N'Học kỳ 1', '2025-2026', 5, 1, 7, GETDATE()),  -- Lớp 10A4 (Sĩ số: 5, GVCN: Đặng Thị Hóa)
 (5, N'Học kỳ 1', '2025-2026', 5, 1, 8, GETDATE()),  -- Lớp 11A1 (Sĩ số: 5, GVCN: Bùi Văn Sinh)
 (6, N'Học kỳ 1', '2025-2026', 5, 1, 9, GETDATE()),  -- Lớp 11A2 (Sĩ số: 5, GVCN: Đỗ Thị Sử)
