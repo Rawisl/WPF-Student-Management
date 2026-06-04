@@ -79,8 +79,17 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private string _selectedGender = "Tất cả";
 
+        [ObservableProperty]
+        private string _selectedClass = "Tất cả";
+
         // Danh sách đổ vào ComboBox Giới tính
         public ObservableCollection<string> GenderList { get; } = new ObservableCollection<string> { "Tất cả", "Nam", "Nữ" };
+
+        // Danh sách đổ vào ComboBox Lớp
+        public ObservableCollection<string> ClassList { get; } = new ObservableCollection<string>();
+
+        // Map StudentId → ClassName (runtime lookup)
+        private Dictionary<string, string> _studentClassMap = new();
 
         //Logic đồng bộ giới tính
         partial void OnIsMaleChanged(bool value) => IsFemale = !value;
@@ -98,6 +107,7 @@ namespace WPF_Student_Management.ViewModels
         public GlobalStudentManagementViewModel()
         {
             AllStudent = new ObservableCollection<Student>();
+            LoadClassFilterData();
             LoadDataFromDatabase();
             OnDateOfBirthChanged(DateTime.Now);
 
@@ -106,6 +116,43 @@ namespace WPF_Student_Management.ViewModels
 
             // Ép nó check lại tuổi ngay khi vừa load lên (lỡ tuổi lúc trước hợp lệ, giờ đổi quy định thành không hợp lệ)
             OnDateOfBirthChanged(DateOfBirth);
+        }
+
+        private void LoadClassFilterData()
+        {
+            try
+            {
+                var classes = Class.GetAllClasses()
+                    .Select(c => c.ClassName)
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(name => name)
+                    .ToList();
+
+                ClassList.Clear();
+                ClassList.Add("Tất cả");
+                foreach (var cls in classes)
+                    ClassList.Add(cls);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Không tải được danh sách lớp: " + ex.Message);
+                ClassList.Clear();
+                ClassList.Add("Tất cả");
+            }
+        }
+
+        private void LoadStudentClassMap()
+        {
+            try
+            {
+                _studentClassMap = Class.GetCurrentStudentClassMap();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Không tải được map lớp học sinh: " + ex.Message);
+                _studentClassMap = new Dictionary<string, string>();
+            }
         }
 
         private void LoadAgeRegulations()
@@ -139,6 +186,8 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
+                LoadStudentClassMap();
+
                 //lọc ra đứa nào có status Active mới lấy
                 var studentList = Student.GetAllStudents()
                                          .Where(s => s.Status == "Active")
@@ -339,6 +388,12 @@ namespace WPF_Student_Management.ViewModels
 
         partial void OnSearchTextChanged(string value) => FilterData();
         partial void OnSelectedGenderChanged(string value) => FilterData();
+        partial void OnSelectedClassChanged(string value) => FilterData();
+
+        private string GetStudentClassName(Student s)
+        {
+            return _studentClassMap.TryGetValue(s.StudentId, out var cn) ? cn : "";
+        }
 
         private void FilterData()
         {
@@ -358,6 +413,15 @@ namespace WPF_Student_Management.ViewModels
             if (!string.IsNullOrWhiteSpace(SelectedGender) && SelectedGender != "Tất cả")
             {
                 filtered = filtered.Where(s => !string.IsNullOrEmpty(s.Gender) && s.Gender.Equals(SelectedGender, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(SelectedClass) && SelectedClass != "Tất cả")
+            {
+                filtered = filtered.Where(s =>
+                {
+                    var cn = GetStudentClassName(s);
+                    return !string.IsNullOrEmpty(cn) && cn.Equals(SelectedClass, StringComparison.OrdinalIgnoreCase);
+                });
             }
 
             // --- LOGIC ĐÁNH SỐ THỨ TỰ STT ---
