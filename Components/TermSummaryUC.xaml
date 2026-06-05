@@ -124,7 +124,7 @@
                                                      Width="20"
                                                      Height="20"
                                                      Margin="0,0,8,0" />
-                            <TextBlock Text="Xác nhận chốt sổ"
+                            <TextBlock Text="Xác nhận báo cáo"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
