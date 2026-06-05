@@ -103,5 +103,40 @@ namespace WPF_Student_Management.Models
 
             return DatabaseHelper.ExecuteQuery(query);
         }
+
+        // Lấy tên lớp hiện tại của mỗi học sinh (qua ClassPlacement active)
+        public static Dictionary<string, string> GetCurrentStudentClassMap()
+        {
+            var map = new Dictionary<string, string>();
+            string query = @"
+                SELECT cp.StudentID, c.ClassName
+                FROM ClassPlacement cp
+                JOIN Class c ON cp.ClassID = c.ClassID
+                WHERE cp.EffectiveTo IS NULL";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(query);
+            foreach (DataRow row in dt.Rows)
+            {
+                string sid = row["StudentID"].ToString() ?? "";
+                if (!string.IsNullOrEmpty(sid) && !map.ContainsKey(sid))
+                    map[sid] = row["ClassName"].ToString() ?? "";
+            }
+            return map;
+        }
+
+        // Lấy danh sách tên lớp (để đổ vào ComboBox)
+        public static List<string> GetAllActiveClassNames()
+        {
+            var names = new List<string>();
+            string query = @"
+                SELECT DISTINCT c.ClassName
+                FROM Class c
+                WHERE c.AcademicYear = (SELECT MAX(AcademicYear) FROM Class)";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(query);
+            foreach (DataRow row in dt.Rows)
+                names.Add(row["ClassName"].ToString() ?? "");
+            return names;
+        }
     }
 }
