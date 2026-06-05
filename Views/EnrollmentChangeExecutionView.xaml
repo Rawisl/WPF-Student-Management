@@ -70,6 +70,11 @@
                           Background="Transparent"
                           MinRowHeight="50"
                           VerticalScrollBarVisibility="Auto">
+                    <DataGrid.InputBindings>
+                        <MouseBinding MouseAction="LeftDoubleClick"
+                                      Command="{Binding Data.OpenRequestDetailDialogCommand, Source={StaticResource Proxy}}"
+                                      CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+                    </DataGrid.InputBindings>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="STT"
                                             Binding="{Binding STT}"
@@ -139,8 +144,19 @@
                                             Binding="{Binding Reason}"
                                             IsReadOnly="True"
                                             Width="*"
-                                            HeaderStyle="{StaticResource GlobalLeftHeaderStyle}"
-                                            ElementStyle="{StaticResource WrapTextElementStyle}" />
+                                            HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock"
+                                       BasedOn="{StaticResource GlobalLeftElementStyle}">
+                                    <Setter Property="TextTrimming"
+                                            Value="CharacterEllipsis" />
+                                    <Setter Property="VerticalAlignment"
+                                            Value="Center" />
+                                    <Setter Property="Padding"
+                                            Value="5" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
                         <DataGridTemplateColumn Header="Thao tác"
                                                 Width="110"

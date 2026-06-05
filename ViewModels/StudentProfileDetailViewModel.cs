@@ -16,13 +16,11 @@ namespace WPF_Student_Management.ViewModels
     {
         private readonly Student _originalItem;
 
-        // --- BỔ SUNG CỜ PHÂN QUYỀN ĐỂ ĐỒNG BỘ VỚI UI TẮC KÈ HOA ---
         [ObservableProperty]
         private bool _isReadOnly;
 
         public Visibility ActionVisibility => IsReadOnly ? Visibility.Collapsed : Visibility.Visible;
         public bool IsEditable => !IsReadOnly;
-        // ------------------------------------------------------------
 
         [ObservableProperty] private string _studentID;
 
@@ -71,14 +69,12 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private bool _isCreateRequestVisible;
 
-        // BỔ SUNG THAM SỐ isReadOnly VÀO CONSTRUCTOR
         public StudentProfileDetailViewModel(Student student, bool isReadOnly = false)
         {
             _originalItem = student;
             IsReadOnly = isReadOnly;
 
-            // Logic check quyền hiện nút Lập đơn
-            // Nếu form đang ở chế độ Chỉ Đọc (Học sinh đang xem) thì chắc chắn ẨN nút Lập Đơn
+            // Nếu form đang ở chế độ read thì ẩn nút Lập Đơn
             if (IsReadOnly)
             {
                 IsCreateRequestVisible = false;
@@ -95,21 +91,22 @@ namespace WPF_Student_Management.ViewModels
                 }
             }
 
-            // 1. MAP DỮ LIỆU CƠ BẢN
             StudentID = student.StudentId.ToString();
             FullName = student.FullName;
             IsAccountActive = Account.IsAccountActive(student.AccountId);
 
-            if (student.Gender == "Nam") IsMale = true;
-            else IsFemale = true;
+            if (student.Gender == "Nam")
+                IsMale = true;
+            else
+                IsFemale = true;
 
             DateOfBirth = student.DateOfBirth ?? DateTime.Now.AddYears(-15);
 
-            // 2. MAP HOÀN CẢNH GIA ĐÌNH
-            if (student.FamilyBackground == "Bình thường") IsFamilyNormal = true;
-            else IsFamilyHard = true;
+            if (student.FamilyBackground == "Bình thường")
+                IsFamilyNormal = true;
+            else
+                IsFamilyHard = true;
 
-            // 3. MAP THÔNG TIN LIÊN LẠC
             Address = student.Address;
             PhoneNumber = student.PhoneNumber;
 
@@ -122,11 +119,9 @@ namespace WPF_Student_Management.ViewModels
                 EmailPrefix = student.Email;
             }
 
-            // 4. MAP NGƯỜI BẢO HỘ
             GuardianName = student.GuardianName;
             GuardianPhoneNumber = student.GuardianPhoneNumber;
 
-            // Kiểm tra tuổi
             LoadAgeRegulations();
             OnDateOfBirthChanged(DateOfBirth);
         }
@@ -139,10 +134,12 @@ namespace WPF_Student_Management.ViewModels
                 if (allRegulations != null && allRegulations.Any())
                 {
                     var minAgeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MinAge");
-                    if (minAgeParam != null) _minAge = (int)minAgeParam.Value;
+                    if (minAgeParam != null)
+                        _minAge = (int)minAgeParam.Value;
 
                     var maxAgeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MaxAge");
-                    if (maxAgeParam != null) _maxAge = (int)maxAgeParam.Value;
+                    if (maxAgeParam != null)
+                        _maxAge = (int)maxAgeParam.Value;
                 }
             }
             catch (Exception ex)
@@ -154,7 +151,8 @@ namespace WPF_Student_Management.ViewModels
         partial void OnDateOfBirthChanged(DateTime value)
         {
             int age = DateTime.Now.Year - value.Year;
-            if (DateTime.Now.DayOfYear < value.DayOfYear) age--;
+            if (DateTime.Now.DayOfYear < value.DayOfYear)
+                age--;
 
             if (age < _minAge || age > _maxAge)
                 AgeErrorMessage = $"Tuổi {age} không hợp lệ (Quy định: {_minAge} - {_maxAge})";
@@ -164,7 +162,8 @@ namespace WPF_Student_Management.ViewModels
 
         private bool CanSave()
         {
-            if (IsReadOnly) return false;
+            if (IsReadOnly)
+                return false;
 
             string phoneRegexPattern = @"^0\d{9}$";
 
@@ -236,7 +235,8 @@ namespace WPF_Student_Management.ViewModels
             }
 
             bool isConfirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn đặt lại mật khẩu của học sinh {_originalItem.FullName} về mặc định không?");
-            if (!isConfirm) return;
+            if (!isConfirm)
+                return;
 
             string defaultRawPassword = "";
             if (_originalItem.DateOfBirth.HasValue && !string.IsNullOrWhiteSpace(_originalItem.PhoneNumber) && _originalItem.PhoneNumber.Length >= 4)

@@ -25,8 +25,10 @@ namespace WPF_Student_Management.Helpers
         {
             if (sender is PasswordBox passwordBox)
             {
-                if ((bool)e.OldValue) passwordBox.PasswordChanged -= PasswordChanged;
-                if ((bool)e.NewValue) passwordBox.PasswordChanged += PasswordChanged;
+                if ((bool)e.OldValue)
+                    passwordBox.PasswordChanged -= PasswordChanged;
+                if ((bool)e.NewValue)
+                    passwordBox.PasswordChanged += PasswordChanged;
             }
         }
 

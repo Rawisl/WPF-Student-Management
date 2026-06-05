@@ -718,21 +718,23 @@ INSERT INTO TeachingAssignment (EmployeeID, ClassID, SubjectID, Semester, Academ
 -- Other classes (partial assignments for existing mock data)
 (6, 3, 2, N'Học kỳ 1', '2025-2026'),  -- 10A3 - Vật Lý
 (14, 5, 9, N'Học kỳ 1', '2025-2026'), -- 11A1 - GDTC
-(8, 5, 4, N'Học kỳ 1', '2025-2026'),  -- 11A1 - Sinh học
+(8, 5, 4, N'Học kỳ 1', '2025-2026'),  -- 11A1 - Sinh họcs
 (11, 8, 7, N'Học kỳ 1', '2025-2026'), -- 12A1 - Ngữ Văn
 (12, 9, 1, N'Học kỳ 1', '2025-2026'); -- 12A2 - Toán học
 
 -- Scores  (AverageScore tự tính, không cần INSERT)
 -- Môn tính điểm
-INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
-('hs250006', 7, 7.0, 8.0, 8.5),
-('hs250011', 2, 9.0, 9.5, 9.0),
-('hs250021', 4, 8.0, 7.0, 8.0),
-('hs250036', 7, 7.5, 8.0, 8.5),
-('hs250039', 1, 9.5, 9.0, 9.5);
+INSERT INTO Score (StudentID, SubjectID, RegularScore1, RegularScore2, MidTermScore, FinalTermScore, AverageScore) VALUES
+('hs250006', 7, 7.0, 7.5, 8.0, 8.5, 8.0),
+('hs250011', 2, 9.0, 9.5, 9.5, 9.0, 9.2),
+('hs250021', 4, 8.0, 8.0, 7.0, 8.0, 7.7), 
+('hs250036', 7, 7.5, 8.0, 8.0, 8.5, 8.1), 
+('hs250039', 1, 9.5, 10.0, 9.0, 9.5, 9.4); 
+
 -- Môn Đạt/Không đạt (PassFail) — encode Đ=10, KĐ=0; trigger StudentAverage tự loại trừ qua GradeType filter
-INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
-('hs250022', 9, 10, 10, 10);
+INSERT INTO Score (StudentID, SubjectID, RegularScore1, MidTermScore, FinalTermScore, AverageScore) VALUES
+('hs250022', 9, 10, 10, 10, 10);
+
 
 -- Mock điểm chi tiết cho lớp 10A1 (test báo cáo của GVCN Phạm Văn Cán)
 -- Môn tính điểm (SubjectID 1..7)

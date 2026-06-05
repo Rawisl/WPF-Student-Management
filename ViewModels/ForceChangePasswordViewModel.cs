@@ -8,10 +8,8 @@ using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.ViewModels
 {
-    // Kế thừa ObservableObject thay vì INotifyPropertyChanged dài dòng
     public partial class ForceChangePasswordViewModel : ObservableObject
     {
-        // Khai báo biến và dặn C# tự báo hiệu cho nút Lưu (ChangePasswordCommand) mỗi khi gõ chữ
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(ChangePasswordCommand))]
         private string _newPassword;
@@ -20,19 +18,16 @@ namespace WPF_Student_Management.ViewModels
         [NotifyCanExecuteChangedFor(nameof(ChangePasswordCommand))]
         private string _confirmPassword;
 
-        // Constructor giờ trống trơn, sạch sẽ!
         public ForceChangePasswordViewModel()
         {
         }
 
-        // Hàm check điều kiện: Đủ 2 ô mới cho bấm nút
         private bool CanChangePassword()
         {
             return !string.IsNullOrWhiteSpace(NewPassword) &&
                    !string.IsNullOrWhiteSpace(ConfirmPassword);
         }
 
-        // Tự động sinh RelayCommand<Window> vì tham số truyền vào là Window
         [RelayCommand(CanExecute = nameof(CanChangePassword))]
         private void ChangePassword(Window currentWindow)
         {
@@ -54,7 +49,7 @@ namespace WPF_Student_Management.ViewModels
                 int currentUserId = CurrentUser.Instance.UserId;
                 string hashedNewPwd = PasswordHasher.HashPassword(NewPassword);
 
-                // Cập nhật mật khẩu mới và TẮT cờ bắt buộc đổi
+                // Cập nhật mật khẩu mới và tắt cờ bắt buộc đổi
                 string updateQuery = "UPDATE Account SET PasswordHash = @NewHash, IsRequiredChangePassword = 0 WHERE AccountID = @AccountID";
                 SqlParameter[] updateParams = new SqlParameter[]
                 {
@@ -68,7 +63,6 @@ namespace WPF_Student_Management.ViewModels
                 {
                     NotificationHelper.ShowSuccess("Đổi mật khẩu thành công! Chào mừng bạn đến với hệ thống.");
 
-                    // Chuyển form cực mượt mà không cần ép kiểu "obj is Window" nữa
                     if (currentWindow != null)
                     {
                         MainWindow main = new MainWindow();

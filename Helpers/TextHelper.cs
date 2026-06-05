@@ -10,7 +10,8 @@ namespace WPF_Student_Management.Helpers
     {
         public static string RemoveSignForVietnameseString(string str)
         {
-            if (string.IsNullOrEmpty(str)) return str;
+            if (string.IsNullOrEmpty(str))
+                return str;
 
             string[] signs = new string[] {
                 "aAeEoOuUiIdDyY",

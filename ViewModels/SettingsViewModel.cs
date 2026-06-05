@@ -24,10 +24,8 @@ namespace WPF_Student_Management.ViewModels
 
         public SettingsViewModel()
         {
-            // Constructor giờ trống trơn, sạch sẽ
         }
 
-        // Đổi tên hàm check và bỏ tham số (object obj)
         private bool CanChangePassword()
         {
             return !string.IsNullOrWhiteSpace(OldPassword) &&
@@ -35,7 +33,6 @@ namespace WPF_Student_Management.ViewModels
                    !string.IsNullOrWhiteSpace(ConfirmPassword);
         }
 
-        // Tự động sinh ra lệnh ChangePasswordCommand
         [RelayCommand(CanExecute = nameof(CanChangePassword))]
         private void ChangePassword()
         {

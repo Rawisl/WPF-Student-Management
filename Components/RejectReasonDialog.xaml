@@ -31,8 +31,8 @@
             <TextBlock Text="Vui lòng nhập lý do từ chối thực thi đơn này. Lý do sẽ được lưu lại để GVCN theo dõi."
                        TextWrapping="Wrap"
                        Foreground="#555555"
-                       Margin="0,0,0,15" 
-                       FontSize="13"/>
+                       Margin="0,0,0,15"
+                       FontSize="13" />
 
             <TextBlock FontSize="14"
                        FontWeight="SemiBold"

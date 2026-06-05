@@ -173,7 +173,7 @@
                                         FontWeight="Bold"
                                         IsReadOnly="True"
                                         HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
-                                        ElementStyle="{StaticResource GlobalCenterElementStyle}"/>
+                                        ElementStyle="{StaticResource GlobalCenterElementStyle}" />
                 </DataGrid.Columns>
             </DataGrid>
         </Border>

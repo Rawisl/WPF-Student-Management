@@ -15,8 +15,10 @@ namespace WPF_Student_Management.Converters
         {
             if (value is string gradeType)
             {
-                if (gradeType == "Score") return "Định lượng [1-10]";
-                if (gradeType == "PassFail") return "Định tính (Đạt/Không đạt)";
+                if (gradeType == "Score")
+                    return "Định lượng [1-10]";
+                if (gradeType == "PassFail")
+                    return "Định tính (Đạt/Không đạt)";
             }
 
             return value;

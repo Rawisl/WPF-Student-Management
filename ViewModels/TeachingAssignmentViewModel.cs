@@ -10,7 +10,6 @@ using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
-    // ĐÃ FIX: Class trung gian cũng kế thừa ObservableObject và phải có chữ 'partial'
     public partial class AssignmentDisplayItem : ObservableObject
     {
         public int SubjectId { get; set; }
@@ -22,15 +21,12 @@ namespace WPF_Student_Management.ViewModels
         private int? _selectedTeacherId;
     }
 
-    // ĐÃ FIX: Kế thừa ObservableObject
     public partial class TeachingAssignmentViewModel : ObservableObject
     {
-        // Tự động gọi LoadAssignmentsForClass khi SelectedSemester thay đổi
         [ObservableProperty]
         private string _selectedSemester = "Học kỳ 1";
         partial void OnSelectedSemesterChanged(string value) => LoadAssignmentsForClass();
 
-        // Tự động gọi LoadClassesForYear khi SelectedAcademicYear thay đổi
         [ObservableProperty]
         private string _selectedAcademicYear = "2025-2026";
         partial void OnSelectedAcademicYearChanged(string value) => LoadClassesForYear();
@@ -38,7 +34,6 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private ObservableCollection<Class> _classList;
 
-        // Tự động gọi LoadAssignmentsForClass và đánh thức nút Save khi SelectedClass thay đổi
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private Class _selectedClass;
@@ -49,7 +44,6 @@ namespace WPF_Student_Management.ViewModels
 
         public TeachingAssignmentViewModel()
         {
-            // Constructor siêu sạch
             LoadClassesForYear();
         }
 
@@ -116,9 +110,10 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                if (SelectedClass == null) return;
+                if (SelectedClass == null)
+                    return;
 
-                // Xóa toàn bộ phân công cũ của lớp này TRONG HỌC KỲ VÀ NĂM HỌC HIỆN TẠI
+                // Xóa toàn bộ phân công cũ của lớp này trong học kỳ và năm học hiện tại
                 string deleteQuery = "DELETE FROM TeachingAssignment WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";
                 DatabaseHelper.ExecuteNonQuery(deleteQuery, new[] {
                     new SqlParameter("@ClassID", SelectedClass.ClassId),

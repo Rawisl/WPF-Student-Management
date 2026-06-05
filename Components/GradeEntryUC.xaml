@@ -162,14 +162,14 @@
 
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow"
-               BasedOn="{StaticResource MaterialDesignDataGridRow}">
+                               BasedOn="{StaticResource MaterialDesignDataGridRow}">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding HasPendingApplication}"
-                             Value="True">
+                                             Value="True">
                                     <Setter Property="Background"
-                            Value="#FFF9C4" />
+                                            Value="#FFF9C4" />
                                     <Setter Property="ToolTip"
-                            Value="Học sinh này đang có đơn chuyển lớp/thôi học chưa xử lý. Điểm tạm thời bị đóng băng." />
+                                            Value="Học sinh này đang có đơn chuyển lớp/thôi học chưa xử lý. Điểm tạm thời bị đóng băng." />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>

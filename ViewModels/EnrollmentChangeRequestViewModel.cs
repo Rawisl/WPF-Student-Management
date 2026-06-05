@@ -104,7 +104,7 @@ namespace WPF_Student_Management.ViewModels
 
             try
             {
-                // 1. Chống Spam đơn Pending (Sửa lại tên bảng Application)
+                //Chống Spam đơn Pending
                 // Thay StatusID = 1 thành StatusID IN (1, 2)
                 string checkQuery = "SELECT COUNT(*) AS Total FROM Application WHERE StudentID = @StudentID AND StatusID IN (1, 2)";
                 DataTable dtCheck = DatabaseHelper.ExecuteQuery(checkQuery, new[] { new SqlParameter("@StudentID", StudentId) });
@@ -122,13 +122,13 @@ namespace WPF_Student_Management.ViewModels
                 }
 
                 bool confirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn lập đơn {SelectedRequestType} cho học sinh {StudentName} không?");
-                if (!confirm) return;
+                if (!confirm)
+                    return;
 
-                // 2. Chuyển đổi RequestType UI sang chuẩn DB (ClassTransfer / DropOut)
+                //Chuyển đổi RequestType UI sang chuẩn DB
                 string dbRequestType = SelectedRequestType == "Xin chuyển lớp" ? "ClassTransfer" : "DropOut";
                 int currentAccountId = CurrentUser.Instance?.UserId ?? 0;
 
-                // 3. Múc xuống CSDL
                 string insertQuery = @"
                     DECLARE @EmpID INT = (SELECT TOP 1 EmployeeID FROM Employee WHERE AccountID = @AccountID);
 

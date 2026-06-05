@@ -34,10 +34,14 @@ namespace WPF_Student_Management.ViewModels
         {
             get
             {
-                if (StatusId == 1) return "Chờ hiệu trưởng duyệt";
-                if (StatusId == 2) return "Chờ giáo vụ thực thi";
-                if (StatusId == 3) return "Bị từ chối";
-                if (StatusId == 4) return "Đã hoàn tất";
+                if (StatusId == 1)
+                    return "Chờ hiệu trưởng duyệt";
+                if (StatusId == 2)
+                    return "Chờ giáo vụ thực thi";
+                if (StatusId == 3)
+                    return "Bị từ chối";
+                if (StatusId == 4)
+                    return "Đã hoàn tất";
                 return "Không rõ";
             }
         }
@@ -45,10 +49,14 @@ namespace WPF_Student_Management.ViewModels
         {
             get
             {
-                if (StatusId == 1) return "#F57F17"; // Cam
-                if (StatusId == 2) return "#0288D1"; // Xanh dương
-                if (StatusId == 3) return "#D32F2F"; // Đỏ
-                if (StatusId == 4) return "#388E3C"; // Xanh lá
+                if (StatusId == 1)
+                    return "#F57F17"; // Cam
+                if (StatusId == 2)
+                    return "#0288D1"; // Xanh dương
+                if (StatusId == 3)
+                    return "#D32F2F"; // Đỏ
+                if (StatusId == 4)
+                    return "#388E3C"; // Xanh lá
                 return "#000000";
             }
         }
@@ -61,15 +69,16 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private string _rejectReason;
 
+        [ObservableProperty]
+        private PendingRequestItem _selectedDetailItem;
+
         private PendingRequestItem _processingItem;
 
-        // ĐÃ FIX: Tận dụng PermissionService để ẩn/hiện cột Thao tác (Chỉ Hiệu trưởng và Giáo vụ thấy)
         public Visibility ActionColumnVisibility =>
             (PermissionService.HasFeature(PermissionService.Feature.ApproveRequests) ||
              PermissionService.HasFeature(PermissionService.Feature.ExecuteRequests))
             ? Visibility.Visible : Visibility.Collapsed;
 
-        // ĐÃ FIX: Dùng Enum chuẩn thay vì Magic Number
         public string FormTitle => CurrentUser.Instance.Role == UserRole.GVCN ? "Lịch sử đơn từ đã lập" : "Xử lý đơn chuyển lớp / thôi học";
         public string FormDescription => CurrentUser.Instance.Role == UserRole.GVCN ? "Theo dõi tiến độ duyệt các lá đơn do bạn tạo ra." : "Danh sách các đơn yêu cầu đang chờ bạn xét duyệt và thực thi.";
 
@@ -82,7 +91,8 @@ namespace WPF_Student_Management.ViewModels
         {
             string query = "SELECT EmployeeID FROM Employee WHERE AccountID = @AccID";
             var dt = DatabaseHelper.ExecuteQuery(query, new[] { new SqlParameter("@AccID", CurrentUser.Instance.UserId) });
-            if (dt.Rows.Count > 0) return Convert.ToInt32(dt.Rows[0][0]);
+            if (dt.Rows.Count > 0)
+                return Convert.ToInt32(dt.Rows[0][0]);
             return -1;
         }
 
@@ -96,7 +106,6 @@ namespace WPF_Student_Management.ViewModels
 
                 string whereClause = "1=0";
 
-                // ĐÃ FIX: So sánh chuẩn bằng Enum UserRole
                 if (currentRole == UserRole.GVCN) // GVCN: Xem đơn do mình tạo
                     whereClause = "a.CreatedByTeacherID = @EmpID";
                 else if (currentRole == UserRole.HieuTruong) // Hiệu trưởng: Xem các đơn chờ duyệt (Status = 1)
@@ -145,9 +154,31 @@ namespace WPF_Student_Management.ViewModels
         }
 
         [RelayCommand]
+        private async Task OpenRequestDetailDialog(PendingRequestItem item)
+        {
+            if (item == null)
+                return;
+
+            // Gán dữ liệu của dòng vừa click vào biến SelectedDetailItem
+            SelectedDetailItem = item;
+
+            //Sử dụng ID của DialogHost đang có sẵn trong View để mở popup
+            var detailDialogView = new WPF_Student_Management.Components.RequestDetailDialogUC { DataContext = this };
+            await MaterialDesignThemes.Wpf.DialogHost.Show(detailDialogView, "ExecutionDialogHost");
+        }
+
+        [RelayCommand]
+        private void CloseRequestDetailDialog()
+        {
+            SelectedDetailItem = null;
+            MaterialDesignThemes.Wpf.DialogHost.Close("ExecutionDialogHost");
+        }
+
+        [RelayCommand]
         private void ExecuteRequest(PendingRequestItem item)
         {
-            if (item == null) return;
+            if (item == null)
+                return;
             var currentRole = CurrentUser.Instance.Role;
 
             if (currentRole == UserRole.HieuTruong)
@@ -177,7 +208,7 @@ namespace WPF_Student_Management.ViewModels
                     {
                         try
                         {
-                            // Chặn xung đột: chiếm quyền xử lý đơn ngay trong transaction để chỉ một giáo vụ thực thi được đơn này.
+                            //chiếm quyền xử lý đơn ngay trong transaction để chỉ một giáo vụ thực thi được đơn này.
                             var claimCommand = new SqlCommand(@"
                                 UPDATE Application
                                 SET StatusID = 4,
@@ -209,7 +240,8 @@ namespace WPF_Student_Management.ViewModels
 
                             using (var reader = loadCommand.ExecuteReader())
                             {
-                                if (!reader.Read()) throw new Exception("Không tìm thấy thông tin đơn cần xử lý.");
+                                if (!reader.Read())
+                                    throw new Exception("Không tìm thấy thông tin đơn cần xử lý.");
                                 studentId = reader["StudentID"].ToString() ?? string.Empty;
                                 requestType = reader["RequestType"].ToString() ?? string.Empty;
                                 currentClassId = reader["CurrentClassID"] != DBNull.Value ? Convert.ToInt32(reader["CurrentClassID"]) : null;
@@ -238,7 +270,8 @@ namespace WPF_Student_Management.ViewModels
                             // Kiểm tra lại khóa sổ của lớp đích trước khi thực hiện chuyển lớp.
                             if (requestType == "ClassTransfer")
                             {
-                                if (!targetClassId.HasValue) throw new Exception("Đơn chuyển lớp không có lớp đích hợp lệ.");
+                                if (!targetClassId.HasValue)
+                                    throw new Exception("Đơn chuyển lớp không có lớp đích hợp lệ.");
 
                                 var targetLockCommand = new SqlCommand(@"
                                     SELECT ISNULL(IsLocked, 0)
@@ -256,7 +289,7 @@ namespace WPF_Student_Management.ViewModels
                                 }
                             }
 
-                            // Giữ lại lịch sử xếp lớp: không ghi đè / xóa dòng placement hiện tại mà đóng dòng cũ rồi tạo dòng mới khi cần.
+                            // Giữ lại lịch sử xếp lớp: không ghi đè dòng placement hiện tại mà đóng dòng cũ rồi tạo dòng mới khi cần.
                             if (requestType == "DropOut")
                             {
                                 var updateStudentCommand = new SqlCommand(@"
@@ -275,7 +308,8 @@ namespace WPF_Student_Management.ViewModels
                             }
                             else if (requestType == "ClassTransfer")
                             {
-                                if (!currentClassId.HasValue) throw new Exception("Học sinh không còn lớp hiện tại hợp lệ để chuyển.");
+                                if (!currentClassId.HasValue)
+                                    throw new Exception("Học sinh không còn lớp hiện tại hợp lệ để chuyển.");
 
                                 var closePlacementCommand = new SqlCommand(@"
                                     UPDATE ClassPlacement
@@ -315,7 +349,8 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private async void OpenRejectDialog(PendingRequestItem item)
         {
-            if (item == null) return;
+            if (item == null)
+                return;
             _processingItem = item;
             RejectReason = string.Empty;
 

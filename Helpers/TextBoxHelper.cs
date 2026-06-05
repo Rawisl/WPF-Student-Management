@@ -15,7 +15,7 @@ namespace WPF_Student_Management.Helpers
         private static readonly DependencyProperty LastValueProperty =
             DependencyProperty.RegisterAttached("LastValue", typeof(string), typeof(TextBoxHelper));
 
-        // --- 1. THUỘC TÍNH CHỈ NHẬP SỐ NGUYÊN ---
+        //số nguyên
         public static readonly DependencyProperty IsNumericOnlyProperty =
             DependencyProperty.RegisterAttached("IsNumericOnly", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnIsNumericOnlyChanged));
 
@@ -26,8 +26,10 @@ namespace WPF_Student_Management.Helpers
         {
             if (d is TextBox textBox)
             {
-                if ((bool)e.NewValue) textBox.PreviewTextInput += BlockNonNumeric;
-                else textBox.PreviewTextInput -= BlockNonNumeric;
+                if ((bool)e.NewValue)
+                    textBox.PreviewTextInput += BlockNonNumeric;
+                else
+                    textBox.PreviewTextInput -= BlockNonNumeric;
             }
         }
 
@@ -36,7 +38,7 @@ namespace WPF_Student_Management.Helpers
             e.Handled = new Regex("[^0-9]+").IsMatch(e.Text);
         }
 
-        // --- 2. THUỘC TÍNH NHẬP SỐ THẬP PHÂN ---
+        //số thập phân
         public static readonly DependencyProperty IsDecimalOnlyProperty =
             DependencyProperty.RegisterAttached("IsDecimalOnly", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnIsDecimalOnlyChanged));
 
@@ -47,8 +49,10 @@ namespace WPF_Student_Management.Helpers
         {
             if (d is TextBox textBox)
             {
-                if ((bool)e.NewValue) textBox.PreviewTextInput += BlockNonDecimal;
-                else textBox.PreviewTextInput -= BlockNonDecimal;
+                if ((bool)e.NewValue)
+                    textBox.PreviewTextInput += BlockNonDecimal;
+                else
+                    textBox.PreviewTextInput -= BlockNonDecimal;
             }
         }
 
@@ -68,7 +72,7 @@ namespace WPF_Student_Management.Helpers
             }
         }
 
-        // --- 3. LOGIC LƯU VÀ KHÔI PHỤC NẾU RỖNG ---
+        //lưu và khôi phục nếu rỗng
         private static void SaveOldValue(object sender, RoutedEventArgs e)
         {
             if (sender is TextBox textBox)
@@ -82,21 +86,18 @@ namespace WPF_Student_Management.Helpers
         {
             if (sender is TextBox textBox)
             {
-                // Khi chuột click ra ngoài, nếu thấy TextBox bị bỏ trống (hoặc toàn dấu cách)
+                // Khi chuột click ra ngoài, nếu thấy TextBox bị bỏ trống hoặc toàn dấu cách
                 if (string.IsNullOrWhiteSpace(textBox.Text))
                 {
                     NotificationHelper.ShowWarning("Ô nhập số không được để trống!\nHệ thống đã khôi phục lại giá trị cũ.");
 
-                    // Lôi giá trị đã giấu ra
                     string oldValue = (string)textBox.GetValue(LastValueProperty);
-
-                    // Khôi phục lại. Nếu trước đó nó vốn dĩ đã rỗng thì để mặc định là "0"
                     textBox.Text = string.IsNullOrEmpty(oldValue) ? "0" : oldValue;
                 }
             }
         }
 
-        // --- 4. THUỘC TÍNH CHỈ NHẬP CHỮ VÀ SỐ (ALPHA-NUMERIC) ---
+        //chỉ nhập chữ và số
         public static readonly DependencyProperty IsAlphaNumericOnlyProperty =
             DependencyProperty.RegisterAttached("IsAlphaNumericOnly", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnIsAlphaNumericOnlyChanged));
 
@@ -110,7 +111,7 @@ namespace WPF_Student_Management.Helpers
                 if ((bool)e.NewValue)
                 {
                     textBox.PreviewTextInput += BlockSpecialCharacters;
-                    // Chặn cả việc dán (Paste) ký tự đặc biệt vào TextBox
+                    // Chặn cả việc dán ký tự đặc biệt vào TextBox
                     DataObject.AddPastingHandler(textBox, OnPasteAlphaNumeric);
                 }
                 else
@@ -128,7 +129,6 @@ namespace WPF_Student_Management.Helpers
             // 0-9: Số
             // \s: Khoảng trắng (Dùng cho tên lớp có dấu cách)
             // Các ký tự Tiếng Việt (Unicode): àáạảã...
-            // Nếu bro KHÔNG muốn cho phép dấu cách, hãy xóa "\s" trong ngoặc []
             Regex regex = new Regex(@"[^a-zA-Z0-9\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+");
             e.Handled = regex.IsMatch(e.Text);
         }
@@ -146,7 +146,7 @@ namespace WPF_Student_Management.Helpers
             }
         }
 
-        // CHỈ NHẬP CHỮ ĐƯỢC
+        //chỉ chữ thôi
 
         public static readonly DependencyProperty IsLettersOnlyProperty =
     DependencyProperty.RegisterAttached("IsLettersOnly", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnIsLettersOnlyChanged));
@@ -161,7 +161,7 @@ namespace WPF_Student_Management.Helpers
                 if ((bool)e.NewValue)
                 {
                     textBox.PreviewTextInput += BlockSpecialCharactersAndNumber;
-                    // Chặn cả việc dán (Paste) ký tự đặc biệt vào TextBox
+                    // Chặn cả việc dán ký tự đặc biệt vào TextBox
                     DataObject.AddPastingHandler(textBox, OnPasteLetter);
                 }
                 else
@@ -190,14 +190,12 @@ namespace WPF_Student_Management.Helpers
                 Regex regex = new Regex(@"[^a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+");
                 if (regex.IsMatch(text))
                 {
-                    e.CancelCommand(); // Hủy lệnh Paste nếu chuỗi chứa ký tự đặc biệt
+                    e.CancelCommand();
                 }
             }
         }
 
-        // ====================================================================
-        // --- 5. THUỘC TÍNH RÀNG BUỘC TỰ ĐỘNG LÀM TRÒN ĐIỂM THEO CHUẨN BGD ---
-        // ====================================================================
+        //tự động làm tròn điểm chuẩn theo quy định BGD
         public static readonly DependencyProperty IsBgdGradeOnlyProperty =
             DependencyProperty.RegisterAttached("IsBgdGradeOnly", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnIsBgdGradeOnlyChanged));
 
@@ -258,35 +256,36 @@ namespace WPF_Student_Management.Helpers
         {
             if (sender is TextBox textBox)
             {
-                if (string.IsNullOrWhiteSpace(textBox.Text)) return;
+                if (string.IsNullOrWhiteSpace(textBox.Text))
+                    return;
 
-                // Chuẩn hóa dấu phẩy (VN) thành dấu chấm (Quốc tế) để Parse không bị lỗi
+                // Chuẩn hóa dấu phẩy thành dấu chấm để parse ko bị lỗi
                 string input = textBox.Text.Replace(',', '.');
 
                 if (double.TryParse(input, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double score))
                 {
-                    // 1. Chặn khoảng điểm từ 0 -> 10
-                    if (score < 0) score = 0;
-                    if (score > 10) score = 10;
+                    //khoảng điểm từ 0 -> 10
+                    if (score < 0)
+                        score = 0;
+                    if (score > 10)
+                        score = 10;
 
-                    // 2. LÀM TRÒN CHUẨN BỘ GIÁO DỤC (AwayFromZero)
+                    //làm tròn điểm juan bộ
                     // (Ví dụ: 7.24 -> 7.2 | 7.25 -> 7.3)
                     score = Math.Round(score, 1, MidpointRounding.AwayFromZero);
 
-                    // 3. Gán lại vào TextBox (Giữ hiển thị chuẩn quốc tế với dấu chấm)
+                    //gán vào lại textbox
                     textBox.Text = score.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
                 }
                 else
                 {
-                    // Nếu nhập linh tinh không parse được -> tự xóa trắng
+                    // Nếu nhập linh tinh không parse được thì tự xóa trắng
                     textBox.Text = "";
                 }
             }
         }
 
-        // ====================================================================
-        // --- 6. TỰ ĐỘNG BÔI ĐEN TEXT KHI Ô ĐƯỢC CHỌN (CHUẨN EXCEL) ---
-        // ====================================================================
+        //tự động bôi đen text khi ô được chọn giống excel
         public static readonly DependencyProperty SelectAllOnFocusProperty =
             DependencyProperty.RegisterAttached("SelectAllOnFocus", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnSelectAllOnFocusChanged));
 

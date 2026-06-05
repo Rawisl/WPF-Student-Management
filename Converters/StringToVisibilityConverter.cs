@@ -16,7 +16,7 @@ namespace WPF_Student_Management.Converters
             // Nếu chuỗi rỗng hoặc null -> Ẩn đi (Collapsed)
             // Nếu có chữ -> Hiện lên (Visible)
             string? str = value as string;
-            
+
             return string.IsNullOrWhiteSpace(str) ? Visibility.Collapsed : Visibility.Visible;
         }
 

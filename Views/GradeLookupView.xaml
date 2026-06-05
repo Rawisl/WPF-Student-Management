@@ -29,7 +29,6 @@
                        Margin="0,5,0,0" />
         </StackPanel>
 
-        <!--asdasdsadasd-->
         <Border Grid.Row="1"
                 Background="White"
                 CornerRadius="12"

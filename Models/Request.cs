@@ -9,7 +9,6 @@ using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.Models
 {
-    //Application table
     public class Request
     {
         public int RequestId { get; set; }

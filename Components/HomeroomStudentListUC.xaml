@@ -63,8 +63,8 @@
                                      helpers:TextBoxHelper.IsLettersOnly="True"
                                      VerticalAlignment="Center"
                                      FontSize="15"
-                                     Margin="10,0,15,0" 
-                                     Foreground="Black"/>
+                                     Margin="10,0,15,0"
+                                     Foreground="Black" />
                         </Grid>
                     </Border>
                 </StackPanel>
@@ -100,7 +100,7 @@
 
             <components:StudentProfileUC ItemsSource="{Binding DisplayStudents}"
                                          EditCommand="{Binding OpenStudentDetailCommand}"
-                                         DeleteButtonVisibility="Collapsed"/>
+                                         DeleteButtonVisibility="Collapsed" />
 
         </Border>
     </Grid>

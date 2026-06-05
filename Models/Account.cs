@@ -90,7 +90,6 @@ namespace WPF_Student_Management.Models
             new SqlParameter("@AccountID", this.AccountId),
             new SqlParameter("@RoleID", this.RoleId),
             new SqlParameter("@Username", this.Username),
-            // BỎ GỌI HÀM HASH! Đẩy trực tiếp giá trị hiện tại xuống
             new SqlParameter("@PasswordHash", this.PasswordHash),
             new SqlParameter("@IsRequiredChangePassword", this.IsRequiredChangePassword),
             new SqlParameter("@IsActive", this.IsActive)
@@ -133,8 +132,6 @@ namespace WPF_Student_Management.Models
                     Username = row["Username"].ToString() ?? "",
                     PasswordHash = row["PasswordHash"].ToString() ?? "", // Compare hashes, not raw passwords
                     RoleId = Convert.ToInt32(row["RoleID"]),
-
-                    //THÊM 2 DÒNG NÀY VÀO ĐỂ UI CÓ THÔNG TIN XỬ LÝ:
                     IsRequiredChangePassword = Convert.ToBoolean(row["IsRequiredChangePassword"]),
                     IsActive = Convert.ToBoolean(row["IsActive"])
                 };
@@ -143,7 +140,7 @@ namespace WPF_Student_Management.Models
             return null; // Login failed
         }
 
-        // RESET MẬT KHẨU MẶC ĐỊNH
+        //reset về pass mặc định
         public static bool ResetPassword(int accountId, string rawNewPassword)
         {
             string query = @"
@@ -160,7 +157,6 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        // Lấy thông tin IsActive của 1 tài khoản (để kiểm tra xem có bị khóa không)
         public static bool IsAccountActive(int accountId)
         {
             string query = "SELECT IsActive FROM Account WHERE AccountID = @AccountID";

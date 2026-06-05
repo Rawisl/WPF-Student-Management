@@ -17,11 +17,8 @@ namespace WPF_Student_Management.ViewModels
         // Sĩ số tối đa mặc định
         private static int _maxClassSize = 40;
 
-        // --- BỔ SUNG: QUẢN LÝ NĂM HỌC HIỆN TẠI ---
-        // (Trong thực tế, cái này có thể lấy từ cấu hình hệ thống chung, tạm thời ta gán mặc định)
         [ObservableProperty]
         private string _currentAcademicYear = "2025-2026";
-        // -----------------------------------------
 
         // Lớp Data Transfer Object (DTO)
         public partial class ClassItemUI : ObservableObject
@@ -46,7 +43,6 @@ namespace WPF_Student_Management.ViewModels
             [ObservableProperty]
             private string _homeroomTeacherName = string.Empty;
 
-            // --- BỔ SUNG THUỘC TÍNH NĂM HỌC ĐỂ UI CÓ THỂ HIỂN THỊ ---
             [ObservableProperty]
             private string _academicYear = string.Empty;
 
@@ -57,7 +53,8 @@ namespace WPF_Student_Management.ViewModels
             {
                 get
                 {
-                    if (string.IsNullOrEmpty(ClassName)) return string.Empty;
+                    if (string.IsNullOrEmpty(ClassName))
+                        return string.Empty;
 
                     string gradeStr = Grade.ToString();
                     string suffix = ClassName.StartsWith(gradeStr)
@@ -132,12 +129,9 @@ namespace WPF_Student_Management.ViewModels
                         ClassSize = Convert.ToInt32(row["ClassSize"]),
                         HomeroomTeacherId = row["HomeroomTeacherID"] == DBNull.Value ? null : Convert.ToInt32(row["HomeroomTeacherID"]),
                         HomeroomTeacherName = row["TeacherName"] == DBNull.Value ? "Chưa phân công" : row["TeacherName"].ToString(),
-                        // Map thêm cột AcademicYear từ DB lên
                         AcademicYear = row["AcademicYear"] != DBNull.Value ? row["AcademicYear"].ToString()! : CurrentAcademicYear
                     });
                 }
-
-                // Tùy chọn: Nếu bro chỉ muốn hiển thị lớp của năm học HIỆN TẠI, thì dùng thêm .Where(c => c.AcademicYear == CurrentAcademicYear)
                 ClassList = tempCollection;
             }
             catch (Exception ex)
@@ -169,7 +163,6 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private async Task CreateClass()
         {
-            // SỬA LỖI COMPILER: Truyền CurrentAcademicYear vào hàm tìm GVCN rảnh
             var teachers = Staff.GetAvailableTeachers(CurrentAcademicYear);
 
             teachers.Insert(0, new Staff { StaffId = -1, FullName = "-- Trống (Không chọn) --" });
@@ -231,7 +224,6 @@ namespace WPF_Student_Management.ViewModels
                     Grade = Grade,
                     ClassSize = 0,
                     HomeroomTeacherId = finalTeacherId,
-                    // THÊM: Gán năm học hiện tại lúc tạo lớp
                     AcademicYear = CurrentAcademicYear
                 };
 
@@ -266,10 +258,9 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private async Task OpenEditClassDialog(ClassItemUI selectedClass)
         {
-            if (selectedClass == null) return;
+            if (selectedClass == null)
+                return;
             _editingClass = selectedClass;
-
-            // Truyền năm học của lớp đang edit để lấy đúng danh sách GVCN
             var teachers = Staff.GetAvailableTeachers(selectedClass.AcademicYear);
             teachers.Insert(0, new Staff { StaffId = -1, FullName = "-- Trống (Bỏ phân công) --" });
 
@@ -333,7 +324,6 @@ namespace WPF_Student_Management.ViewModels
                     Grade = Grade,
                     ClassSize = _editingClass.ClassSize,
                     HomeroomTeacherId = finalTeacherId,
-                    // Giữ nguyên năm học của lớp đang Edit
                     AcademicYear = _editingClass.AcademicYear
                 };
 
@@ -370,7 +360,8 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private void DeleteClass(ClassItemUI selectedClass)
         {
-            if (selectedClass == null) return;
+            if (selectedClass == null)
+                return;
 
             if (selectedClass.ClassSize > 0)
             {
@@ -430,7 +421,8 @@ namespace WPF_Student_Management.ViewModels
 
             bool isConfirm = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa '{classesToDelete.Count()}' lớp không?\n" + "Các lớp học đã chọn sẽ bị xóa hoàn toàn khỏi hệ thống và không thể hoàn tác!");
 
-            if (!isConfirm) return;
+            if (!isConfirm)
+                return;
 
             int successCount = 0;
 

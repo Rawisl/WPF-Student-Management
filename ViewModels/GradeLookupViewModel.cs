@@ -11,9 +11,8 @@ namespace WPF_Student_Management.ViewModels
 {
     public partial class GradeLookupViewModel : ObservableObject
     {
-        // ComboBox Data
         public ObservableCollection<string> AvailableSemesters { get; } = new() { "Học kỳ 1", "Học kỳ 2" };
-        public ObservableCollection<string> AvailableAcademicYears { get; } = new() {"2025-2026"};
+        public ObservableCollection<string> AvailableAcademicYears { get; } = new() { "2025-2026" };
 
         [ObservableProperty]
         private string _selectedSemester = "Học kỳ 1";
@@ -21,11 +20,9 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private string _selectedAcademicYear = "2025-2026";
 
-        // Biến chứa ViewModel của Component Bảng Điểm (Nếu có data mới nhét vào)
         [ObservableProperty]
         private StudentGradeDetailViewModel _gradeDetailVM;
 
-        // Biến hiển thị thông báo lỗi/trống
         [ObservableProperty]
         private string _emptyMessage = "Vui lòng chọn Năm học, Học kỳ và bấm Xem điểm.";
 
@@ -39,13 +36,13 @@ namespace WPF_Student_Management.ViewModels
 
         public GradeLookupViewModel()
         {
-            // Lấy StudentID từ AccountID đang đăng nhập
             GetStudentIdFromCurrentUser();
         }
 
         private void GetStudentIdFromCurrentUser()
         {
-            if (CurrentUser.Instance == null || CurrentUser.Instance.UserId == 0) return;
+            if (CurrentUser.Instance == null || CurrentUser.Instance.UserId == 0)
+                return;
 
             try
             {
@@ -74,7 +71,7 @@ namespace WPF_Student_Management.ViewModels
 
             try
             {
-                // Bước 1: Check xem kỳ này có ĐIỂM THẬT SỰ không (tránh LEFT JOIN in ra toàn dấu -)
+                //Check xem có điểm chưa
                 string checkQuery = "SELECT COUNT(*) FROM Score WHERE StudentID = @StudentID AND Semester = @Semester AND AcademicYear = @AcademicYear";
                 var parameters = new[] {
                     new SqlParameter("@StudentID", _currentStudentId),
@@ -90,10 +87,10 @@ namespace WPF_Student_Management.ViewModels
                     scoreCount = Convert.ToInt32(dtCount.Rows[0][0]);
                 }
 
-                // Bước 2: Rẽ nhánh hiển thị theo Requirement
+
                 if (scoreCount == 0)
                 {
-                    // KHÔNG CÓ DATA -> Hiện message, ẩn bảng
+                    // ko có điểm thì hiện message, ẩn bảng
                     GradeDetailVM = null;
                     IsTableVisible = false;
                     IsMessageVisible = true;
@@ -101,7 +98,6 @@ namespace WPF_Student_Management.ViewModels
                 }
                 else
                 {
-                    // CÓ DATA -> Nhét ViewModel vào, ẩn message, bung bảng
                     // Query lại tên học sinh
                     string nameQuery = "SELECT FullName FROM Student WHERE StudentID = @StudentID";
                     DataTable dtName = DatabaseHelper.ExecuteQuery(nameQuery, new[] { new SqlParameter("@StudentID", _currentStudentId) });

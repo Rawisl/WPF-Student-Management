@@ -28,7 +28,7 @@
                        FontWeight="Bold"
                        Margin="0,0,0,20"
                        Foreground="#2C3E50"
-                       HorizontalAlignment="Center"/>
+                       HorizontalAlignment="Center" />
 
             <Button Grid.Row="0"
                     HorizontalAlignment="Right"
@@ -46,7 +46,6 @@
                                          Height="22" />
             </Button>
 
-            <!-- Thêm SelectionMode="Multiple" -->
             <ListBox Grid.Row="1"
                      ItemsSource="{Binding AvailableStudents}"
                      SelectionMode="Multiple"
@@ -59,10 +58,8 @@
                            BasedOn="{StaticResource MaterialDesignListBoxItem}">
                         <Setter Property="HorizontalContentAlignment"
                                 Value="Stretch" />
-                        <!-- Ràng buộc trạng thái dòng với biến IsSelected -->
                         <Setter Property="IsSelected"
                                 Value="{Binding IsSelected, Mode=TwoWay}" />
-                        <!-- Tạo khoảng cách giữa các dòng -->
                         <Setter Property="Margin"
                                 Value="0,0,0,10" />
                         <Setter Property="Padding"
@@ -74,7 +71,6 @@
 
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <!-- Làm tròn góc, thêm nền xám nhạt cho từng khối học sinh -->
                         <Border Background="#F8F9FA"
                                 BorderBrush="#E9ECEF"
                                 BorderThickness="1"
@@ -88,7 +84,6 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <!-- IsHitTestVisible="False" giúp click không bị kẹt ở checkbox -->
                                 <CheckBox Grid.Column="0"
                                           IsChecked="{Binding IsSelected}"
                                           IsHitTestVisible="False"
@@ -101,7 +96,6 @@
                                                FontWeight="SemiBold"
                                                FontSize="16"
                                                Foreground="#2C3E50" />
-                                    <!-- Đã sửa lại StudentId cho khớp với ViewModel -->
                                     <TextBlock Text="{Binding StudentId}"
                                                Foreground="Gray"
                                                FontSize="13"
