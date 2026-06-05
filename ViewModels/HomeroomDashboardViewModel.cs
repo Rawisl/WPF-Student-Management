@@ -40,7 +40,10 @@ namespace WPF_Student_Management.ViewModels
     public class FailedSubjectItem
     {
         public string SubjectName { get; set; }
-        public string RegularTestScore { get; set; }
+        public string TX1 { get; set; }
+        public string TX2 { get; set; }
+        public string TX3 { get; set; }
+        public string TX4 { get; set; }
         public string MidTermScore { get; set; }
         public string FinalTermScore { get; set; }
         public string AverageScore { get; set; }
@@ -540,7 +543,9 @@ namespace WPF_Student_Management.ViewModels
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
                 string query = @"
-                    SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore 
+                    SELECT sub.SubjectName, 
+                           sc.RegularScore1, sc.RegularScore2, sc.RegularScore3, sc.RegularScore4, 
+                           sc.MidTermScore, sc.FinalTermScore, sc.AverageScore 
                     FROM Score sc
                     JOIN Subject sub ON sc.SubjectID = sub.SubjectID
                     WHERE sc.StudentID = @StudentID 
@@ -561,7 +566,10 @@ namespace WPF_Student_Management.ViewModels
                     list.Add(new FailedSubjectItem
                     {
                         SubjectName = row["SubjectName"].ToString(),
-                        RegularTestScore = row["RegularTestScore"] != DBNull.Value ? Convert.ToDecimal(row["RegularTestScore"]).ToString("0.##") : "",
+                        TX1 = row["RegularScore1"] != DBNull.Value ? Convert.ToDecimal(row["RegularScore1"]).ToString("0.##") : "-",
+                        TX2 = row["RegularScore2"] != DBNull.Value ? Convert.ToDecimal(row["RegularScore2"]).ToString("0.##") : "-",
+                        TX3 = row["RegularScore3"] != DBNull.Value ? Convert.ToDecimal(row["RegularScore3"]).ToString("0.##") : "-",
+                        TX4 = row["RegularScore4"] != DBNull.Value ? Convert.ToDecimal(row["RegularScore4"]).ToString("0.##") : "-",
                         MidTermScore = row["MidTermScore"] != DBNull.Value ? Convert.ToDecimal(row["MidTermScore"]).ToString("0.##") : "",
                         FinalTermScore = row["FinalTermScore"] != DBNull.Value ? Convert.ToDecimal(row["FinalTermScore"]).ToString("0.##") : "",
                         AverageScore = row["AverageScore"] != DBNull.Value ? Convert.ToDecimal(row["AverageScore"]).ToString("0.##") : ""

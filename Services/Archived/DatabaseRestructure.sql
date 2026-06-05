@@ -182,23 +182,17 @@ CREATE TABLE Score (
     SubjectID         INT NOT NULL,
     Semester          NVARCHAR(50) NOT NULL DEFAULT N'Học kỳ 1',
     AcademicYear      NVARCHAR(50) NOT NULL DEFAULT '2025-2026',
-    RegularTestScore  DECIMAL(5,2),
+
+    RegularScore1     DECIMAL(5,2),
+    RegularScore2     DECIMAL(5,2),
+    RegularScore3     DECIMAL(5,2),
+    RegularScore4     DECIMAL(5,2),
+    
     MidTermScore      DECIMAL(5,2),
     FinalTermScore    DECIMAL(5,2),
     -- [Note] Môn PassFail (GDCD/GDTC) dùng chung 3 cột điểm số — encode Đ=10, KĐ=0.
     -- Trigger TRG_Score_EnforceGradeType ràng buộc giá trị ∈ {0, 10, NULL} cho môn GradeType='PassFail'.
-    AverageScore AS (
-        CASE
-            WHEN RegularTestScore IS NULL
-             AND MidTermScore     IS NULL
-             AND FinalTermScore   IS NULL THEN NULL
-            ELSE CAST(
-                (ISNULL(RegularTestScore,0) * 1.0
-               + ISNULL(MidTermScore,    0) * 2.0
-               + ISNULL(FinalTermScore,  0) * 3.0) / 6.0
-            AS DECIMAL(5,2))
-        END
-    ) PERSISTED,                                                    -- [2.1]
+    AverageScore      DECIMAL(5,2),                                                  -- [2.1]
     CONSTRAINT FK_Score_Student FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
     CONSTRAINT FK_Score_Subject FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID),
     CONSTRAINT UQ_Score         UNIQUE (StudentID, SubjectID, Semester, AcademicYear),  -- [2.3]
@@ -405,7 +399,10 @@ BEGIN
         FROM   inserted i
         JOIN   Subject  s ON i.SubjectID = s.SubjectID
         WHERE  s.GradeType = 'PassFail'
-          AND ((i.RegularTestScore IS NOT NULL AND i.RegularTestScore NOT IN (0, 10))
+          AND ((i.RegularScore1 IS NOT NULL AND i.RegularScore1 NOT IN (0, 10))
+            OR (i.RegularScore2 IS NOT NULL AND i.RegularScore2 NOT IN (0, 10))
+            OR (i.RegularScore3 IS NOT NULL AND i.RegularScore3 NOT IN (0, 10))
+            OR (i.RegularScore4 IS NOT NULL AND i.RegularScore4 NOT IN (0, 10))
             OR (i.MidTermScore     IS NOT NULL AND i.MidTermScore     NOT IN (0, 10))
             OR (i.FinalTermScore   IS NOT NULL AND i.FinalTermScore   NOT IN (0, 10)))
     )
@@ -739,36 +736,55 @@ INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTe
 
 -- Mock điểm chi tiết cho lớp 10A1 (test báo cáo của GVCN Phạm Văn Cán)
 -- Môn tính điểm (SubjectID 1..7)
-INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
+INSERT INTO Score (StudentID, SubjectID, RegularScore1, RegularScore2, RegularScore3, RegularScore4, MidTermScore, FinalTermScore, AverageScore) VALUES
 -- hs250001 (Giỏi)
-('hs250001', 1, 9.0, 9.0, 9.5), ('hs250001', 2, 8.5, 9.0, 9.0), ('hs250001', 3, 9.0, 8.5, 9.0),
-('hs250001', 4, 9.5, 9.5, 9.5), ('hs250001', 5, 8.0, 8.5, 8.0), ('hs250001', 6, 9.0, 9.0, 9.0),
-('hs250001', 7, 8.5, 8.5, 8.5),
+('hs250001', 1, 9.0, 9.5, 9.0, 9.5, 9.0, 9.5, 9.3),
+('hs250001', 2, 8.5, 9.0, 8.5, 9.0, 9.0, 9.0, 8.9),
+('hs250001', 3, 9.0, 9.5, 9.0, 8.5, 8.5, 9.0, 8.9),
+('hs250001', 4, 9.5, 9.0, 9.5, 9.5, 9.5, 9.5, 9.4),
+('hs250001', 5, 8.0, 8.5, 8.0, 8.5, 8.5, 8.0, 8.2),
+('hs250001', 6, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0),
+('hs250001', 7, 8.5, 8.0, 8.5, 8.5, 8.5, 8.5, 8.4),
 -- hs250002 (Khá)
-('hs250002', 1, 6.0, 6.5, 6.0), ('hs250002', 2, 7.0, 7.0, 7.5), ('hs250002', 3, 6.5, 6.5, 6.0),
-('hs250002', 4, 7.5, 8.0, 7.5), ('hs250002', 5, 6.0, 6.0, 6.5), ('hs250002', 6, 6.5, 7.0, 6.5),
-('hs250002', 7, 7.0, 6.5, 7.0),
+('hs250002', 1, 6.0, 6.5, 6.0, 6.5, 6.5, 6.0, 6.2),
+('hs250002', 2, 7.0, 7.5, 7.0, 7.5, 7.0, 7.5, 7.3),
+('hs250002', 3, 6.5, 7.0, 6.5, 6.5, 6.5, 6.0, 6.4),
+('hs250002', 4, 7.5, 7.0, 7.5, 8.0, 8.0, 7.5, 7.6),
+('hs250002', 5, 6.0, 6.5, 6.0, 6.5, 6.0, 6.5, 6.3),
+('hs250002', 6, 6.5, 6.0, 6.5, 7.0, 7.0, 6.5, 6.6),
+('hs250002', 7, 7.0, 7.5, 7.0, 6.5, 6.5, 7.0, 6.9),
 -- hs250003 (Trung Bình)
-('hs250003', 1, 5.0, 5.5, 5.0), ('hs250003', 2, 5.5, 5.0, 5.5), ('hs250003', 3, 5.0, 5.0, 5.0),
-('hs250003', 4, 6.0, 5.5, 6.0), ('hs250003', 5, 5.0, 6.0, 5.5), ('hs250003', 6, 5.5, 5.5, 5.5),
-('hs250003', 7, 5.5, 5.0, 5.5),
+('hs250003', 1, 5.0, 5.0, 5.5, 5.0, 5.5, 5.0, 5.1),
+('hs250003', 2, 5.5, 6.0, 5.5, 5.0, 5.0, 5.5, 5.4),
+('hs250003', 3, 5.0, 5.5, 5.0, 5.0, 5.0, 5.0, 5.1),
+('hs250003', 4, 6.0, 5.5, 6.0, 5.5, 5.5, 6.0, 5.8),
+('hs250003', 5, 5.0, 5.0, 5.5, 6.0, 6.0, 5.5, 5.5),
+('hs250003', 6, 5.5, 5.0, 5.5, 5.0, 5.5, 5.5, 5.4),
+('hs250003', 7, 5.5, 5.5, 5.0, 5.5, 5.0, 5.5, 5.4),
 -- hs250004 (Rớt Toán)
-('hs250004', 1, 4.0, 4.5, 4.0),
-('hs250004', 2, 7.0, 7.5, 7.0), ('hs250004', 3, 6.5, 7.0, 6.5),
-('hs250004', 4, 8.0, 8.5, 8.0), ('hs250004', 5, 7.5, 7.0, 7.5), ('hs250004', 6, 6.0, 6.5, 6.0),
-('hs250004', 7, 6.5, 6.0, 6.5),
+('hs250004', 1, 4.0, 4.0, 4.5, 4.0, 4.5, 4.0, 4.1),
+('hs250004', 2, 7.0, 7.5, 7.0, 7.5, 7.5, 7.0, 7.2),
+('hs250004', 3, 6.5, 6.5, 7.0, 6.5, 7.0, 6.5, 6.6),
+('hs250004', 4, 8.0, 8.0, 8.5, 8.0, 8.5, 8.0, 8.1),
+('hs250004', 5, 7.5, 7.0, 7.5, 7.0, 7.0, 7.5, 7.3),
+('hs250004', 6, 6.0, 6.5, 6.0, 6.5, 6.5, 6.0, 6.2),
+('hs250004', 7, 6.5, 6.5, 6.0, 6.5, 6.0, 6.5, 6.4),
 -- hs250005 (Rớt 3 môn)
-('hs250005', 1, 3.0, 3.5, 3.0), ('hs250005', 2, 4.0, 4.5, 4.0), ('hs250005', 3, 3.5, 4.0, 3.5),
-('hs250005', 4, 6.0, 6.5, 6.0), ('hs250005', 5, 7.0, 7.5, 7.0), ('hs250005', 6, 5.5, 6.0, 5.5),
-('hs250005', 7, 6.5, 6.5, 6.5);
+('hs250005', 1, 3.0, 3.5, 3.0, 3.5, 3.5, 3.0, 3.2),
+('hs250005', 2, 4.0, 4.0, 4.5, 4.0, 4.5, 4.0, 4.1),
+('hs250005', 3, 3.5, 3.0, 3.5, 3.0, 4.0, 3.5, 3.6),
+('hs250005', 4, 6.0, 6.5, 6.0, 6.5, 6.5, 6.0, 6.2),
+('hs250005', 5, 7.0, 7.0, 7.5, 7.0, 7.5, 7.0, 7.1),
+('hs250005', 6, 5.5, 5.5, 6.0, 5.5, 6.0, 5.5, 5.6),
+('hs250005', 7, 6.5, 6.0, 6.5, 6.0, 6.5, 6.5, 6.4);
 
 -- Môn Đạt/Không đạt (SubjectID 8 = GDCD, 9 = GDTC) — encode Đ=10; trigger StudentAverage tự loại trừ qua GradeType filter
-INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
-('hs250001', 8, 10, 10, 10), ('hs250001', 9, 10, 10, 10),
-('hs250002', 8, 10, 10, 10), ('hs250002', 9, 10, 10, 10),
-('hs250003', 8, 10, 10, 10), ('hs250003', 9, 10, 10, 10),
-('hs250004', 8, 10, 10, 10), ('hs250004', 9, 10, 10, 10),
-('hs250005', 8, 10, 10, 10), ('hs250005', 9, 10, 10, 10);
+INSERT INTO Score (StudentID, SubjectID, RegularScore1, RegularScore2, RegularScore3, RegularScore4, MidTermScore, FinalTermScore, AverageScore) VALUES
+('hs250001', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250001', 9, 10, 10, 10, 10, 10, 10, 10),
+('hs250002', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250002', 9, 10, 10, 10, 10, 10, 10, 10),
+('hs250003', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250003', 9, 10, 10, 10, 10, 10, 10, 10),
+('hs250004', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250004', 9, 10, 10, 10, 10, 10, 10, 10),
+('hs250005', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250005', 9, 10, 10, 10, 10, 10, 10, 10);
 
 -- Applications
 INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, FeedbackNote, StatusID, RespondedAt) VALUES
@@ -816,7 +832,7 @@ VALUES
 -- 10A3 will NOT have SubjectReports or ClassReport (Scenario 1: Clean slate)
 INSERT INTO ClassReport (ClassID, Semester, AcademicYear, TotalStudents, IsLocked, CreatedByTeacherID, CreatedAt)
 VALUES
-(1, N'Học kỳ 1', '2025-2026', 6, 1, 4, GETDATE()),  -- Lớp 10A1 (Sĩ số: 6, GVCN: Phạm Văn Cán) ✅ COMPLETE
+(1, N'Học kỳ 1', '2025-2026', 6, 1, 4, GETDATE()),  -- Lớp 10A1 (Sĩ số: 6, GVCN: Phạm Văn Cán) COMPLETE
 -- (2, N'Học kỳ 1', '2025-2026', 5, 1, 5, GETDATE()),  -- Lớp 10A2 - COMMENTED OUT (Scenario 2: has SubjectReports only)
 -- (3, N'Học kỳ 1', '2025-2026', 5, 1, 6, GETDATE()),  -- Lớp 10A3 - COMMENTED OUT (Scenario 1: no reports at all)
 (4, N'Học kỳ 1', '2025-2026', 5, 1, 7, GETDATE()),  -- Lớp 10A4 (Sĩ số: 5, GVCN: Đặng Thị Hóa)

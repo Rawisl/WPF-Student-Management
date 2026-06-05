@@ -58,7 +58,7 @@
                                      VerticalContentAlignment="Center"
                                      Padding="15,0"
                                      FontSize="16"
-                                     helpers:TextBoxHelper.IsDecimalOnly="True"/>
+                                     helpers:TextBoxHelper.IsDecimalOnly="True" />
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
                                 <Button Command="{Binding IncreaseRegularCoefficientCommand}"
@@ -103,8 +103,7 @@
                                      VerticalContentAlignment="Center"
                                      Padding="15,0"
                                      FontSize="16"
-                                     helpers:TextBoxHelper.IsDecimalOnly="True" 
-                                     />
+                                     helpers:TextBoxHelper.IsDecimalOnly="True" />
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
                                 <Button Command="{Binding IncreaseMidtermScoreCoefficientCommand}"
@@ -222,7 +221,13 @@
                                        Margin="0,5,0,0" />
                         </StackPanel>
                     </Grid>
-
+                    <TextBlock Text="* Ghi chú: ΣTX là tổng các đầu điểm Thường Xuyên (tối đa 4 cột). Mẫu số 'n' sẽ tự động co giãn tương ứng với số lượng cột điểm có nhập liệu."
+                               FontSize="13"
+                               Foreground="#878A99"
+                               FontStyle="Italic"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center"
+                               Margin="0,15,0,0" />
                 </StackPanel>
             </Grid>
         </StackPanel>

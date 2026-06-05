@@ -10,14 +10,18 @@ namespace WPF_Student_Management.ViewModels
     public class GradeDetailItem
     {
         public string SubjectName { get; set; }
-        public string RegularScore { get; set; }
+
+        public string TX1 { get; set; }
+        public string TX2 { get; set; }
+        public string TX3 { get; set; }
+        public string TX4 { get; set; }
+
         public string MidTermScore { get; set; }
         public string FinalTermScore { get; set; }
         public string AverageScore { get; set; }
         public bool IsFailed { get; set; }
     }
 
-    // ĐÃ FIX: Đổi sang kế thừa ObservableObject để UI tự động cập nhật
     public partial class StudentGradeDetailViewModel : ObservableObject
     {
         [ObservableProperty]
@@ -31,7 +35,7 @@ namespace WPF_Student_Management.ViewModels
 
         public StudentGradeDetailViewModel(string studentId, string studentName, string semester, string academicYear, bool showCloseButton = true)
         {
-            IsCloseButtonVisible = showCloseButton; // UI sẽ bắt được cái này lập tức nhờ [ObservableProperty]
+            IsCloseButtonVisible = showCloseButton;
             StudentName = studentName + $" ({semester} - {academicYear})";
             LoadScores(studentId, semester, academicYear);
         }
@@ -47,7 +51,9 @@ namespace WPF_Student_Management.ViewModels
                 decimal passingGrade = Convert.ToDecimal(dtParam.Rows[0]["PassingGrade"]);
 
                 string query = @"
-                    SELECT sub.SubjectName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore, sc.AverageScore
+                    SELECT sub.SubjectName, 
+                           sc.RegularScore1, sc.RegularScore2, sc.RegularScore3, sc.RegularScore4, 
+                           sc.MidTermScore, sc.FinalTermScore, sc.AverageScore
                     FROM Subject sub
                     LEFT JOIN Score sc ON sub.SubjectID = sc.SubjectID 
                                       AND sc.StudentID = @StudentID 
@@ -71,7 +77,12 @@ namespace WPF_Student_Management.ViewModels
                     ScoreList.Add(new GradeDetailItem
                     {
                         SubjectName = row["SubjectName"].ToString(),
-                        RegularScore = row["RegularTestScore"] != DBNull.Value ? Convert.ToDecimal(row["RegularTestScore"]).ToString("0.0") : "-",
+
+                        TX1 = row["RegularScore1"] != DBNull.Value ? Convert.ToDecimal(row["RegularScore1"]).ToString("0.0") : "-",
+                        TX2 = row["RegularScore2"] != DBNull.Value ? Convert.ToDecimal(row["RegularScore2"]).ToString("0.0") : "-",
+                        TX3 = row["RegularScore3"] != DBNull.Value ? Convert.ToDecimal(row["RegularScore3"]).ToString("0.0") : "-",
+                        TX4 = row["RegularScore4"] != DBNull.Value ? Convert.ToDecimal(row["RegularScore4"]).ToString("0.0") : "-",
+
                         MidTermScore = row["MidTermScore"] != DBNull.Value ? Convert.ToDecimal(row["MidTermScore"]).ToString("0.0") : "-",
                         FinalTermScore = row["FinalTermScore"] != DBNull.Value ? Convert.ToDecimal(row["FinalTermScore"]).ToString("0.0") : "-",
                         AverageScore = avgScore.HasValue ? avgScore.Value.ToString("0.0") : "-",

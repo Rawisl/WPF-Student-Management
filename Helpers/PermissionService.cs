@@ -32,7 +32,7 @@ namespace WPF_Student_Management.Helpers
             [UserRole.HocSinh] = new() { Feature.ViewOwnGrades },
             [UserRole.ITAdmin] = new() { Feature.ViewEmployeeList, Feature.ManageEmployees, Feature.ManageAccounts },
             [UserRole.GVBM] = new() { Feature.EditSubjectGrades, Feature.EditSubjectReports },
-            [UserRole.GVCN] = new() { Feature.ManageHomeroom, Feature.SubmitTermReport, Feature.ResetHomeroomStudentPW, Feature.CreateRequestApplication, Feature.EditSubjectGrades, Feature.EditSubjectReports },
+            [UserRole.GVCN] = new() { Feature.ManageHomeroom, Feature.SubmitTermReport, Feature.ResetHomeroomStudentPW, Feature.CreateRequestApplication, Feature.EditSubjectGrades, Feature.EditSubjectReports, Feature.ViewRequests },
             [UserRole.HieuTruong] = new() { Feature.ViewGlobalStudents, Feature.ViewGlobalReports, Feature.ApproveRequests, Feature.ViewEmployeeList, Feature.ViewRequests },
             [UserRole.GiaoVu] = new() { Feature.ManageGlobalStudents, Feature.ManageClasses, Feature.ManageSubjects, Feature.ManageSystemConfig, Feature.ViewGlobalStudents, Feature.ExecuteRequests, Feature.ManageTeachingAssign, Feature.ViewRequests }
         };

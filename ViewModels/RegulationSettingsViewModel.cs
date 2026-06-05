@@ -31,11 +31,11 @@ namespace WPF_Student_Management.ViewModels
         //String hiển thị công thức tính điểm trung bình theo hệ số
         // Tử số
         public string FormulaNumerator =>
-            $"(TX x {RegularScoreCoefficient ?? 0}) + (GK x {MidtermScoreCoefficient ?? 0}) + (CK x {FinalScoreCoefficient ?? 0})";
+            $"(ΣTX x {RegularScoreCoefficient ?? 0}) + (GK x {MidtermScoreCoefficient ?? 0}) + (CK x {FinalScoreCoefficient ?? 0})";
 
         // Mẫu số
         public string FormulaDenominator =>
-            $"{RegularScoreCoefficient ?? 0} + {MidtermScoreCoefficient ?? 0} + {FinalScoreCoefficient ?? 0}";
+             $"(n x {RegularScoreCoefficient ?? 0}) + {MidtermScoreCoefficient ?? 0} + {FinalScoreCoefficient ?? 0}";
         public RegulationSettingsViewModel()
         {
             LoadDataFromDatabase();
