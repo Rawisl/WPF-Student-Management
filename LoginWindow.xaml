@@ -17,7 +17,7 @@
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent">
-    
+
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0"
                       ResizeBorderThickness="5"

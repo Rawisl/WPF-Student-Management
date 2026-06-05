@@ -89,7 +89,6 @@ namespace WPF_Student_Management.Models
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        // 1. READ — Lấy danh sách các môn đã bị xóa mềm từ View
         public static List<DeletedSubjectDto> GetDeletedSubjects()
         {
             List<DeletedSubjectDto> deletedSubjects = new List<DeletedSubjectDto>();
@@ -113,7 +112,6 @@ namespace WPF_Student_Management.Models
             return deletedSubjects;
         }
 
-        // 2. UPDATE — Khôi phục môn học (bật IsDeleted về 0)
         public static bool RestoreSubject(int subjectId)
         {
             string query = "UPDATE Subject SET IsDeleted = 0 WHERE SubjectID = @SubjectID";

@@ -16,7 +16,7 @@ namespace WPF_Student_Management.Models
         public int CreatedByTeacherId { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        // Hàm kiểm tra lớp đã bị GVCN khóa sổ chưa (Dùng cho luồng GVCN sau này)
+        // Hàm kiểm tra lớp đã tồn tại báo cáo chưa
         public static bool IsClassReportLocked(int classId, string semester, string academicYear)
         {
             string query = "SELECT IsLocked FROM ClassReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";

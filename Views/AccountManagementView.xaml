@@ -16,43 +16,67 @@
             <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
 
-        <materialDesign:Card Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Stretch">
+        <materialDesign:Card Grid.Column="0"
+                             Margin="0,0,10,0"
+                             VerticalAlignment="Stretch">
             <StackPanel Margin="10">
-                <TextBlock Text="QUẢN LÝ TÀI KHOẢN GIÁO VIÊN" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
-                <DataGrid ItemsSource="{Binding StaffList}" 
+                <TextBlock Text="QUẢN LÝ TÀI KHOẢN GIÁO VIÊN"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Margin="0,0,0,10" />
+                <DataGrid ItemsSource="{Binding StaffList}"
                           SelectedItem="{Binding SelectedStaff}"
-                          AutoGenerateColumns="False" IsReadOnly="True" Height="500">
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          Height="500">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Mã NV" Binding="{Binding StaffId}" Width="60"/>
-                        <DataGridTextColumn Header="Họ Tên" Binding="{Binding FullName}" Width="*"/>
-                        <DataGridTextColumn Header="Chuyên Môn" Binding="{Binding Specialization}" Width="200"/>
+                        <DataGridTextColumn Header="Mã NV"
+                                            Binding="{Binding StaffId}"
+                                            Width="60" />
+                        <DataGridTextColumn Header="Họ Tên"
+                                            Binding="{Binding FullName}"
+                                            Width="*" />
+                        <DataGridTextColumn Header="Chuyên Môn"
+                                            Binding="{Binding Specialization}"
+                                            Width="200" />
                     </DataGrid.Columns>
                 </DataGrid>
             </StackPanel>
         </materialDesign:Card>
 
-        <materialDesign:Card Grid.Column="1" Padding="20">
+        <materialDesign:Card Grid.Column="1"
+                             Padding="20">
             <StackPanel>
-                <TextBlock Text="THÔNG TIN TÀI KHOẢN" FontSize="16" FontWeight="Bold" Margin="0,0,0,20"/>
-                
-                <TextBox Text="{Binding Username}" 
-                         materialDesign:HintAssist.Hint="Username" 
-                         IsReadOnly="True" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,15"/>
+                <TextBlock Text="THÔNG TIN TÀI KHOẢN"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Margin="0,0,0,20" />
 
-                <ComboBox ItemsSource="{Binding RoleList}" 
+                <TextBox Text="{Binding Username}"
+                         materialDesign:HintAssist.Hint="Username"
+                         IsReadOnly="True"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0,0,0,15" />
+
+                <ComboBox ItemsSource="{Binding RoleList}"
                           SelectedValue="{Binding SelectedRoleId}"
                           DisplayMemberPath="RoleName"
                           SelectedValuePath="RoleId"
-                          materialDesign:HintAssist.Hint="Quyền hạn (Role)" 
-                          Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="0,0,0,20"/>
+                          materialDesign:HintAssist.Hint="Quyền hạn (Role)"
+                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                          Margin="0,0,0,20" />
 
-                <Button Content="LƯU THAY ĐỔI" 
+                <Button Content="LƯU THAY ĐỔI"
                         Command="{Binding SaveAccountCommand}"
-                        Style="{StaticResource MaterialDesignRaisedButton}" 
-                        Background="#4CAF50" BorderBrush="#4CAF50"/>
-                
-                <TextBlock Text="* Lưu ý: Tài khoản cấp mới mặc định là số CCCD, mật khẩu 123456" 
-                           FontSize="11" Foreground="Gray" Margin="0,20,0,0" TextWrapping="Wrap"/>
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Background="#4CAF50"
+                        BorderBrush="#4CAF50" />
+
+                <TextBlock Text="* Lưu ý: Tài khoản cấp mới mặc định là số CCCD, mật khẩu 123456"
+                           FontSize="11"
+                           Foreground="Gray"
+                           Margin="0,20,0,0"
+                           TextWrapping="Wrap" />
             </StackPanel>
         </materialDesign:Card>
     </Grid>

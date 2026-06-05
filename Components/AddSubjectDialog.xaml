@@ -56,7 +56,7 @@
                      Text="{Binding NewSubjectName, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="16"
                      Style="{StaticResource RoundedTextBoxStyle}" />
-            
+
             <TextBlock Grid.Row="3"
                        FontSize="15"
                        FontWeight="SemiBold"

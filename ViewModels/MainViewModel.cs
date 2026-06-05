@@ -15,7 +15,7 @@ namespace WPF_Student_Management.ViewModels
 {
     internal partial class MainViewModel : ObservableObject
     {
-        // Tạo sẵn một đối tượng để dùng chung (singleton trong nội bộ MainVM)
+        // Tạo sẵn một đối tượng để dùng chung singleton trong nội bộ MainVM
         public ClassRosterViewModel ClassRosterVM { get; } = new ClassRosterViewModel();
         public SubjectGradebookViewModel SubjectGradebookVM { get; } = new SubjectGradebookViewModel();
         public HomeroomDashboardViewModel HomeroomDashboardVM { get; } = new HomeroomDashboardViewModel();
@@ -45,83 +45,81 @@ namespace WPF_Student_Management.ViewModels
             SetDefaultViewByRole();
         }
 
-        // HÀM ĐIỀU HƯỚNG TRANG CHỦ THEO QUYỀN
+        //hàm điều hướng trang chủ theo quyền
         private void SetDefaultViewByRole()
         {
-            // Rào chắn an toàn nhỡ chưa có ai đăng nhập
             if (CurrentUser.Instance == null)
             {
                 CurrentView = PersonalInfoLookupVM;
                 return;
             }
 
-            // Dùng Switch Expression gán View theo Role cực kỳ gọn gàng
+            // Dùng Switch Expression gán View theo Role
             CurrentView = CurrentUser.Instance.Role switch
             {
-                UserRole.HocSinh => GradeLookupVM,              // Học sinh: Vào phát xem điểm luôn cho nóng
+                UserRole.HocSinh => GradeLookupVM,
 
-                UserRole.GVBM => SubjectGradebookVM,            // GVBM: Vào thẳng sổ điểm môn học
+                UserRole.GVBM => SubjectGradebookVM,
 
-                UserRole.GVCN => HomeroomDashboardVM,           // GVCN: Vào thẳng lớp mình đang chủ nhiệm
+                UserRole.GVCN => HomeroomDashboardVM,
 
-                UserRole.GiaoVu => GlobalStudentManagementVM,   // Giáo vụ: Vào danh sách toàn trường để quản lý
+                UserRole.GiaoVu => GlobalStudentManagementVM,
 
-                UserRole.HieuTruong => GlobalSummaryReportVM,   // Hiệu trưởng: Vào đập ngay báo cáo tổng kết tiến độ
+                UserRole.HieuTruong => GlobalSummaryReportVM,
 
-                UserRole.ITAdmin => EmployeeManagementVM,       // IT Admin: Vào thẳng trang quản lý nhân viên/tài khoản
+                UserRole.ITAdmin => EmployeeManagementVM,
 
-                _ => PersonalInfoLookupVM                      // Mặc định (Fallback) an toàn
+                _ => PersonalInfoLookupVM
             };
         }
 
         [RelayCommand]
         private void Navigate(object destinationViewModel)
         {
-            // 1. KIỂM TRA CHỐT CHẶN TỪ MÀN HÌNH QUY ĐỊNH
             if (CurrentView is RegulationSettingsViewModel regVM)
             {
                 if (regVM.HasUnsavedChanges)
                 {
                     bool isConfirmSwitchTab = NotificationHelper.ShowConfirm("Bạn có thay đổi chưa lưu! Xác nhận rời đi và mất dữ liệu?");
-                    if (!isConfirmSwitchTab) return; // Chọn Hủy thì ở lại
+                    if (!isConfirmSwitchTab)
+                        return; // Chọn Hủy thì ở lại
                 }
 
-                // LUÔN LUÔN REFRESH: Cho dù có thay đổi hay không, cứ rời đi là nạp lại DB để dọn sạch
+                //Cho dù có thay đổi hay không, cứ rời đi là nạp lại DB để dọn sạch
                 regVM.LoadDataFromDatabase();
             }
 
-            // 2. KIỂM TRA CHỐT CHẶN TỪ MÀN HÌNH NHẬP ĐIỂM
             if (CurrentView is SubjectGradebookViewModel gradebookVM)
             {
                 if (gradebookVM.HasUnsavedChanges)
                 {
                     bool isConfirmSwitchTab = NotificationHelper.ShowConfirm("Màn hình Nhập điểm đang có dữ liệu chưa lưu!\nNếu chuyển sang màn hình khác, điểm sẽ bị mất. Bạn có chắc chắn muốn thoát không?");
-                    if (!isConfirmSwitchTab) return; // Chọn Hủy thì ở lại nhập tiếp
+                    if (!isConfirmSwitchTab)
+                        return; // Chọn Hủy thì ở lại nhập tiếp
                 }
 
-                // LUÔN LUÔN REFRESH: Cứ rời đi là dọn sạch ComboBox và DataGrid
+                //Cứ rời đi là dọn sạch ComboBox và DataGrid
                 gradebookVM.RefreshData();
             }
 
-            // 3. NẾU AN TOÀN -> THỰC HIỆN CHUYỂN TRANG
             CurrentView = destinationViewModel;
         }
 
         private void ExecuteLogout(object obj)
         {
-            // --- BẢO VỆ DỮ LIỆU TRƯỚC KHI ĐĂNG XUẤT ---
             if (CurrentView is RegulationSettingsViewModel regVM && regVM.HasUnsavedChanges)
             {
                 bool confirm = NotificationHelper.ShowConfirm("Bạn có quy định chưa lưu! Vẫn muốn đăng xuất?");
-                if (!confirm) return;
+                if (!confirm)
+                    return;
             }
 
             if (CurrentView is SubjectGradebookViewModel gradebookVM && gradebookVM.HasUnsavedChanges)
             {
                 bool confirm = NotificationHelper.ShowConfirm("Bạn có điểm chưa lưu! Vẫn muốn đăng xuất?");
-                if (!confirm) return;
+                if (!confirm)
+                    return;
             }
-            // ------------------------------------------
 
             // Xóa thông tin đăng nhập trong Singleton
             CurrentUser.Instance.Logout();

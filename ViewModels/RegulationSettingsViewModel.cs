@@ -18,7 +18,6 @@ namespace WPF_Student_Management.ViewModels
         [ObservableProperty]
         private bool _hasUnsavedChanges = false;
 
-        // CÁC BIẾN NULLABLE ĐỂ CHO PHÉP XÓA RỖNG
         [ObservableProperty] private int? _minAge;
         [ObservableProperty] private int? _maxAge;
         [ObservableProperty] private int? _maxClassSize;
@@ -87,33 +86,38 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        //--- LOGIC TĂNG/GIẢM  ---
         [RelayCommand]
         private void IncreaseMinAge()
         {
-            MinAge ??= 0; MaxAge ??= 0;
-            if (MinAge < MaxAge && MinAge < 100) MinAge++;
+            MinAge ??= 0;
+            MaxAge ??= 0;
+            if (MinAge < MaxAge && MinAge < 100)
+                MinAge++;
         }
 
         [RelayCommand]
         private void DecreaseMinAge()
         {
             MinAge ??= 0;
-            if (MinAge > 13) MinAge--;
+            if (MinAge > 13)
+                MinAge--;
         }
 
         [RelayCommand]
         private void IncreaseMaxAge()
         {
             MaxAge ??= 0;
-            if (MaxAge < 18) MaxAge++;
+            if (MaxAge < 18)
+                MaxAge++;
         }
 
         [RelayCommand]
         private void DecreaseMaxAge()
         {
-            MaxAge ??= 0; MinAge ??= 0;
-            if (MaxAge > MinAge && MaxAge > 0) MaxAge--;
+            MaxAge ??= 0;
+            MinAge ??= 0;
+            if (MaxAge > MinAge && MaxAge > 0)
+                MaxAge--;
         }
 
         [RelayCommand]
@@ -127,21 +131,24 @@ namespace WPF_Student_Management.ViewModels
         private void ReduceClassSize()
         {
             MaxClassSize ??= 0;
-            if (MaxClassSize > 0) MaxClassSize--;
+            if (MaxClassSize > 0)
+                MaxClassSize--;
         }
 
         [RelayCommand]
         private void IncreaseNumPassingGrade()
         {
             NumPassingGrade ??= 0.0;
-            if (NumPassingGrade < 10.0) NumPassingGrade = System.Math.Round((double)NumPassingGrade.Value + 0.1, 1);
+            if (NumPassingGrade < 10.0)
+                NumPassingGrade = System.Math.Round((double)NumPassingGrade.Value + 0.1, 1);
         }
 
         [RelayCommand]
         private void DecreaseNumPassingGrade()
         {
             NumPassingGrade ??= 0.0;
-            if (NumPassingGrade > 0.0) NumPassingGrade = System.Math.Round((double)NumPassingGrade.Value - 0.1, 1);
+            if (NumPassingGrade > 0.0)
+                NumPassingGrade = System.Math.Round((double)NumPassingGrade.Value - 0.1, 1);
         }
 
         [RelayCommand]
@@ -155,7 +162,8 @@ namespace WPF_Student_Management.ViewModels
         private void DecreaseRegularCoefficient()
         {
             RegularScoreCoefficient ??= 0;
-            if (RegularScoreCoefficient > 0.0) RegularScoreCoefficient = System.Math.Round((double)RegularScoreCoefficient.Value - 1, 1);
+            if (RegularScoreCoefficient > 0.0)
+                RegularScoreCoefficient = System.Math.Round((double)RegularScoreCoefficient.Value - 1, 1);
         }
         [RelayCommand]
         private void IncreaseMidtermScoreCoefficient()
@@ -168,7 +176,8 @@ namespace WPF_Student_Management.ViewModels
         private void DecreaseMidtermScoreCoefficient()
         {
             MidtermScoreCoefficient ??= 0;
-            if (MidtermScoreCoefficient > 0.0) MidtermScoreCoefficient = System.Math.Round((double)MidtermScoreCoefficient.Value - 1, 1);
+            if (MidtermScoreCoefficient > 0.0)
+                MidtermScoreCoefficient = System.Math.Round((double)MidtermScoreCoefficient.Value - 1, 1);
         }
         [RelayCommand]
         private void IncreaseFinalScoreCoefficient()
@@ -181,10 +190,10 @@ namespace WPF_Student_Management.ViewModels
         private void DecreaseFinalScoreCoefficient()
         {
             FinalScoreCoefficient ??= 0;
-            if (FinalScoreCoefficient > 0.0) FinalScoreCoefficient = System.Math.Round((double)FinalScoreCoefficient.Value - 1, 1);
+            if (FinalScoreCoefficient > 0.0)
+                FinalScoreCoefficient = System.Math.Round((double)FinalScoreCoefficient.Value - 1, 1);
         }
 
-        // --- LƯU DỮ LIỆU ---
         [RelayCommand]
         private void SaveSettings()
         {

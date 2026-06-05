@@ -153,7 +153,6 @@ namespace WPF_Student_Management.Models
             return students;
         }
 
-        // --- ĐÃ FIX: LẤY ĐIỂM TỪ BẢNG MỚI StudentAverage ---
         public decimal GetOverallGPA(string semester, string academicYear)
         {
             string query = "SELECT OverallAverage FROM StudentAverage WHERE StudentID = @StudentID AND Semester = @Semester AND AcademicYear = @AcademicYear";
@@ -236,7 +235,7 @@ namespace WPF_Student_Management.Models
         }
 
 
-        // THÊM MỚI HỌC SINH + TẠO TÀI KHOẢN KÉP
+        //logic tiếp nhận học sinh và tạo tài khoản mới
         public string? ReceiveNewStudent()
         {
             string defaultRawPassword = "";
@@ -248,7 +247,7 @@ namespace WPF_Student_Management.Models
             }
             else
             {
-                defaultRawPassword = "Password123";
+                defaultRawPassword = "Password123"; 
             }
 
             string hashedPassword = PasswordHasher.HashPassword(defaultRawPassword);
@@ -306,7 +305,6 @@ namespace WPF_Student_Management.Models
             return null;
         }
 
-        // --- ĐÃ FIX: CHỈ TÌM NHỮNG HS CHƯA CÓ PLACEMENT NÀO ĐANG ACTIVE (EffectiveTo IS NULL) ---
         public static List<Student> GetUnassignedStudents(string academicYear)
         {
             List<Student> students = new List<Student>();
@@ -343,7 +341,6 @@ namespace WPF_Student_Management.Models
             return students;
         }
 
-        // --- ĐÃ FIX: TRUYỀN THÊM THAM SỐ AcademicYear ĐỂ INSERT VÀO ClassPlacement ---
         public static bool AssignStudentToClass(string studentId, int classId, string academicYear)
         {
             string query = "INSERT INTO ClassPlacement (StudentID, ClassID, AcademicYear) VALUES (@StudentID, @ClassID, @AcademicYear)";

@@ -9,8 +9,6 @@ using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
-
-    //LỚP WRAPPER BỌC DTO ĐỂ HỖ TRỢ CHECKBOX TRÊN UI
     public partial class SelectableDeletedSubject : ObservableObject
     {
         public DeletedSubjectDto Data { get; }
@@ -43,18 +41,15 @@ namespace WPF_Student_Management.ViewModels
         [NotifyCanExecuteChangedFor(nameof(SaveSubjectCommand))]
         private string _newSubjectName = string.Empty;
 
-        // Dùng bool cho RadioButton (Mặc định chọn Điểm số)
         [ObservableProperty]
         private bool _isScoreGradeType = true;
 
         [ObservableProperty]
         private bool _isPassFailGradeType = false;
 
-        // Logic đồng bộ 2 nút Radio
         partial void OnIsScoreGradeTypeChanged(bool value) => IsPassFailGradeType = !value;
         partial void OnIsPassFailGradeTypeChanged(bool value) => IsScoreGradeType = !value;
 
-        // 1. THÊM CONSTRUCTOR NÀY VÀO ĐỂ LOAD DATA NGAY KHI MỞ TRANG
         public SubjectManagementViewModel()
         {
             LoadSubjectsData();
@@ -64,10 +59,7 @@ namespace WPF_Student_Management.ViewModels
         {
             try
             {
-                // Gọi hàm GetAllSubjects của Long
                 var dataFromDb = Subject.GetAllSubjects();
-
-                // Đổ dữ liệu vào ObservableCollection
                 SubjectsList = new ObservableCollection<Subject>(dataFromDb);
             }
             catch (Exception ex)
@@ -92,7 +84,7 @@ namespace WPF_Student_Management.ViewModels
             // Chuẩn hóa tên (Cắt khoảng trắng thừa)
             string cleanName = NewSubjectName.Trim();
 
-            // KIỂM TRA NGOẠI LỆ (EXCEPTION): Môn đã tồn tại chưa? (So sánh không phân biệt hoa thường)
+            // Môn đã tồn tại chưa? (So sánh không phân biệt hoa thường)
             if (SubjectsList.Any(s => s.SubjectName.Equals(cleanName, StringComparison.OrdinalIgnoreCase)))
             {
                 NotificationHelper.ShowWarning($"Môn học '{cleanName}' đã tồn tại trong hệ thống!\nVui lòng chọn tên khác.");
@@ -114,11 +106,7 @@ namespace WPF_Student_Management.ViewModels
             if (newSubject.AddSubject())
             {
                 NotificationHelper.ShowSuccess("Thêm môn học mới thành công!");
-
-                // Load lại bảng danh sách để lấy được SubjectId xịn do CSDL vừa tự sinh ra
                 LoadSubjectsData();
-
-                // Đóng form và dọn dẹp
                 CancelAddSubject();
             }
             else
@@ -139,19 +127,20 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private void DeleteSubject(Subject selectedSubject)
         {
-            if (selectedSubject == null) return;
+            if (selectedSubject == null)
+                return;
 
-            // 1. Hiện thông báo xác nhận (Đổi văn phong cho hợp với Soft Delete)
+            //Hiện thông báo xác nhận
             bool isConfirm = NotificationHelper.ShowConfirm(
                 $"Bạn có chắc chắn muốn ngừng hoạt động môn '{selectedSubject.SubjectName}' không?\n" +
                 "Môn học này sẽ được ẩn khỏi hệ thống phân công và nhập điểm.");
 
             if (isConfirm)
             {
-                // 2. Gọi hàm STATIC của Model truyền ID vào
+                //Gọi hàm STATIC của Model truyền ID vào
                 if (Subject.DeleteSubject(selectedSubject.SubjectId))
                 {
-                    // 3. Xóa ngay trên UI để người dùng thấy mất luôn không cần load lại
+                    //Xóa trên UI để người dùng thấy mất luôn không cần load lại
                     SubjectsList.Remove(selectedSubject);
                     NotificationHelper.ShowSuccess("Đã xóa môn học thành công!");
                 }
@@ -161,7 +150,6 @@ namespace WPF_Student_Management.ViewModels
                 }
             }
         }
-        // 1. Lệnh mở Popup Khôi phục (Nối vào nút "Thùng rác" trên màn hình chính)
         [RelayCommand]
         private async Task OpenRestoreDialog()
         {
@@ -176,8 +164,6 @@ namespace WPF_Student_Management.ViewModels
             var dialog = new Components.SubjectRestoreDialog { DataContext = this };
             await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialog");
         }
-
-        // 2. Kéo data từ Database lên và bọc vào Wrapper
         private void LoadDeletedSubjectsData()
         {
             try
@@ -196,14 +182,12 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // 3. Lệnh đóng Popup
         [RelayCommand]
         private void CancelRestore()
         {
             MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
         }
 
-        // 4. Lệnh thực thi Khôi phục môn
         [RelayCommand]
         private void ConfirmRestore()
         {
@@ -229,10 +213,7 @@ namespace WPF_Student_Management.ViewModels
             if (successCount > 0)
             {
                 NotificationHelper.ShowSuccess($"Đã khôi phục thành công {successCount} môn học!");
-
-                // Gọi lại hàm Load danh sách chính để UI cập nhật ngay môn vừa sống lại
                 LoadSubjectsData();
-
                 MaterialDesignThemes.Wpf.DialogHost.Close("RootDialog");
             }
             else

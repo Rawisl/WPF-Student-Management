@@ -35,7 +35,6 @@ namespace WPF_Student_Management.Helpers
         {
             if (sender is DataGrid dataGrid)
             {
-                // Đợi 1 nhịp siêu nhỏ để WPF chuyển ô xong, rồi ÉP BẬT EDIT MODE
                 dataGrid.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (dataGrid.CurrentColumn != null && !dataGrid.CurrentColumn.IsReadOnly)
@@ -50,7 +49,7 @@ namespace WPF_Student_Management.Helpers
         {
             if (sender is DataGrid dataGrid)
             {
-                // 1. BẮT BÀI NÚT ENTER (Nhảy xuống dưới)
+                //Bắt sk nút enter
                 if (e.Key == Key.Enter)
                 {
                     e.Handled = true; // Chặn Enter mặc định
@@ -66,16 +65,12 @@ namespace WPF_Student_Management.Helpers
                     return;
                 }
 
-                // 2. BẮT BÀI 4 NÚT MŨI TÊN (Giải phóng con trỏ khỏi TextBox)
+                //Bắt 4 nút mũi tên
                 if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right)
                 {
-                    // Ngay khi bấm mũi tên, ép lưu điểm và ĐÓNG TextBox lại
+                    // Ngay khi bấm mũi tên, ép lưu điểm và đóng TextBox
                     dataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
                     dataGrid.CommitEdit(DataGridEditingUnit.Row, true);
-
-                    // KHÔNG gán e.Handled = true ở đây!
-                    // Lợi dụng cơ chế của WPF: Vì TextBox đã bị đóng, sự kiện phím mũi tên
-                    // sẽ được trả về cho DataGrid. Thằng DataGrid sẽ tự động làm nhiệm vụ chuyển ô!
                 }
             }
         }

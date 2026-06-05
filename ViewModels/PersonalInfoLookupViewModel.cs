@@ -8,10 +8,8 @@ using WPF_Student_Management.Services;
 
 namespace WPF_Student_Management.ViewModels
 {
-    // Kế thừa ObservableObject để hỗ trợ Binding
     public partial class PersonalInfoLookupViewModel : ObservableObject
     {
-        // Thuộc tính cốt lõi để View lấy giao diện nạp vào ContentControl
         [ObservableProperty]
         private ObservableObject _currentProfileDataContext;
 
@@ -22,17 +20,15 @@ namespace WPF_Student_Management.ViewModels
 
         private void LoadProfile()
         {
-            // Rào chắn bảo mật: Phải đăng nhập mới được xem
-            if (CurrentUser.Instance == null || CurrentUser.Instance.UserId == 0) return;
+            //Phải đăng nhập mới được xem
+            if (CurrentUser.Instance == null || CurrentUser.Instance.UserId == 0)
+                return;
 
             int currentAccountId = CurrentUser.Instance.UserId;
             int roleId = (int)CurrentUser.Instance.Role;
 
             try
             {
-                // ==========================================
-                // LUỒNG 1: DÀNH CHO HỌC SINH (Giả sử Role 1 là Học sinh)
-                // ==========================================
                 if (roleId == 0)
                 {
                     string query = "SELECT * FROM Student WHERE AccountID = @AccountID";
@@ -66,12 +62,8 @@ namespace WPF_Student_Management.ViewModels
                         NotificationHelper.ShowError("Không tìm thấy hồ sơ học sinh liên kết với tài khoản này.");
                     }
                 }
-                // ==========================================
-                // LUỒNG 2: DÀNH CHO NHÂN SỰ (Giáo viên, Giáo vụ, Hiệu trưởng...)
-                // ==========================================
                 else
                 {
-                    // ĐÃ FIX: JOIN qua bảng Account để lấy RoleID thật sự của CSDL, không dùng số của Enum nữa
                     string query = @"
                         SELECT e.*, a.RoleID 
                         FROM Employee e
@@ -96,8 +88,6 @@ namespace WPF_Student_Management.ViewModels
                             Status = row["Status"].ToString(),
                             Specialization = row["Specialization"] != DBNull.Value ? Convert.ToInt32(row["Specialization"]) : (int?)null,
                             AccountId = currentAccountId,
-
-                            // ĐÃ FIX: Dùng RoleID chuẩn từ bảng Account
                             RoleId = Convert.ToInt32(row["RoleID"])
                         };
 

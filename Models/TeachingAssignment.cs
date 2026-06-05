@@ -15,10 +15,8 @@ namespace WPF_Student_Management.Models
         public int ClassId { get; set; }
         public int SubjectId { get; set; }
 
-        // --- BỔ SUNG CHIỀU THỜI GIAN ---
         public string Semester { get; set; } = "Học kỳ 1";
         public string AcademicYear { get; set; } = "2025-2026";
-        // -------------------------------
 
         // READ
         public static List<TeachingAssignment> GetAllAssignments()
@@ -35,8 +33,6 @@ namespace WPF_Student_Management.Models
                     StaffId = Convert.ToInt32(row["EmployeeID"]),
                     ClassId = Convert.ToInt32(row["ClassID"]),
                     SubjectId = Convert.ToInt32(row["SubjectID"]),
-
-                    // Map thêm 2 trường này
                     Semester = row["Semester"] != DBNull.Value ? row["Semester"].ToString()! : "Học kỳ 1",
                     AcademicYear = row["AcademicYear"] != DBNull.Value ? row["AcademicYear"].ToString()! : "2025-2026"
                 };
@@ -63,7 +59,6 @@ namespace WPF_Student_Management.Models
         }
 
         // DELETE
-        // CẬP NHẬT: Thêm Semester và AcademicYear vào điều kiện xóa (Bắt buộc do Khóa chính đã thay đổi)
         public static bool DeleteAssignment(int staffId, int classId, int subjectId, string semester, string academicYear)
         {
             string query = "DELETE FROM TeachingAssignment " +

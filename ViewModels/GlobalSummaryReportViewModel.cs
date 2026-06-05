@@ -226,7 +226,8 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand]
         private void ExportExcel()
         {
-            if (!IsDataReady || ReportData.Count == 0) return;
+            if (!IsDataReady || ReportData.Count == 0)
+                return;
 
             try
             {

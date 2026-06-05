@@ -6,7 +6,6 @@ using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.Models
 {
-    // lớp học
     public class Class
     {
         public int ClassId { get; set; }
@@ -124,7 +123,7 @@ namespace WPF_Student_Management.Models
             return map;
         }
 
-        // Lấy danh sách tên lớp (để đổ vào ComboBox)
+        // Lấy danh sách tên lớp
         public static List<string> GetAllActiveClassNames()
         {
             var names = new List<string>();

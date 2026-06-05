@@ -20,8 +20,10 @@ namespace WPF_Student_Management.ViewModels
         public Visibility ActionVisibility => PermissionService.HasFeature(PermissionService.Feature.ManageGlobalStudents) ? Visibility.Visible : Visibility.Collapsed;
         private bool CanModify() => PermissionService.HasFeature(PermissionService.Feature.ManageGlobalStudents);
         private bool CanModifyStudent(Student student) => PermissionService.HasFeature(PermissionService.Feature.ManageGlobalStudents);
+        private bool CanViewOrModifyStudent(Student student) =>
+            PermissionService.HasFeature(PermissionService.Feature.ManageGlobalStudents) ||
+            PermissionService.HasFeature(PermissionService.Feature.ViewGlobalStudents);
 
-        //TẠO 2 BIẾN LƯU TRỮ QUY ĐỊNH LÚC VỪA MỞ FORM(Cho số mặc định lỡ DB lỗi)
         private int _minAge = 15;
         private int _maxAge = 20;
 
@@ -110,11 +112,7 @@ namespace WPF_Student_Management.ViewModels
             LoadClassFilterData();
             LoadDataFromDatabase();
             OnDateOfBirthChanged(DateTime.Now);
-
-            //KÉO QUY ĐỊNH TỪ DB LÊN NGAY LÚC KHỞI TẠO
             LoadAgeRegulations();
-
-            // Ép nó check lại tuổi ngay khi vừa load lên (lỡ tuổi lúc trước hợp lệ, giờ đổi quy định thành không hợp lệ)
             OnDateOfBirthChanged(DateOfBirth);
         }
 
@@ -217,12 +215,16 @@ namespace WPF_Student_Management.ViewModels
         }
 
         // ĐÃ KHÓA NẾU LÀ HIỆU TRƯỞNG
-        [RelayCommand(CanExecute = nameof(CanModifyStudent))]
+        [RelayCommand(CanExecute = nameof(CanViewOrModifyStudent))]
         private async Task EditStudent(Student student)
         {
-            if (student == null) return;
+            if (student == null)
+                return;
 
-            var detailVM = new StudentProfileDetailViewModel(student);
+            bool isReadOnlyForThisUser = !PermissionService.HasFeature(PermissionService.Feature.ManageGlobalStudents);
+
+            var detailVM = new StudentProfileDetailViewModel(student, isReadOnlyForThisUser);
+
             var view = new Components.StudentProfileDetailUC
             {
                 DataContext = detailVM
@@ -236,7 +238,8 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand(CanExecute = nameof(CanModifyStudent))]
         private void DeleteStudent(Student student)
         {
-            if (student == null) return;
+            if (student == null)
+                return;
 
             bool isChonOK = NotificationHelper.ShowConfirm($"Bạn có chắc chắn muốn xóa học sinh '{student.FullName}' khỏi hệ thống không?\nHành động này không thể hoàn tác!");
 
@@ -280,7 +283,8 @@ namespace WPF_Student_Management.ViewModels
         partial void OnDateOfBirthChanged(DateTime value)
         {
             int age = DateTime.Now.Year - value.Year;
-            if (DateTime.Now.DayOfYear < value.DayOfYear) age--;
+            if (DateTime.Now.DayOfYear < value.DayOfYear)
+                age--;
 
             if (age < _minAge || age > _maxAge)
                 AgeErrorMessage = $"Tuổi {age} không hợp lệ (Quy định: {_minAge} - {_maxAge})";
@@ -290,7 +294,8 @@ namespace WPF_Student_Management.ViewModels
 
         private bool CanSave()
         {
-            if (!CanModify()) return false;
+            if (!CanModify())
+                return false;
 
             string phoneRegexPattern = @"^0\d{9}$";
             return string.IsNullOrEmpty(AgeErrorMessage) &&
@@ -307,7 +312,8 @@ namespace WPF_Student_Management.ViewModels
         // Kiểm tra sớm theo hướng an toàn cho concurrency: báo trùng email sớm cho người dùng, nhưng ràng buộc UNIQUE trong DB vẫn là lớp chặn cuối cùng.
         private bool IsStudentEmailAvailable(string? email)
         {
-            if (string.IsNullOrWhiteSpace(email)) return true;
+            if (string.IsNullOrWhiteSpace(email))
+                return true;
 
             string query = "SELECT COUNT(*) FROM Student WHERE Email = @Email";
             DataTable dt = DatabaseHelper.ExecuteQuery(query, new[]
@@ -397,7 +403,8 @@ namespace WPF_Student_Management.ViewModels
 
         private void FilterData()
         {
-            if (_originalStudentList == null || !_originalStudentList.Any()) return;
+            if (_originalStudentList == null || !_originalStudentList.Any())
+                return;
 
             var filtered = _originalStudentList.AsEnumerable();
 
@@ -424,9 +431,9 @@ namespace WPF_Student_Management.ViewModels
                 });
             }
 
-            // --- LOGIC ĐÁNH SỐ THỨ TỰ STT ---
             var resultList = filtered.ToList();
-            for (int i = 0; i < resultList.Count; i++) resultList[i].STT = i + 1;
+            for (int i = 0; i < resultList.Count; i++)
+                resultList[i].STT = i + 1;
 
             AllStudent = new ObservableCollection<Student>(resultList);
         }

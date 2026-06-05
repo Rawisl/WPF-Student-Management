@@ -34,7 +34,6 @@ namespace WPF_Student_Management.ViewModels
             {
                 string hashedPassword = PasswordHasher.HashPassword(Password);
 
-                // ĐÃ FIX: JOIN bảng Role để lấy RoleName thay vì chỉ lấy RoleID
                 string query = @"
                     SELECT a.*, r.RoleName 
                     FROM Account a
@@ -91,7 +90,7 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // HÀM BIÊN DỊCH: Dịch từ chữ của Database sang Enum của C# (KHÔNG PHÂN BIỆT HOA THƯỜNG)
+        //Dịch từ chữ của Database sang Enum ko phân biệt hoa thường
         private UserRole MapRoleNameToEnum(string roleName)
         {
             if (string.IsNullOrWhiteSpace(roleName)) return UserRole.HocSinh;

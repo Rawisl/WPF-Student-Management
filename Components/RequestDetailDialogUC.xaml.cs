@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace WPF_Student_Management.Components
 {
     /// <summary>
-    /// Interaction logic for AssignmentDataGridUC.xaml
+    /// Interaction logic for RequestDetailDialogUC.xaml
     /// </summary>
-    public partial class AssignmentDataGridUC : UserControl
+    public partial class RequestDetailDialogUC : UserControl
     {
-        public AssignmentDataGridUC()
+        public RequestDetailDialogUC()
         {
             InitializeComponent();
         }

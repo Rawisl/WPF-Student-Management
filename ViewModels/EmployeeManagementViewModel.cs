@@ -19,6 +19,8 @@ namespace WPF_Student_Management.ViewModels
                                       ? Visibility.Visible : Visibility.Collapsed;
         public bool IsReadOnly => !PermissionService.HasFeature(PermissionService.Feature.ManageEmployees);
         private bool CanModify() => !IsReadOnly;
+        private bool CanViewOrModify() => PermissionService.HasFeature(PermissionService.Feature.ManageEmployees)
+                                       || PermissionService.HasFeature(PermissionService.Feature.ViewEmployeeList);
 
         [ObservableProperty]
         private ObservableCollection<Staff> _staffList;
@@ -70,12 +72,15 @@ namespace WPF_Student_Management.ViewModels
             await DialogHost.Show(dialog, "RootDialog");
         }
 
-        [RelayCommand(CanExecute = nameof(CanModify))]
+        [RelayCommand(CanExecute = nameof(CanViewOrModify))]
         private async void Edit(Staff staff)
         {
-            if (staff == null) return;
+            if (staff == null)
+                return;
 
-            var detailVM = new EmployeeProfileDetailViewModel(staff, false, LoadData);
+            bool isReadOnlyForThisUser = !PermissionService.HasFeature(PermissionService.Feature.ManageEmployees);
+
+            var detailVM = new EmployeeProfileDetailViewModel(staff, isReadOnlyForThisUser, LoadData);
             var dialog = new Components.EmployeeProfileDetailUC { DataContext = detailVM };
 
             await DialogHost.Show(dialog, "RootDialog");
@@ -84,7 +89,8 @@ namespace WPF_Student_Management.ViewModels
         [RelayCommand(CanExecute = nameof(CanModify))]
         private void Delete(Staff staff)
         {
-            if (staff == null || staff.StaffId <= 0) return;
+            if (staff == null || staff.StaffId <= 0)
+                return;
 
             if (staff.AccountId == CurrentUser.Instance.UserId)
             {
@@ -98,7 +104,7 @@ namespace WPF_Student_Management.ViewModels
             {
                 try
                 {
-                    // Chặn xung đột: chỉ vô hiệu hóa nếu bản ghi này vẫn còn khớp với dữ liệu đang hiển thị trên lưới.
+                    //chỉ vô hiệu hóa nếu bản ghi này vẫn còn khớp với dữ liệu đang hiển thị trên lưới.
                     bool isDeactivated = Staff.DeactivateStaff(staff.CreateConcurrencySnapshot());
 
                     if (isDeactivated)

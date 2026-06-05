@@ -8,7 +8,7 @@ using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.Models
 {
-    // BẮT BUỘC KẾ THỪA INotifyPropertyChanged ĐỂ HỖ TRỢ XÁM/SÁNG NÚT LƯU
+    // kế thừa INotifyPropertyChanged để hỗ trợ UI
     public class Staff : INotifyPropertyChanged
     {
         public class StaffConcurrencySnapshot
@@ -32,7 +32,6 @@ namespace WPF_Student_Management.Models
 
         public int RoleId { get; set; }
 
-        // --- CÁC THUỘC TÍNH CÓ KIỂM TRA ĐIỀU KIỆN LƯU ---
         private string _fullName = "";
         public required string FullName
         {
@@ -60,7 +59,6 @@ namespace WPF_Student_Management.Models
             get => _nationalId;
             set { _nationalId = value; OnPropertyChanged(); }
         }
-        // ------------------------------------------------
 
         public string? Gender { get; set; }
         public int? Specialization { get; set; } // FK → Subject.SubjectID
@@ -68,7 +66,6 @@ namespace WPF_Student_Management.Models
         public string? HometownAddress { get; set; }
         public string? Status { get; set; }
 
-        // --- CÀI ĐẶT SỰ KIỆN INotifyPropertyChanged ---
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
@@ -84,7 +81,8 @@ namespace WPF_Student_Management.Models
             JOIN Account a ON e.AccountID = a.AccountID";
 
             DataTable data = DatabaseHelper.ExecuteQuery(query);
-            if (data == null) return staffList;
+            if (data == null)
+                return staffList;
 
             foreach (DataRow row in data.Rows)
             {
@@ -419,16 +417,18 @@ namespace WPF_Student_Management.Models
             return null;
         }
 
-        // Hàm phụ trợ: Chuyển tiếng Việt có dấu thành không dấu và tạo Username
+        // local helper giúp chuyển tiếng Việt có dấu thành không dấu và tạo Username
         private string GenerateStaffUsername(string fullName)
         {
-            if (string.IsNullOrWhiteSpace(fullName)) return "gv_unknown";
+            if (string.IsNullOrWhiteSpace(fullName))
+                return "gv_unknown";
 
             // Xóa dấu tiếng Việt (Sử dụng TextHelper bạn đã có hoặc hàm tương đương)
             string unsignedName = TextHelper.RemoveSignForVietnameseString(fullName).ToLower();
             string[] parts = unsignedName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (parts.Length < 1) return "gv_user";
+            if (parts.Length < 1)
+                return "gv_user";
 
             string firstName = parts[parts.Length - 1]; // Tên chính (can)
             string initials = ""; // Viết tắt họ và tên đệm (pv)
@@ -441,10 +441,10 @@ namespace WPF_Student_Management.Models
             return "gv_" + firstName + initials;
         }
 
-        // Hàm phụ trợ: Tạo Password mặc định
+        // local helper giúp tạo Password mặc định
         private string GenerateStaffPassword(string fullName, string? phone)
         {
-            string unsignedName = TextHelper.RemoveSignForVietnameseString(fullName).ToLower(); 
+            string unsignedName = TextHelper.RemoveSignForVietnameseString(fullName).ToLower();
             string[] parts = unsignedName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             string firstName = parts[parts.Length - 1];
 

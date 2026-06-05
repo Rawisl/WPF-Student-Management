@@ -19,8 +19,6 @@ namespace WPF_Student_Management.Models
         public int CreatedByTeacherId { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        // VŨ KHÍ BÍ MẬT: Hàm kiểm tra xem Bảng điểm này đã bị Khóa Sổ chưa?
-        // (Tí nữa ViewModel nhập điểm sẽ dùng cái này để Disable nút LƯU)
         public static bool IsSubjectReportLocked(int classId, int subjectId, string semester, string academicYear)
         {
             string query = "SELECT IsLocked FROM SubjectReport WHERE ClassID = @ClassID AND SubjectID = @SubjectID AND Semester = @Semester AND AcademicYear = @AcademicYear";

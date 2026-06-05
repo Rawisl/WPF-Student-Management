@@ -80,7 +80,7 @@
                     </StackPanel>
                 </Button>
             </StackPanel>
-            
+
         </Grid>
 
         <Border Grid.Row="1"

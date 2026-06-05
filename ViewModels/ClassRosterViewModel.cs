@@ -14,7 +14,6 @@ namespace WPF_Student_Management.ViewModels
 {
     public partial class SelectableStudentItem : ObservableObject
     {
-        // Viết rõ Property ra để ép nó xài đúng tên "STT" viết hoa 100%
         private int _stt;
         public int STT
         {
@@ -57,16 +56,15 @@ namespace WPF_Student_Management.ViewModels
 
         private int _maxClassSize = 40;
 
-        // CỜ KIỂM SOÁT KHÓA SỔ
         private bool _isClassLocked = false;
 
         public string ClassSizeText
         {
             get
             {
-                if (string.IsNullOrEmpty(SelectedClass)) return "";
+                if (string.IsNullOrEmpty(SelectedClass))
+                    return "";
 
-                // Báo cho Giáo vụ biết lớp đã bị khóa sổ
                 if (_isClassLocked)
                     return $"Sĩ số: {CurrentClassStudents?.Count ?? 0} / {_maxClassSize}\nLớp đã được GVCN lập báo cáo học kỳ!";
 
@@ -78,15 +76,19 @@ namespace WPF_Student_Management.ViewModels
         {
             get
             {
-                if (string.IsNullOrEmpty(SelectedClass)) return "#2C3E50";
+                if (string.IsNullOrEmpty(SelectedClass))
+                    return "#2C3E50";
 
-                if (_isClassLocked) return "#FF4757"; // Hiện MÀU ĐỎ nếu lớp đã bị khóa sổ
+                if (_isClassLocked)
+                    return "#FF4757"; // Hiện MÀU ĐỎ nếu lớp đã bị khóa sổ
 
                 int current = CurrentClassStudents?.Count ?? 0;
                 double ratio = (double)current / _maxClassSize;
 
-                if (ratio >= 1.0) return "#FF4757"; // Lớp đã Full
-                if (ratio >= 0.8) return "#F39C12"; // Sắp Full
+                if (ratio >= 1.0)
+                    return "#FF4757"; // Lớp đã Full
+                if (ratio >= 0.8)
+                    return "#F39C12"; // Sắp Full
                 return "#00B894";                   // Còn trống nhiều
             }
         }
@@ -107,7 +109,8 @@ namespace WPF_Student_Management.ViewModels
                 if (allRegulations != null && allRegulations.Any())
                 {
                     var maxSizeParam = allRegulations.FirstOrDefault(r => r.RegulationName == "MaxClassSize");
-                    if (maxSizeParam != null) _maxClassSize = (int)maxSizeParam.Value;
+                    if (maxSizeParam != null)
+                        _maxClassSize = (int)maxSizeParam.Value;
                 }
             }
             catch (Exception ex)
@@ -121,13 +124,13 @@ namespace WPF_Student_Management.ViewModels
             CurrentClassStudents.Clear();
             _isClassLocked = false; // Reset cờ khóa sổ mỗi khi đổi lớp
 
-            if (string.IsNullOrEmpty(SelectedClass)) return;
+            if (string.IsNullOrEmpty(SelectedClass))
+                return;
 
             if (int.TryParse(SelectedClass, out int classId))
             {
                 try
                 {
-                    // 1. KIỂM TRA LỚP ĐÃ CÓ BÁO CÁO KHÓA SỔ CHƯA
                     string lockQuery = "SELECT COUNT(*) FROM ClassReport WHERE ClassID = @ClassID AND AcademicYear = @AcademicYear AND IsLocked = 1";
                     DataTable dtLock = DatabaseHelper.ExecuteQuery(lockQuery, new[] {
                         new SqlParameter("@ClassID", classId),
@@ -136,10 +139,9 @@ namespace WPF_Student_Management.ViewModels
 
                     if (dtLock.Rows.Count > 0 && Convert.ToInt32(dtLock.Rows[0][0]) > 0)
                     {
-                        _isClassLocked = true; // Bật cờ khóa nếu có báo cáo đã chốt
+                        _isClassLocked = true;
                     }
 
-                    // 2. KÉO HỌC SINH CỦA LỚP
                     var dbStudents = Student.SearchStudents(classId: classId);
                     int newStt = 1; //khai báo biến đếm
                     foreach (var hs in dbStudents)
@@ -166,14 +168,13 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // ĐIỀU KIỆN MỞ KHÓA NÚT "+ THÊM HỌC SINH"
         private bool CanOpenAddStudent()
         {
-            return !string.IsNullOrEmpty(SelectedGrade) &&              // Đã chọn Khối
-                   !string.IsNullOrEmpty(SelectedClass) &&              // Đã chọn Lớp
-                   !_isClassLocked &&                                   // Lớp CHƯA bị khóa sổ
+            return !string.IsNullOrEmpty(SelectedGrade) &&
+                   !string.IsNullOrEmpty(SelectedClass) &&
+                   !_isClassLocked &&
                    CurrentClassStudents != null &&
-                   CurrentClassStudents.Count < _maxClassSize;          // Lớp chưa Full sĩ số
+                   CurrentClassStudents.Count < _maxClassSize;
         }
 
         [RelayCommand(CanExecute = nameof(CanOpenAddStudent))]
@@ -213,7 +214,8 @@ namespace WPF_Student_Management.ViewModels
         private void SaveSelection()
         {
             var selectedStudents = AvailableStudents.Where(s => s.IsSelected).ToList();
-            if (selectedStudents.Count == 0) return;
+            if (selectedStudents.Count == 0)
+                return;
 
             if (string.IsNullOrEmpty(SelectedClass) || !int.TryParse(SelectedClass, out int classId))
             {
@@ -278,14 +280,16 @@ namespace WPF_Student_Management.ViewModels
 
         partial void OnSelectedGradeChanged(string value)
         {
-            if (string.IsNullOrEmpty(value)) return;
+            if (string.IsNullOrEmpty(value))
+                return;
 
             AvailableClasses.Clear();
 
             if (int.TryParse(value, out int selectedGradeInt))
             {
                 var filteredClasses = _allClassesFromDb.Where(c => c.Grade == selectedGradeInt).ToList();
-                foreach (var cls in filteredClasses) AvailableClasses.Add(cls);
+                foreach (var cls in filteredClasses)
+                    AvailableClasses.Add(cls);
             }
 
             SelectedClass = null;
@@ -304,7 +308,8 @@ namespace WPF_Student_Management.ViewModels
             _allClassesFromDb = Class.GetAllClasses().Where(c => c.AcademicYear == CurrentAcademicYear).ToList();
 
             var distinctGrades = _allClassesFromDb.Select(c => c.Grade.ToString()).Distinct().OrderBy(g => g).ToList();
-            foreach (var grade in distinctGrades) AvailableGrades.Add(grade);
+            foreach (var grade in distinctGrades)
+                AvailableGrades.Add(grade);
         }
     }
 }

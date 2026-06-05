@@ -13,7 +13,6 @@ using WPF_Student_Management.Models;
 
 namespace WPF_Student_Management.ViewModels
 {
-    // === MODEL HIỂN THỊ ĐIỂM TRÊN UI ===
     public partial class StudentGradeDisplay : ObservableObject
     {
         public int OrdinalNumber { get; set; }
@@ -107,7 +106,6 @@ namespace WPF_Student_Management.ViewModels
         }
     }
 
-    // === LỚP HELPER ĐỂ ĐỔ DỮ LIỆU VÀO COMBOBOX ===
     public class ComboBoxItem
     {
         public int Id { get; set; }
@@ -115,9 +113,6 @@ namespace WPF_Student_Management.ViewModels
         public override string ToString() => Name;
     }
 
-    // ====================================================================
-    // === VIEWMODEL CHÍNH ===
-    // ====================================================================
     public partial class SubjectGradebookViewModel : ObservableObject
     {
         public bool HasUnsavedChanges => StudentGrades.Any(hs => hs.IsDirty);
@@ -139,7 +134,6 @@ namespace WPF_Student_Management.ViewModels
         private double _midCoef = 2.0;
         private double _finCoef = 3.0;
 
-        // --- CÁC BIẾN KIỂM SOÁT TRẠNG THÁI KHÓA SỔ ---
 
         //Biến tổng hợp trạng thái Read-Only cho bảng điểm
         public bool IsGradebookReadOnly => IsSubjectLocked || IsClassLockedByGVCN;
@@ -359,7 +353,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // BỔ SUNG HÀM KIỂM TRA KHÓA SỔ TỔNG HỢP
         private void CheckLockStatus()
         {
             if (SelectedClass == null || SelectedSubject == null)
@@ -543,12 +536,9 @@ namespace WPF_Student_Management.ViewModels
             foreach (var hs in StudentGrades)
             {
                 if (!hs.IsDirty)
-                    continue; // Tối ưu: Chỉ chạy DB cho những em có điểm bị sửa
+                    continue; //Chỉ chạy DB cho những em có điểm bị sửa
                 if (!hs.TX1.HasValue && !hs.TX2.HasValue && !hs.TX3.HasValue && !hs.TX4.HasValue && !hs.MidSemScore.HasValue && !hs.FinalScore.HasValue)
                     continue;
-                // =========================================================================
-                // XUNG ĐỘT SỐ 2: Kiểm tra trạng thái học sinh & Đơn từ chờ xử lý
-                // =========================================================================
                 string checkStudentQuery = @"
                     SELECT s.Status, 
                            (SELECT COUNT(*) FROM Application a WHERE a.StudentID = s.StudentID AND a.StatusID IN (1, 2)) AS PendingCount
@@ -559,33 +549,29 @@ namespace WPF_Student_Management.ViewModels
 
                 if (dtStudent.Rows.Count > 0)
                 {
-                    // 1. Chặn nếu đã nghỉ học hoặc chuyển đi
+                    //Chặn nếu đã nghỉ học hoặc chuyển đi
                     if (dtStudent.Rows[0]["Status"].ToString() == "Inactive")
                     {
                         NotificationHelper.ShowError($"Thao tác thất bại!\nHọc sinh {hs.FullName} đã thôi học hoặc chuyển lớp. Dữ liệu điểm của học sinh này không thể cập nhật.");
-
-                        // ĐÃ FIX: Tắt cờ chưa lưu để ép hệ thống âm thầm Reset điểm
                         foreach (var student in StudentGrades)
                             student.IsDirty = false;
                         ExecuteLoadGradeData(true);
-                        return; // Dừng toàn bộ việc lưu
+                        return;
                     }
 
-                    // 2. Chặn nếu đang có đơn xin Chuyển lớp/Thôi học chờ xử lý
+                    //Chặn nếu đang có đơn xin Chuyển lớp/Thôi học chờ xử lý
                     int pendingCount = Convert.ToInt32(dtStudent.Rows[0]["PendingCount"]);
                     if (pendingCount > 0)
                     {
                         NotificationHelper.ShowError($"Thao tác thất bại!\nHọc sinh {hs.FullName} đang có đơn xin chuyển lớp/thôi học chưa xử lý xong.\nHệ thống tạm thời KHÓA BĂNG điểm của học sinh này cho đến khi đơn được duyệt hoặc từ chối.");
-
-                        // ĐÃ FIX: Tắt cờ chưa lưu để ép hệ thống âm thầm Reset điểm
                         foreach (var student in StudentGrades)
                             student.IsDirty = false;
                         ExecuteLoadGradeData(true);
-                        return; // Dừng toàn bộ việc lưu
+                        return;
                     }
                 }
 
-                // Chặn xung đột: chính câu MERGE cũng kiểm tra Subject.IsDeleted nên nếu môn bị xóa sau bước pre-check thì vẫn chặn được lúc lưu.
+                // nếu môn bị xóa sau bước pre-check thì vẫn chặn được lúc lưu.
                 string mergeQuery = @"
                     IF EXISTS (SELECT 1 FROM Subject WHERE SubjectID = @SubjectID AND IsDeleted = 0)
                     BEGIN
@@ -677,10 +663,6 @@ namespace WPF_Student_Management.ViewModels
             IsSaveVisible = Visibility.Hidden;
         }
 
-        // ====================================================================
-        // === KHU VỰC LOGIC BÁO CÁO MÔN HỌC (SUBJECT REPORT) ===
-        // ====================================================================
-
         public partial class SubjectReportRow : ObservableObject
         {
             [ObservableProperty] private int _orderNumber;
@@ -730,14 +712,14 @@ namespace WPF_Student_Management.ViewModels
 
                 int orderNumber = 1;
 
-                // Vòng lặp quét TẤT CẢ CÁC LỚP mà giáo viên dạy môn này
+                // Vòng lặp quét các lớp mà giáo viên dạy môn này
                 foreach (var cls in Classes)
                 {
                     bool isClassLocked = false;
                     bool isSubjectLocked = false;
                     bool isMissing = false;
 
-                    // 1. Kiểm tra trạng thái khóa sổ của Lớp này
+                    //Kiểm tra trạng thái khóa sổ của Lớp này
                     string classLockQuery = "SELECT IsLocked FROM ClassReport WHERE ClassID = @ClassID AND Semester = @Semester AND AcademicYear = @AcademicYear";
                     DataTable dtClassLock = DatabaseHelper.ExecuteQuery(classLockQuery, new[] {
                         new SqlParameter("@ClassID", cls.Id), new SqlParameter("@Semester", SelectedSemester), new SqlParameter("@AcademicYear", SelectedAcademicYear)
@@ -752,9 +734,10 @@ namespace WPF_Student_Management.ViewModels
                     if (dtSubjectLock.Rows.Count > 0 && dtSubjectLock.Rows[0]["IsLocked"] != DBNull.Value)
                         isSubjectLocked = Convert.ToBoolean(dtSubjectLock.Rows[0]["IsLocked"]);
 
-                    // 2. Query điểm số
                     string query = @"
-                        SELECT s.StudentID, s.FullName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore
+                        SELECT s.StudentID, s.FullName, 
+                               sc.RegularScore1, sc.RegularScore2, sc.RegularScore3, sc.RegularScore4, 
+                               sc.MidTermScore, sc.FinalTermScore
                         FROM Student s
                         JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
                         LEFT JOIN Score sc ON s.StudentID = sc.StudentID 
@@ -780,24 +763,39 @@ namespace WPF_Student_Management.ViewModels
 
                     foreach (DataRow row in dt.Rows)
                     {
-                        if (row["RegularTestScore"] == DBNull.Value || row["MidTermScore"] == DBNull.Value || row["FinalTermScore"] == DBNull.Value)
+                        double sumTX = 0;
+                        int countTX = 0;
+                        if (row["RegularScore1"] != DBNull.Value)
+                        { sumTX += Convert.ToDouble(row["RegularScore1"]); countTX++; }
+                        if (row["RegularScore2"] != DBNull.Value)
+                        { sumTX += Convert.ToDouble(row["RegularScore2"]); countTX++; }
+                        if (row["RegularScore3"] != DBNull.Value)
+                        { sumTX += Convert.ToDouble(row["RegularScore3"]); countTX++; }
+                        if (row["RegularScore4"] != DBNull.Value)
+                        { sumTX += Convert.ToDouble(row["RegularScore4"]); countTX++; }
+
+                        double m = row["MidTermScore"] != DBNull.Value ? Convert.ToDouble(row["MidTermScore"]) : 0;
+                        int countGK = row["MidTermScore"] != DBNull.Value ? 1 : 0;
+
+                        double f = row["FinalTermScore"] != DBNull.Value ? Convert.ToDouble(row["FinalTermScore"]) : 0;
+                        int countCK = row["FinalTermScore"] != DBNull.Value ? 1 : 0;
+
+                        // Nếu thiếu 1 trong 3 loại điểm (TX, GK, CK) thì coi như chưa hoàn tất
+                        if (countTX == 0 || countGK == 0 || countCK == 0)
                         {
                             isMissing = true;
                         }
 
-                        double r = row["RegularTestScore"] != DBNull.Value ? Convert.ToDouble(row["RegularTestScore"]) : 0;
-                        double m = row["MidTermScore"] != DBNull.Value ? Convert.ToDouble(row["MidTermScore"]) : 0;
-                        double f = row["FinalTermScore"] != DBNull.Value ? Convert.ToDouble(row["FinalTermScore"]) : 0;
-
+                        double totalDenominator = (countTX * _regCoef) + (countGK * _midCoef) + (countCK * _finCoef);
                         double avg = 0;
-                        if (totalCoef > 0)
-                            avg = Math.Round((r * _regCoef + m * _midCoef + f * _finCoef) / totalCoef, 1);
+                        if (totalDenominator > 0)
+                            avg = Math.Round((sumTX * _regCoef + m * _midCoef + f * _finCoef) / totalDenominator, 1);
 
                         if (avg >= passingGrade && !isMissing)
                             passCount++;
                     }
 
-                    // 3. Đưa vào bảng tổng kết
+                    //Đưa vào bảng tổng kết
                     ReportData.Add(new SubjectReportRow
                     {
                         OrderNumber = orderNumber++,
@@ -829,7 +827,7 @@ namespace WPF_Student_Management.ViewModels
             if (SelectedReportRow == null)
                 return;
 
-            // Theo đặc tả: Thiếu điểm thì cấm lập báo cáo/xem chi tiết
+            //Thiếu điểm thì cấm lập báo cáo/xem chi tiết
             if (SelectedReportRow.IsMissingScores)
             {
                 NotificationHelper.ShowWarning("Lớp này chưa hoàn tất nhập điểm, không thể xem chi tiết!");
@@ -849,7 +847,9 @@ namespace WPF_Student_Management.ViewModels
 
                 // Query lại chi tiết cho cái ClassID đang được double-click
                 string query = @"
-                    SELECT s.FullName, sc.RegularTestScore, sc.MidTermScore, sc.FinalTermScore
+                    SELECT s.FullName, 
+                           sc.RegularScore1, sc.RegularScore2, sc.RegularScore3, sc.RegularScore4, 
+                           sc.MidTermScore, sc.FinalTermScore
                     FROM Student s
                     JOIN ClassPlacement cp ON s.StudentID = cp.StudentID
                     LEFT JOIN Score sc ON s.StudentID = sc.StudentID 
@@ -871,13 +871,28 @@ namespace WPF_Student_Management.ViewModels
 
                 foreach (DataRow row in dt.Rows)
                 {
-                    double r = row["RegularTestScore"] != DBNull.Value ? Convert.ToDouble(row["RegularTestScore"]) : 0;
-                    double m = row["MidTermScore"] != DBNull.Value ? Convert.ToDouble(row["MidTermScore"]) : 0;
-                    double f = row["FinalTermScore"] != DBNull.Value ? Convert.ToDouble(row["FinalTermScore"]) : 0;
+                    double sumTX = 0;
+                    int countTX = 0;
+                    if (row["RegularScore1"] != DBNull.Value)
+                    { sumTX += Convert.ToDouble(row["RegularScore1"]); countTX++; }
+                    if (row["RegularScore2"] != DBNull.Value)
+                    { sumTX += Convert.ToDouble(row["RegularScore2"]); countTX++; }
+                    if (row["RegularScore3"] != DBNull.Value)
+                    { sumTX += Convert.ToDouble(row["RegularScore3"]); countTX++; }
+                    if (row["RegularScore4"] != DBNull.Value)
+                    { sumTX += Convert.ToDouble(row["RegularScore4"]); countTX++; }
 
+                    double m = row["MidTermScore"] != DBNull.Value ? Convert.ToDouble(row["MidTermScore"]) : 0;
+                    int countGK = row["MidTermScore"] != DBNull.Value ? 1 : 0;
+
+                    double f = row["FinalTermScore"] != DBNull.Value ? Convert.ToDouble(row["FinalTermScore"]) : 0;
+                    int countCK = row["FinalTermScore"] != DBNull.Value ? 1 : 0;
+
+                    double totalDenominator = (countTX * _regCoef) + (countGK * _midCoef) + (countCK * _finCoef);
                     double avg = 0;
-                    if (totalCoef > 0)
-                        avg = Math.Round((r * _regCoef + m * _midCoef + f * _finCoef) / totalCoef, 1);
+                    if (totalDenominator > 0)
+                        avg = Math.Round((sumTX * _regCoef + m * _midCoef + f * _finCoef) / totalDenominator, 1);
+
                     bool isPass = avg >= passingGrade;
 
                     DetailedStudentList.Add(new SubjectReportDetailRow
@@ -898,7 +913,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- LỆNH CHỐT SỔ MÔN HỌC (Nhận Parameter là Dòng đang thao tác) ---
         [RelayCommand]
         private void ConfirmSubjectReport(SubjectReportRow row)
         {
@@ -910,8 +924,6 @@ namespace WPF_Student_Management.ViewModels
             try
             {
                 int currentAccountId = CurrentUser.Instance.UserId;
-
-                // chỉ bỏ PassRate!
                 string query = @"
                 DECLARE @EmpID INT = (SELECT TOP 1 EmployeeID FROM Employee WHERE AccountID = @AccountID);
 
@@ -941,10 +953,7 @@ namespace WPF_Student_Management.ViewModels
 
                 DatabaseHelper.ExecuteNonQuery(query, paras);
 
-                // Cập nhật State để UI nháy tự động sang trạng thái "Đã chốt"
                 row.IsSubjectLocked = true;
-
-                // Đồng bộ cập nhật nút Lưu ở tab Nhập Điểm (Nếu user đang xem lớp này)
                 if (SelectedClass != null && SelectedClass.Id == row.ClassId)
                 { CheckLockStatus(); }
 
@@ -956,7 +965,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- LỆNH MỞ KHÓA MÔN HỌC ---
         [RelayCommand]
         private void CancelSubjectReport(SubjectReportRow row)
         {

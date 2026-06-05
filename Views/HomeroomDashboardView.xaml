@@ -258,9 +258,9 @@
                                FontWeight="SemiBold" />
                 </TabItem.Header>
                 <components:HomeroomStudentListUC DataContext="{Binding}"
-                                              VerticalAlignment="Stretch"
-                                              HorizontalAlignment="Stretch"
-                                              Margin="0,20,0,0" />
+                                                  VerticalAlignment="Stretch"
+                                                  HorizontalAlignment="Stretch"
+                                                  Margin="0,20,0,0" />
             </TabItem>
 
             <TabItem Style="{StaticResource SegmentedMiddleTabStyle}">

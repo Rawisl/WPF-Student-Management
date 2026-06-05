@@ -24,7 +24,7 @@ namespace WPF_Student_Management.ViewModels
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private Staff _currentStaff;
 
-        // Cờ cảnh sát: True = Mở từ trang Cá nhân (chỉ xem), False = Mở từ trang Quản lý (được sửa)
+        //True = Mở từ trang Cá nhân (read), False = Mở từ trang Quản lý (edit)
         [ObservableProperty]
         private bool _isReadOnly;
 
@@ -44,17 +44,16 @@ namespace WPF_Student_Management.ViewModels
         private readonly bool _isNewStaff;
         private readonly Staff.StaffConcurrencySnapshot _originalSnapshot;
 
-        // Constructor nhận vào Staff, Cờ phân quyền, và một Callback để báo cho View cha biết khi lưu xong
         public EmployeeProfileDetailViewModel(Staff staff, bool isReadOnly = false, Action onSaveSuccess = null)
         {
-            // Chặn xung đột: chỉnh sửa trên bản sao để thao tác hủy / dữ liệu cũ không làm thay đổi ngay item trên lưới.
+            //chỉnh sửa trên bản sao để thao tác hủy/dữ liệu cũ không làm thay đổi ngay item trên lưới.
             var editableStaff = staff.CloneForEditing();
             if (editableStaff.Specialization == null)
             {
                 editableStaff.Specialization = 0;
             }
 
-            // Chặn xung đột: lưu lại dữ liệu gốc để kiểm tra optimistic concurrency thủ công khi bấm lưu.
+            //lưu lại dữ liệu gốc để kiểm tra optimistic concurrency thủ công khi bấm lưu.
             _originalSnapshot = staff.CreateConcurrencySnapshot();
             CurrentStaff = editableStaff;
             IsReadOnly = isReadOnly;
@@ -67,14 +66,14 @@ namespace WPF_Student_Management.ViewModels
 
         private void LoadRoles()
         {
-            // Lấy tất cả trừ "Học sinh" (Giả sử RoleName trong DB là "Học sinh")
+            // Lấy tất cả trừ "Học sinh"
             var roles = Role.GetAllRoles()
                             .Where(r => !r.RoleName.Equals("Học sinh", StringComparison.OrdinalIgnoreCase))
                             .ToList();
 
             RoleList = new ObservableCollection<Role>(roles);
 
-            // BỔ SUNG FIX BUG: Nếu tạo mới nhân viên (RoleId = 0), tự động gán cho họ Role đầu tiên trong list (VD: Giáo viên)
+            //Nếu tạo mới nhân viên, tự động gán cho họ Role đầu tiên trong list
             if (_isNewStaff && CurrentStaff.RoleId == 0 && RoleList.Any())
             {
                 CurrentStaff.RoleId = RoleList.First().RoleId;
@@ -84,7 +83,6 @@ namespace WPF_Student_Management.ViewModels
         private void LoadSubjects()
         {
             SubjectList.Clear();
-            // ĐÃ SỬA: Đổi null thành 0
             SubjectList.Add(new SubjectItem { SubjectId = 0, SubjectName = "-- Trống --" });
 
             try
@@ -163,7 +161,7 @@ namespace WPF_Student_Management.ViewModels
                         return;
                     }
 
-                    // Chặn xung đột: chỉ lưu nếu thông tin nhân viên vẫn còn khớp với dữ liệu tại thời điểm mở dialog.
+                    //chỉ lưu nếu thông tin nhân viên vẫn còn khớp với dữ liệu tại thời điểm mở dialog.
                     isSuccess = CurrentStaff.UpdateStaff(_originalSnapshot);
                     if (isSuccess)
                     {

@@ -10,10 +10,11 @@ namespace WPF_Student_Management.Helpers
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             // value chính là biến CurrentView
-            // parameter là tên của ViewModel dạng Text (VD: "HomeroomDashboardViewModel")
-            if (value == null || parameter == null) return false;
+            // parameter là tên của ViewModel dạng Text
+            if (value == null || parameter == null)
+                return false;
 
-            // Nếu tên của View hiện tại trùng với tên Parameter gắn trên nút -> Trả về True (Sáng đèn)
+            // Nếu tên của View hiện tại trùng với tên Parameter gắn trên nút -> Trả về True
             return value.GetType().Name == parameter.ToString();
         }
 

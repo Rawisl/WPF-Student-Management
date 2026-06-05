@@ -5,7 +5,6 @@
 
 
     <converters:GradeTypeConverter x:Key="GradeTypeConverter" />
-    <converters:DateToStringConverter x:Key="DateToStringConverter" />
     <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
 
     <!--Bỏ mấy cái x:Key đi để nó tự động áp dụng cho mọi targettype khi sử dụng type đó cho component mà k cần gọi tới Style=...-->
@@ -475,7 +474,6 @@
         <Setter Property="Padding"
                 Value="0" />
 
-        <!-- FIX BUG STRETCH: Trả lại Stretch cho View con bên dưới dãn hết màn hình -->
         <Setter Property="HorizontalContentAlignment"
                 Value="Stretch" />
         <Setter Property="VerticalContentAlignment"
@@ -530,7 +528,6 @@
         <Setter Property="Padding"
                 Value="0" />
 
-        <!-- FIX BUG STRETCH: Trả lại Stretch -->
         <Setter Property="HorizontalContentAlignment"
                 Value="Stretch" />
         <Setter Property="VerticalContentAlignment"
@@ -546,7 +543,6 @@
                             CornerRadius="0,22.5,22.5,0"
                             Cursor="Hand">
 
-                        <!-- FIX BUG TEXT: Ép cứng Center -->
                         <ContentPresenter ContentSource="Header"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center" />

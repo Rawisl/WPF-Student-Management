@@ -68,9 +68,9 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
         <helpers:ActiveViewConverter x:Key="ActiveViewConverter" />
-        
+
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Hidden"
@@ -148,7 +148,7 @@
                 </StackPanel>
             </RadioButton>
 
-   
+
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ManageClasses"
                          IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=ClassManagementViewModel}"
@@ -182,7 +182,7 @@
                                VerticalAlignment="Center" />
                 </StackPanel>
             </RadioButton>
-            
+
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ManageTeachingAssign"
                          IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=TeachingAssignmentViewModel}"
@@ -199,7 +199,7 @@
                                VerticalAlignment="Center" />
                 </StackPanel>
             </RadioButton>
-            
+
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ViewEmployeeList"
                          IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=EmployeeManagementViewModel}"
@@ -267,7 +267,7 @@
                                VerticalAlignment="Center" />
                 </StackPanel>
             </RadioButton>
-            
+
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ManageSystemConfig"
                          IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=RegulationSettingsViewModel}"

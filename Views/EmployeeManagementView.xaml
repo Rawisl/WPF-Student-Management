@@ -86,7 +86,11 @@
                       IsReadOnly="True"
                       Style="{StaticResource GlobalDataGridStyle}"
                       CellStyle="{StaticResource GlobalDataGridCellStyle}">
-
+                <DataGrid.InputBindings>
+                    <MouseBinding MouseAction="LeftDoubleClick"
+                                  Command="{Binding Data.EditCommand, Source={StaticResource Proxy}}"
+                                  CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+                </DataGrid.InputBindings>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Mã NV"
                                         Binding="{Binding StaffId}"

@@ -13,14 +13,15 @@ namespace WPF_Student_Management.Helpers
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null || string.IsNullOrWhiteSpace(value.ToString())) return "Trống";
+            if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
+                return "Trống";
             string id = value.ToString();
 
-            if (_cache.ContainsKey(id)) return _cache[id];
+            if (_cache.ContainsKey(id))
+                return _cache[id];
 
             try
             {
-                // Cẩn thận kiểm tra lại tên bảng và cột môn học trong Database của bạn nhé
                 var dt = DatabaseHelper.ExecuteQuery($"SELECT SubjectName FROM Subject WHERE SubjectID = '{id}'");
                 if (dt.Rows.Count > 0)
                 {
@@ -44,10 +45,12 @@ namespace WPF_Student_Management.Helpers
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null || string.IsNullOrWhiteSpace(value.ToString())) return "Không rõ";
+            if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
+                return "Không rõ";
             string id = value.ToString();
 
-            if (_cache.ContainsKey(id)) return _cache[id];
+            if (_cache.ContainsKey(id))
+                return _cache[id];
 
             try
             {

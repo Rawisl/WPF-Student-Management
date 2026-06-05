@@ -55,10 +55,8 @@ namespace WPF_Student_Management.ViewModels
         public ObservableCollection<FailedSubjectItem> FailedSubjectsList { get; set; }
     }
 
-    // ĐÃ FIX: Kế thừa ObservableObject thay vì INotifyPropertyChanged
     public partial class HomeroomDashboardViewModel : ObservableObject
     {
-        // --- PROPETIES TỰ ĐỘNG BẰNG [ObservableProperty] ---
 
         [ObservableProperty]
         private string _currentSemester = "Học kỳ 1";
@@ -110,16 +108,12 @@ namespace WPF_Student_Management.ViewModels
         public Visibility ActionVisibility => PermissionService.HasFeature(PermissionService.Feature.ManageHomeroom)
                                               ? Visibility.Visible : Visibility.Collapsed;
 
-        // --- CÁC BIẾN CHỈ DÙNG ĐỂ HIGHLIGHT DÒNG ĐƯỢC CHỌN TRÊN LƯỚI ---
         [ObservableProperty]
         private HomeroomStudentGradeItem _selectedProfileStudent;
 
         [ObservableProperty]
         private HomeroomStudentGradeItem _selectedGradeStudent;
 
-        // =========================================================================
-        // SỰ KIỆN KHI DOUBLE-CLICK VÀO TAB DANH SÁCH (Sửa thông tin)
-        // =========================================================================
         [RelayCommand]
         private async Task OpenStudentDetail(HomeroomStudentGradeItem item)
         {
@@ -160,10 +154,8 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // =========================================================================
-        // SỰ KIỆN KHI DOUBLE-CLICK VÀO TAB BẢNG ĐIỂM (Xem điểm chi tiết bôi đỏ)
-        // =========================================================================
-        [RelayCommand] // <--- QUAN TRỌNG: Phải có dòng này UI mới móc nối được
+
+        [RelayCommand]
         private async Task OpenGradeDetail(HomeroomStudentGradeItem item)
         {
             if (item == null)
@@ -180,7 +172,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // Sự kiện: Khi click chọn 1 Báo cáo
         [ObservableProperty]
         private ReportItem _selectedReportItem;
         partial void OnSelectedReportItemChanged(ReportItem value)
@@ -192,7 +183,6 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- CONSTRUCTOR ---
         public HomeroomDashboardViewModel()
         {
             GenderList = new ObservableCollection<string> { "Tất cả", "Nam", "Nữ" };
@@ -209,10 +199,7 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-        // --- METHODS VÀ COMMANDS ĐÃ ĐƯỢC ÉP XUNG ---
-
         private bool CanExecuteReportActions() => _currentClassId > 0;
-
         private void LoadHomeroomData()
         {
             _allStudents = new ObservableCollection<HomeroomStudentGradeItem>();
@@ -290,10 +277,14 @@ namespace WPF_Student_Management.ViewModels
                         int totalSubjects = Convert.ToInt32(row["TotalSubjects"]);
 
                         string scoreStr;
-                        if (totalSubjects == 0) scoreStr = "Chưa phân công môn";
-                        else if (gradedCount == 0) scoreStr = "Chưa có điểm";
-                        else if (gradedCount < totalSubjects) scoreStr = "Thiếu điểm môn";
-                        else scoreStr = row["OverallAverage"] != DBNull.Value ? Convert.ToDecimal(row["OverallAverage"]).ToString("0.0") : "Chưa có điểm";
+                        if (totalSubjects == 0)
+                            scoreStr = "Chưa phân công môn";
+                        else if (gradedCount == 0)
+                            scoreStr = "Chưa có điểm";
+                        else if (gradedCount < totalSubjects)
+                            scoreStr = "Thiếu điểm môn";
+                        else
+                            scoreStr = row["OverallAverage"] != DBNull.Value ? Convert.ToDecimal(row["OverallAverage"]).ToString("0.0") : "Chưa có điểm";
 
                         _allStudents.Add(new HomeroomStudentGradeItem
                         {
@@ -394,7 +385,8 @@ namespace WPF_Student_Management.ViewModels
                     decimal overallAverage = row["OverallAverage"] != DBNull.Value ? Convert.ToDecimal(row["OverallAverage"]) : 0;
 
                     bool isPassed = (overallAverage >= passingGrade) && (minScore >= passingGrade);
-                    if (isPassed) passCount++;
+                    if (isPassed)
+                        passCount++;
 
                     tempList.Add(new ReportItem
                     {
@@ -507,12 +499,14 @@ namespace WPF_Student_Management.ViewModels
             }
         }
 
-       
+
         [RelayCommand(CanExecute = nameof(CanExecuteReportActions))]
         private async Task ViewDetail(ReportItem selectedStudent)
         {
-            if (selectedStudent == null) return;
-            if (selectedStudent.Status.Trim().Equals("Đạt", StringComparison.OrdinalIgnoreCase)) return;
+            if (selectedStudent == null)
+                return;
+            if (selectedStudent.Status.Trim().Equals("Đạt", StringComparison.OrdinalIgnoreCase))
+                return;
 
             if (selectedStudent.Status.Trim().Equals("Không đạt", StringComparison.OrdinalIgnoreCase))
             {
@@ -585,7 +579,8 @@ namespace WPF_Student_Management.ViewModels
 
         private void FilterData()
         {
-            if (_allStudents == null) return;
+            if (_allStudents == null)
+                return;
 
             var filtered = _allStudents.AsEnumerable();
 
@@ -596,7 +591,8 @@ namespace WPF_Student_Management.ViewModels
                 filtered = filtered.Where(s => s.Gender.Equals(SelectedGender, StringComparison.OrdinalIgnoreCase));
 
             var resultList = filtered.ToList();
-            for (int i = 0; i < resultList.Count; i++) resultList[i].STT = i + 1;
+            for (int i = 0; i < resultList.Count; i++)
+                resultList[i].STT = i + 1;
 
             DisplayStudents = new ObservableCollection<HomeroomStudentGradeItem>(resultList);
         }
