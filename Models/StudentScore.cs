@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WPF_Student_Management.Helpers;
 
 namespace WPF_Student_Management.Models
@@ -15,14 +12,17 @@ namespace WPF_Student_Management.Models
         public required string StudentId { get; set; }
         public int SubjectId { get; set; }
 
-        // --- BỔ SUNG CHIỀU THỜI GIAN (BẮT BUỘC ĐỂ SCALE) ---
         public string Semester { get; set; } = "Học kỳ 1";
         public string AcademicYear { get; set; } = "2025-2026";
-        // ---------------------------------------------------
 
-        public decimal? RegularTestScore { get; set; }
+        public decimal? RegularScore1 { get; set; }
+        public decimal? RegularScore2 { get; set; }
+        public decimal? RegularScore3 { get; set; }
+        public decimal? RegularScore4 { get; set; }
+
         public decimal? MidTermScore { get; set; }
         public decimal? FinalTermScore { get; set; }
+
         public decimal? AverageScore { get; set; }
 
         // READ
@@ -40,12 +40,14 @@ namespace WPF_Student_Management.Models
                     ScoreId = Convert.ToInt32(row["ScoreID"]),
                     StudentId = row["StudentID"].ToString() ?? "",
                     SubjectId = Convert.ToInt32(row["SubjectID"]),
-
-                    // Lấy Semester và AcademicYear từ DB
                     Semester = row["Semester"] != DBNull.Value ? row["Semester"].ToString()! : "Học kỳ 1",
                     AcademicYear = row["AcademicYear"] != DBNull.Value ? row["AcademicYear"].ToString()! : "2025-2026",
 
-                    RegularTestScore = row["RegularTestScore"] == DBNull.Value ? null : Convert.ToDecimal(row["RegularTestScore"]),
+                    RegularScore1 = row["RegularScore1"] == DBNull.Value ? null : Convert.ToDecimal(row["RegularScore1"]),
+                    RegularScore2 = row["RegularScore2"] == DBNull.Value ? null : Convert.ToDecimal(row["RegularScore2"]),
+                    RegularScore3 = row["RegularScore3"] == DBNull.Value ? null : Convert.ToDecimal(row["RegularScore3"]),
+                    RegularScore4 = row["RegularScore4"] == DBNull.Value ? null : Convert.ToDecimal(row["RegularScore4"]),
+
                     MidTermScore = row["MidTermScore"] == DBNull.Value ? null : Convert.ToDecimal(row["MidTermScore"]),
                     FinalTermScore = row["FinalTermScore"] == DBNull.Value ? null : Convert.ToDecimal(row["FinalTermScore"]),
                     AverageScore = row["AverageScore"] == DBNull.Value ? null : Convert.ToDecimal(row["AverageScore"])
@@ -58,18 +60,25 @@ namespace WPF_Student_Management.Models
         // CREATE
         public bool AddScore()
         {
-            // AverageScore is calculated via SQL Trigger, so it is omitted from INSERT
-            string query = "INSERT INTO Score (StudentID, SubjectID, Semester, AcademicYear, RegularTestScore, MidTermScore, FinalTermScore) " +
-                           "VALUES (@StudentID, @SubjectID, @Semester, @AcademicYear, @RegularTestScore, @MidTermScore, @FinalTermScore)";
+            string query = @"INSERT INTO Score (StudentID, SubjectID, Semester, AcademicYear, 
+                                                RegularScore1, RegularScore2, RegularScore3, RegularScore4, 
+                                                MidTermScore, FinalTermScore, AverageScore) 
+                             VALUES (@StudentID, @SubjectID, @Semester, @AcademicYear, 
+                                     @TX1, @TX2, @TX3, @TX4, 
+                                     @MidTermScore, @FinalTermScore, @AverageScore)";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@StudentID", this.StudentId),
                 new SqlParameter("@SubjectID", this.SubjectId),
                 new SqlParameter("@Semester", this.Semester),
                 new SqlParameter("@AcademicYear", this.AcademicYear),
-                new SqlParameter("@RegularTestScore", this.RegularTestScore ?? (object)DBNull.Value),
+                new SqlParameter("@TX1", this.RegularScore1 ?? (object)DBNull.Value),
+                new SqlParameter("@TX2", this.RegularScore2 ?? (object)DBNull.Value),
+                new SqlParameter("@TX3", this.RegularScore3 ?? (object)DBNull.Value),
+                new SqlParameter("@TX4", this.RegularScore4 ?? (object)DBNull.Value),
                 new SqlParameter("@MidTermScore", this.MidTermScore ?? (object)DBNull.Value),
-                new SqlParameter("@FinalTermScore", this.FinalTermScore ?? (object)DBNull.Value)
+                new SqlParameter("@FinalTermScore", this.FinalTermScore ?? (object)DBNull.Value),
+                new SqlParameter("@AverageScore", this.AverageScore ?? (object)DBNull.Value) // Bắt buộc truyền xuống
             };
 
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
@@ -78,11 +87,11 @@ namespace WPF_Student_Management.Models
         // UPDATE
         public bool UpdateScore()
         {
-            // AverageScore is calculated via SQL Trigger, so it is omitted from UPDATE
-            string query = "UPDATE Score SET StudentID = @StudentID, SubjectID = @SubjectID, " +
-                           "Semester = @Semester, AcademicYear = @AcademicYear, " + // BỔ SUNG UPDATE THỜI GIAN
-                           "RegularTestScore = @RegularTestScore, MidTermScore = @MidTermScore, FinalTermScore = @FinalTermScore " +
-                           "WHERE ScoreID = @ScoreID";
+            string query = @"UPDATE Score SET StudentID = @StudentID, SubjectID = @SubjectID, 
+                                              Semester = @Semester, AcademicYear = @AcademicYear, 
+                                              RegularScore1 = @TX1, RegularScore2 = @TX2, RegularScore3 = @TX3, RegularScore4 = @TX4, 
+                                              MidTermScore = @MidTermScore, FinalTermScore = @FinalTermScore, AverageScore = @AverageScore 
+                             WHERE ScoreID = @ScoreID";
 
             SqlParameter[] parameters = new SqlParameter[] {
                 new SqlParameter("@ScoreID", this.ScoreId),
@@ -90,15 +99,18 @@ namespace WPF_Student_Management.Models
                 new SqlParameter("@SubjectID", this.SubjectId),
                 new SqlParameter("@Semester", this.Semester),
                 new SqlParameter("@AcademicYear", this.AcademicYear),
-                new SqlParameter("@RegularTestScore", this.RegularTestScore ?? (object)DBNull.Value),
+                new SqlParameter("@TX1", this.RegularScore1 ?? (object)DBNull.Value),
+                new SqlParameter("@TX2", this.RegularScore2 ?? (object)DBNull.Value),
+                new SqlParameter("@TX3", this.RegularScore3 ?? (object)DBNull.Value),
+                new SqlParameter("@TX4", this.RegularScore4 ?? (object)DBNull.Value),
                 new SqlParameter("@MidTermScore", this.MidTermScore ?? (object)DBNull.Value),
-                new SqlParameter("@FinalTermScore", this.FinalTermScore ?? (object)DBNull.Value)
+                new SqlParameter("@FinalTermScore", this.FinalTermScore ?? (object)DBNull.Value),
+                new SqlParameter("@AverageScore", this.AverageScore ?? (object)DBNull.Value) // Bắt buộc truyền xuống
             };
 
             return DatabaseHelper.ExecuteNonQuery(query, parameters) > 0;
         }
 
-        // DELETE
         public static bool DeleteScore(int scoreId)
         {
             string query = "DELETE FROM Score WHERE ScoreID = @ScoreID";

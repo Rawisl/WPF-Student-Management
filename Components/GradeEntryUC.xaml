@@ -174,8 +174,8 @@
                             </Style.Triggers>
                         </Style>
                     </DataGrid.RowStyle>
-                    <DataGrid.Columns>
 
+                    <DataGrid.Columns>
                         <DataGridTextColumn Header="STT"
                                             Binding="{Binding OrdinalNumber}"
                                             IsReadOnly="True"
@@ -186,7 +186,7 @@
                         <DataGridTextColumn Header="Họ và tên"
                                             Binding="{Binding FullName}"
                                             IsReadOnly="True"
-                                            Width="*"
+                                            Width="0.5*"
                                             HeaderStyle="{StaticResource GlobalLeftHeaderStyle}">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock"
@@ -197,10 +197,10 @@
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Điểm Thường xuyên"
-                                            Binding="{Binding RegularScore, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
+                        <DataGridTextColumn Header="TX 1"
+                                            Binding="{Binding TX1, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
                                             IsReadOnly="False"
-                                            Width="175"
+                                            Width="70"
                                             HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
                                             ElementStyle="{StaticResource GlobalCenterElementStyle}">
                             <DataGridTextColumn.EditingElementStyle>
@@ -215,10 +215,64 @@
                             </DataGridTextColumn.EditingElementStyle>
                         </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Điểm Giữa kỳ"
+                        <DataGridTextColumn Header="TX 2"
+                                            Binding="{Binding TX2, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
+                                            IsReadOnly="False"
+                                            Width="70"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}">
+                            <DataGridTextColumn.EditingElementStyle>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="helpers:TextBoxHelper.IsBgdGradeOnly"
+                                            Value="True" />
+                                    <Setter Property="helpers:TextBoxHelper.SelectAllOnFocus"
+                                            Value="True" />
+                                    <Setter Property="HorizontalContentAlignment"
+                                            Value="Center" />
+                                </Style>
+                            </DataGridTextColumn.EditingElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="TX 3"
+                                            Binding="{Binding TX3, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
+                                            IsReadOnly="False"
+                                            Width="70"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}">
+                            <DataGridTextColumn.EditingElementStyle>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="helpers:TextBoxHelper.IsBgdGradeOnly"
+                                            Value="True" />
+                                    <Setter Property="helpers:TextBoxHelper.SelectAllOnFocus"
+                                            Value="True" />
+                                    <Setter Property="HorizontalContentAlignment"
+                                            Value="Center" />
+                                </Style>
+                            </DataGridTextColumn.EditingElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="TX 4"
+                                            Binding="{Binding TX4, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
+                                            IsReadOnly="False"
+                                            Width="70"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
+                                            ElementStyle="{StaticResource GlobalCenterElementStyle}">
+                            <DataGridTextColumn.EditingElementStyle>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="helpers:TextBoxHelper.IsBgdGradeOnly"
+                                            Value="True" />
+                                    <Setter Property="helpers:TextBoxHelper.SelectAllOnFocus"
+                                            Value="True" />
+                                    <Setter Property="HorizontalContentAlignment"
+                                            Value="Center" />
+                                </Style>
+                            </DataGridTextColumn.EditingElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Giữa kỳ"
                                             Binding="{Binding MidSemScore, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
                                             IsReadOnly="False"
-                                            Width="130"
+                                            Width="90"
                                             HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
                                             ElementStyle="{StaticResource GlobalCenterElementStyle}">
                             <DataGridTextColumn.EditingElementStyle>
@@ -233,10 +287,10 @@
                             </DataGridTextColumn.EditingElementStyle>
                         </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Điểm Cuối kỳ"
+                        <DataGridTextColumn Header="Cuối kỳ"
                                             Binding="{Binding FinalScore, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
                                             IsReadOnly="False"
-                                            Width="130"
+                                            Width="90"
                                             HeaderStyle="{StaticResource GlobalCenterHeaderStyle}"
                                             ElementStyle="{StaticResource GlobalCenterElementStyle}">
                             <DataGridTextColumn.EditingElementStyle>
@@ -251,10 +305,10 @@
                             </DataGridTextColumn.EditingElementStyle>
                         </DataGridTextColumn>
 
-                        <DataGridTextColumn Header="Trung bình"
+                        <DataGridTextColumn Header="ĐTB"
                                             Binding="{Binding AverageScore, StringFormat={}{0:F1}}"
                                             IsReadOnly="True"
-                                            Width="110"
+                                            Width="80"
                                             HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock"
@@ -262,12 +316,13 @@
                                     <Setter Property="Foreground"
                                             Value="Gray" />
                                     <Setter Property="FontWeight"
-                                            Value="SemiBold" />
+                                            Value="Bold" />
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
                     </DataGrid.Columns>
+
                 </DataGrid>
 
             </Grid>

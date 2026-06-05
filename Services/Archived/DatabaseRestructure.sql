@@ -1,4 +1,17 @@
-﻿IF OBJECT_ID('dbo.vw_ClassSize', 'V') IS NOT NULL DROP VIEW dbo.vw_ClassSize;
+﻿SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'StudentManagementDB')
+BEGIN
+    CREATE DATABASE StudentManagementDB;
+END
+GO
+
+USE StudentManagementDB;
+GO
+
+IF OBJECT_ID('dbo.vw_ClassSize', 'V') IS NOT NULL DROP VIEW dbo.vw_ClassSize;
 IF OBJECT_ID('dbo.vw_DeletedSubjects', 'V') IS NOT NULL DROP VIEW dbo.vw_DeletedSubjects;
 GO
 DROP TABLE IF EXISTS StudentAverage;
@@ -168,23 +181,17 @@ CREATE TABLE Score (
     SubjectID         INT NOT NULL,
     Semester          NVARCHAR(50) NOT NULL DEFAULT N'Học kỳ 1',
     AcademicYear      NVARCHAR(50) NOT NULL DEFAULT '2025-2026',
-    RegularTestScore  DECIMAL(5,2),
+
+    RegularScore1     DECIMAL(5,2),
+    RegularScore2     DECIMAL(5,2),
+    RegularScore3     DECIMAL(5,2),
+    RegularScore4     DECIMAL(5,2),
+    
     MidTermScore      DECIMAL(5,2),
     FinalTermScore    DECIMAL(5,2),
     -- [Note] Môn PassFail (GDCD/GDTC) dùng chung 3 cột điểm số — encode Đ=10, KĐ=0.
     -- Trigger TRG_Score_EnforceGradeType ràng buộc giá trị ∈ {0, 10, NULL} cho môn GradeType='PassFail'.
-    AverageScore AS (
-        CASE
-            WHEN RegularTestScore IS NULL
-             AND MidTermScore     IS NULL
-             AND FinalTermScore   IS NULL THEN NULL
-            ELSE CAST(
-                (ISNULL(RegularTestScore,0) * 1.0
-               + ISNULL(MidTermScore,    0) * 2.0
-               + ISNULL(FinalTermScore,  0) * 3.0) / 6.0
-            AS DECIMAL(5,2))
-        END
-    ) PERSISTED,                                                    -- [2.1]
+    AverageScore      DECIMAL(5,2),                                                  -- [2.1]
     CONSTRAINT FK_Score_Student FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
     CONSTRAINT FK_Score_Subject FOREIGN KEY (SubjectID) REFERENCES Subject(SubjectID),
     CONSTRAINT UQ_Score         UNIQUE (StudentID, SubjectID, Semester, AcademicYear),  -- [2.3]
@@ -391,7 +398,10 @@ BEGIN
         FROM   inserted i
         JOIN   Subject  s ON i.SubjectID = s.SubjectID
         WHERE  s.GradeType = 'PassFail'
-          AND ((i.RegularTestScore IS NOT NULL AND i.RegularTestScore NOT IN (0, 10))
+          AND ((i.RegularScore1 IS NOT NULL AND i.RegularScore1 NOT IN (0, 10))
+            OR (i.RegularScore2 IS NOT NULL AND i.RegularScore2 NOT IN (0, 10))
+            OR (i.RegularScore3 IS NOT NULL AND i.RegularScore3 NOT IN (0, 10))
+            OR (i.RegularScore4 IS NOT NULL AND i.RegularScore4 NOT IN (0, 10))
             OR (i.MidTermScore     IS NOT NULL AND i.MidTermScore     NOT IN (0, 10))
             OR (i.FinalTermScore   IS NOT NULL AND i.FinalTermScore   NOT IN (0, 10)))
     )
@@ -679,56 +689,107 @@ INSERT INTO ClassPlacement (StudentID, ClassID, AcademicYear, EffectiveFrom) VAL
 ('hs250038', 8, '2025-2026', '2025-09-05'),
 ('hs250039', 9, '2025-2026', '2025-09-05'), ('hs250040', 9, '2025-2026', '2025-09-05');
 
--- TeachingAssignment  (Semester + AcademicYear dùng default)
-INSERT INTO TeachingAssignment (EmployeeID, ClassID, SubjectID) VALUES
-(4, 1, 1), (5, 2, 7), (6, 3, 2),
-(13, 1, 8), (14, 5, 9),
-(8, 5, 4), (11, 8, 7), (12, 9, 1);
+-- TeachingAssignment
+-- Complete assignments for 10A1 and 10A2 so the report workflow is valid:
+-- phân công -> nhập điểm -> lập báo cáo môn -> lập báo cáo lớp.
+INSERT INTO TeachingAssignment (EmployeeID, ClassID, SubjectID, Semester, AcademicYear) VALUES
+-- 10A1 (ClassID=1) - all 9 subjects
+(4, 1, 1, N'Học kỳ 1', '2025-2026'),  -- Toán học
+(6, 1, 2, N'Học kỳ 1', '2025-2026'),  -- Vật Lý
+(7, 1, 3, N'Học kỳ 1', '2025-2026'),  -- Hóa học
+(8, 1, 4, N'Học kỳ 1', '2025-2026'),  -- Sinh học
+(9, 1, 5, N'Học kỳ 1', '2025-2026'),  -- Lịch sử
+(10, 1, 6, N'Học kỳ 1', '2025-2026'), -- Địa lý
+(5, 1, 7, N'Học kỳ 1', '2025-2026'),  -- Ngữ Văn
+(13, 1, 8, N'Học kỳ 1', '2025-2026'), -- Giáo dục công dân
+(14, 1, 9, N'Học kỳ 1', '2025-2026'), -- Giáo dục thể chất
 
--- Scores  (AverageScore tự tính, không cần INSERT)
--- Môn tính điểm
-INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
-('hs250006', 7, 7.0, 8.0, 8.5),
-('hs250011', 2, 9.0, 9.5, 9.0),
-('hs250021', 4, 8.0, 7.0, 8.0),
-('hs250036', 7, 7.5, 8.0, 8.5),
-('hs250039', 1, 9.5, 9.0, 9.5);
--- Môn Đạt/Không đạt (PassFail) — encode Đ=10, KĐ=0; trigger StudentAverage tự loại trừ qua GradeType filter
-INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
-('hs250022', 9, 10, 10, 10);
+-- 10A2 (ClassID=2) - all 9 subjects
+(4, 2, 1, N'Học kỳ 1', '2025-2026'),  -- Toán học
+(6, 2, 2, N'Học kỳ 1', '2025-2026'),  -- Vật Lý
+(7, 2, 3, N'Học kỳ 1', '2025-2026'),  -- Hóa học
+(8, 2, 4, N'Học kỳ 1', '2025-2026'),  -- Sinh học
+(9, 2, 5, N'Học kỳ 1', '2025-2026'),  -- Lịch sử
+(10, 2, 6, N'Học kỳ 1', '2025-2026'), -- Địa lý
+(5, 2, 7, N'Học kỳ 1', '2025-2026'),  -- Ngữ Văn
+(13, 2, 8, N'Học kỳ 1', '2025-2026'), -- Giáo dục công dân
+(14, 2, 9, N'Học kỳ 1', '2025-2026'), -- Giáo dục thể chất
+
+-- Other classes: partial assignments retained for baseline mock data
+(6, 3, 2, N'Học kỳ 1', '2025-2026'),  -- 10A3 - Vật Lý
+(14, 5, 9, N'Học kỳ 1', '2025-2026'), -- 11A1 - Giáo dục thể chất
+(8, 5, 4, N'Học kỳ 1', '2025-2026'),  -- 11A1 - Sinh học
+(11, 8, 7, N'Học kỳ 1', '2025-2026'), -- 12A1 - Ngữ Văn
+(12, 9, 1, N'Học kỳ 1', '2025-2026'); -- 12A2 - Toán học
+
+-- Scores
+-- AverageScore is calculated by C# and stored here. Database only stores the values.
+-- Coefficient used for mock data: average of 4 regular scores (coef 1 each), midterm (coef 2), final (coef 3).
+-- Formula: (R1 + R2 + R3 + R4 + MidTerm*2 + Final*3) / 9
+
+-- Additional baseline scores outside 10A1
+INSERT INTO Score (StudentID, SubjectID, RegularScore1, RegularScore2, RegularScore3, RegularScore4, MidTermScore, FinalTermScore, AverageScore) VALUES
+('hs250006', 7, 7.0, 7.5, 8.0, 7.5, 8.0, 8.5, 8.0),
+('hs250011', 2, 9.0, 9.5, 9.0, 9.0, 9.5, 9.0, 9.2),
+('hs250021', 4, 8.0, 8.0, 7.5, 8.0, 7.0, 8.0, 7.7),
+('hs250036', 7, 7.5, 8.0, 7.5, 8.0, 8.0, 8.5, 8.1),
+('hs250039', 1, 9.5, 10.0, 9.0, 9.5, 9.0, 9.5, 9.4);
+
+-- PassFail baseline score: Đ = 10, KĐ = 0
+INSERT INTO Score (StudentID, SubjectID, RegularScore1, RegularScore2, RegularScore3, RegularScore4, MidTermScore, FinalTermScore, AverageScore) VALUES
+('hs250022', 9, 10, 10, 10, 10, 10, 10, 10);
 
 -- Mock điểm chi tiết cho lớp 10A1 (test báo cáo của GVCN Phạm Văn Cán)
 -- Môn tính điểm (SubjectID 1..7)
-INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
+INSERT INTO Score (StudentID, SubjectID, RegularScore1, RegularScore2, RegularScore3, RegularScore4, MidTermScore, FinalTermScore, AverageScore) VALUES
 -- hs250001 (Giỏi)
-('hs250001', 1, 9.0, 9.0, 9.5), ('hs250001', 2, 8.5, 9.0, 9.0), ('hs250001', 3, 9.0, 8.5, 9.0),
-('hs250001', 4, 9.5, 9.5, 9.5), ('hs250001', 5, 8.0, 8.5, 8.0), ('hs250001', 6, 9.0, 9.0, 9.0),
-('hs250001', 7, 8.5, 8.5, 8.5),
+('hs250001', 1, 9.0, 9.5, 9.0, 9.5, 9.0, 9.5, 9.3),
+('hs250001', 2, 8.5, 9.0, 8.5, 9.0, 9.0, 9.0, 8.9),
+('hs250001', 3, 9.0, 9.5, 9.0, 8.5, 8.5, 9.0, 8.9),
+('hs250001', 4, 9.5, 9.0, 9.5, 9.5, 9.5, 9.5, 9.4),
+('hs250001', 5, 8.0, 8.5, 8.0, 8.5, 8.5, 8.0, 8.2),
+('hs250001', 6, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0),
+('hs250001', 7, 8.5, 8.0, 8.5, 8.5, 8.5, 8.5, 8.4),
 -- hs250002 (Khá)
-('hs250002', 1, 6.0, 6.5, 6.0), ('hs250002', 2, 7.0, 7.0, 7.5), ('hs250002', 3, 6.5, 6.5, 6.0),
-('hs250002', 4, 7.5, 8.0, 7.5), ('hs250002', 5, 6.0, 6.0, 6.5), ('hs250002', 6, 6.5, 7.0, 6.5),
-('hs250002', 7, 7.0, 6.5, 7.0),
+('hs250002', 1, 6.0, 6.5, 6.0, 6.5, 6.5, 6.0, 6.2),
+('hs250002', 2, 7.0, 7.5, 7.0, 7.5, 7.0, 7.5, 7.3),
+('hs250002', 3, 6.5, 7.0, 6.5, 6.5, 6.5, 6.0, 6.4),
+('hs250002', 4, 7.5, 7.0, 7.5, 8.0, 8.0, 7.5, 7.6),
+('hs250002', 5, 6.0, 6.5, 6.0, 6.5, 6.0, 6.5, 6.3),
+('hs250002', 6, 6.5, 6.0, 6.5, 7.0, 7.0, 6.5, 6.6),
+('hs250002', 7, 7.0, 7.5, 7.0, 6.5, 6.5, 7.0, 6.9),
 -- hs250003 (Trung Bình)
-('hs250003', 1, 5.0, 5.5, 5.0), ('hs250003', 2, 5.5, 5.0, 5.5), ('hs250003', 3, 5.0, 5.0, 5.0),
-('hs250003', 4, 6.0, 5.5, 6.0), ('hs250003', 5, 5.0, 6.0, 5.5), ('hs250003', 6, 5.5, 5.5, 5.5),
-('hs250003', 7, 5.5, 5.0, 5.5),
+('hs250003', 1, 5.0, 5.0, 5.5, 5.0, 5.5, 5.0, 5.1),
+('hs250003', 2, 5.5, 6.0, 5.5, 5.0, 5.0, 5.5, 5.4),
+('hs250003', 3, 5.0, 5.5, 5.0, 5.0, 5.0, 5.0, 5.1),
+('hs250003', 4, 6.0, 5.5, 6.0, 5.5, 5.5, 6.0, 5.8),
+('hs250003', 5, 5.0, 5.0, 5.5, 6.0, 6.0, 5.5, 5.5),
+('hs250003', 6, 5.5, 5.0, 5.5, 5.0, 5.5, 5.5, 5.4),
+('hs250003', 7, 5.5, 5.5, 5.0, 5.5, 5.0, 5.5, 5.4),
 -- hs250004 (Rớt Toán)
-('hs250004', 1, 4.0, 4.5, 4.0),
-('hs250004', 2, 7.0, 7.5, 7.0), ('hs250004', 3, 6.5, 7.0, 6.5),
-('hs250004', 4, 8.0, 8.5, 8.0), ('hs250004', 5, 7.5, 7.0, 7.5), ('hs250004', 6, 6.0, 6.5, 6.0),
-('hs250004', 7, 6.5, 6.0, 6.5),
+('hs250004', 1, 4.0, 4.0, 4.5, 4.0, 4.5, 4.0, 4.1),
+('hs250004', 2, 7.0, 7.5, 7.0, 7.5, 7.5, 7.0, 7.2),
+('hs250004', 3, 6.5, 6.5, 7.0, 6.5, 7.0, 6.5, 6.6),
+('hs250004', 4, 8.0, 8.0, 8.5, 8.0, 8.5, 8.0, 8.1),
+('hs250004', 5, 7.5, 7.0, 7.5, 7.0, 7.0, 7.5, 7.3),
+('hs250004', 6, 6.0, 6.5, 6.0, 6.5, 6.5, 6.0, 6.2),
+('hs250004', 7, 6.5, 6.5, 6.0, 6.5, 6.0, 6.5, 6.4),
 -- hs250005 (Rớt 3 môn)
-('hs250005', 1, 3.0, 3.5, 3.0), ('hs250005', 2, 4.0, 4.5, 4.0), ('hs250005', 3, 3.5, 4.0, 3.5),
-('hs250005', 4, 6.0, 6.5, 6.0), ('hs250005', 5, 7.0, 7.5, 7.0), ('hs250005', 6, 5.5, 6.0, 5.5),
-('hs250005', 7, 6.5, 6.5, 6.5);
+('hs250005', 1, 3.0, 3.5, 3.0, 3.5, 3.5, 3.0, 3.2),
+('hs250005', 2, 4.0, 4.0, 4.5, 4.0, 4.5, 4.0, 4.1),
+('hs250005', 3, 3.5, 3.0, 3.5, 3.0, 4.0, 3.5, 3.6),
+('hs250005', 4, 6.0, 6.5, 6.0, 6.5, 6.5, 6.0, 6.2),
+('hs250005', 5, 7.0, 7.0, 7.5, 7.0, 7.5, 7.0, 7.1),
+('hs250005', 6, 5.5, 5.5, 6.0, 5.5, 6.0, 5.5, 5.6),
+('hs250005', 7, 6.5, 6.0, 6.5, 6.0, 6.5, 6.5, 6.4);
 
 -- Môn Đạt/Không đạt (SubjectID 8 = GDCD, 9 = GDTC) — encode Đ=10; trigger StudentAverage tự loại trừ qua GradeType filter
-INSERT INTO Score (StudentID, SubjectID, RegularTestScore, MidTermScore, FinalTermScore) VALUES
-('hs250001', 8, 10, 10, 10), ('hs250001', 9, 10, 10, 10),
-('hs250002', 8, 10, 10, 10), ('hs250002', 9, 10, 10, 10),
-('hs250003', 8, 10, 10, 10), ('hs250003', 9, 10, 10, 10),
-('hs250004', 8, 10, 10, 10), ('hs250004', 9, 10, 10, 10),
-('hs250005', 8, 10, 10, 10), ('hs250005', 9, 10, 10, 10);
+INSERT INTO Score (StudentID, SubjectID, RegularScore1, RegularScore2, RegularScore3, RegularScore4, MidTermScore, FinalTermScore, AverageScore) VALUES
+('hs250001', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250001', 9, 10, 10, 10, 10, 10, 10, 10),
+('hs250002', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250002', 9, 10, 10, 10, 10, 10, 10, 10),
+('hs250003', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250003', 9, 10, 10, 10, 10, 10, 10, 10),
+('hs250004', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250004', 9, 10, 10, 10, 10, 10, 10, 10),
+('hs250005', 8, 10, 10, 10, 10, 10, 10, 10), ('hs250005', 9, 10, 10, 10, 10, 10, 10, 10);
 
 -- Applications
 INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType, Reason, FeedbackNote, StatusID, RespondedAt) VALUES
@@ -737,14 +798,47 @@ INSERT INTO Application (StudentID, CreatedByTeacherID, NewClassID, RequestType,
 ('hs250025', 8,  6,    'ClassTransfer', N'Không theo kịp chương trình nâng cao',           N'Chuyển sang lớp 11A2',           4, '2024-05-15 14:00:00'),
 ('hs250040', 12, NULL, 'DropOut',       N'Lý do sức khỏe',                                 NULL,                              1, NULL);
 
+-- ============================================================================
+-- MOCK REPORT DATA FOR DEMONSTRATION: 3 SCENARIOS
+-- ============================================================================
+-- Scenario 1: 10A3 - no SubjectReports, no ClassReport
+-- Scenario 2: 10A2 - has SubjectReports, no ClassReport yet
+-- Scenario 3: 10A1 - has SubjectReports and ClassReport
+-- ============================================================================
+
+-- SubjectReports for 10A1 (ClassID=1) - all 9 subjects
+INSERT INTO SubjectReport (ClassID, SubjectID, Semester, AcademicYear, TotalStudents, PassedStudents, IsLocked, CreatedByTeacherID, CreatedAt)
+VALUES
+(1, 1, N'Học kỳ 1', '2025-2026', 5, 4, 1, 4, GETDATE()),
+(1, 2, N'Học kỳ 1', '2025-2026', 5, 4, 1, 6, GETDATE()),
+(1, 3, N'Học kỳ 1', '2025-2026', 5, 4, 1, 7, GETDATE()),
+(1, 4, N'Học kỳ 1', '2025-2026', 5, 5, 1, 8, GETDATE()),
+(1, 5, N'Học kỳ 1', '2025-2026', 5, 5, 1, 9, GETDATE()),
+(1, 6, N'Học kỳ 1', '2025-2026', 5, 5, 1, 10, GETDATE()),
+(1, 7, N'Học kỳ 1', '2025-2026', 5, 5, 1, 5, GETDATE()),
+(1, 8, N'Học kỳ 1', '2025-2026', 5, 5, 1, 13, GETDATE()),
+(1, 9, N'Học kỳ 1', '2025-2026', 5, 5, 1, 14, GETDATE());
+
+-- SubjectReports for 10A2 (ClassID=2) - all 9 subjects
+INSERT INTO SubjectReport (ClassID, SubjectID, Semester, AcademicYear, TotalStudents, PassedStudents, IsLocked, CreatedByTeacherID, CreatedAt)
+VALUES
+(2, 1, N'Học kỳ 1', '2025-2026', 5, 3, 1, 4, GETDATE()),
+(2, 2, N'Học kỳ 1', '2025-2026', 5, 4, 1, 6, GETDATE()),
+(2, 3, N'Học kỳ 1', '2025-2026', 5, 4, 1, 7, GETDATE()),
+(2, 4, N'Học kỳ 1', '2025-2026', 5, 4, 1, 8, GETDATE()),
+(2, 5, N'Học kỳ 1', '2025-2026', 5, 4, 1, 9, GETDATE()),
+(2, 6, N'Học kỳ 1', '2025-2026', 5, 4, 1, 10, GETDATE()),
+(2, 7, N'Học kỳ 1', '2025-2026', 5, 5, 1, 5, GETDATE()),
+(2, 8, N'Học kỳ 1', '2025-2026', 5, 5, 1, 13, GETDATE()),
+(2, 9, N'Học kỳ 1', '2025-2026', 5, 5, 1, 14, GETDATE());
+
+-- ClassReports: only 10A1 is complete; 10A2 and 10A3 intentionally have none.
 INSERT INTO ClassReport (ClassID, Semester, AcademicYear, TotalStudents, IsLocked, CreatedByTeacherID, CreatedAt)
 VALUES
-(1, N'Học kỳ 1', '2025-2026', 5, 1, 4, GETDATE()),  -- Lớp 10A1 (Sĩ số: 5, GVCN: Phạm Văn Cán)
-(2, N'Học kỳ 1', '2025-2026', 5, 1, 5, GETDATE()),  -- Lớp 10A2 (Sĩ số: 5, GVCN: Hoàng Thị Ngữ)
-(3, N'Học kỳ 1', '2025-2026', 5, 1, 6, GETDATE()),  -- Lớp 10A3 (Sĩ số: 5, GVCN: Vũ Văn Khoa)
-(4, N'Học kỳ 1', '2025-2026', 5, 1, 7, GETDATE()),  -- Lớp 10A4 (Sĩ số: 5, GVCN: Đặng Thị Hóa)
-(5, N'Học kỳ 1', '2025-2026', 5, 1, 8, GETDATE()),  -- Lớp 11A1 (Sĩ số: 5, GVCN: Bùi Văn Sinh)
-(6, N'Học kỳ 1', '2025-2026', 5, 1, 9, GETDATE()),  -- Lớp 11A2 (Sĩ số: 5, GVCN: Đỗ Thị Sử)
-(7, N'Học kỳ 1', '2025-2026', 5, 1, 10, GETDATE()), -- Lớp 11A3 (Sĩ số: 5, GVCN: Hồ Văn Địa)
-(8, N'Học kỳ 1', '2025-2026', 3, 1, 11, GETDATE()), -- Lớp 12A1 (Sĩ số: 3, GVCN: Ngô Thị Anh)
-(9, N'Học kỳ 1', '2025-2026', 2, 1, 12, GETDATE()); -- Lớp 12A2 (Sĩ số: 2, GVCN: Dương Văn Bách)
+(1, N'Học kỳ 1', '2025-2026', 5, 1, 4, GETDATE()),
+(4, N'Học kỳ 1', '2025-2026', 5, 1, 7, GETDATE()),
+(5, N'Học kỳ 1', '2025-2026', 5, 1, 8, GETDATE()),
+(6, N'Học kỳ 1', '2025-2026', 5, 1, 9, GETDATE()),
+(7, N'Học kỳ 1', '2025-2026', 5, 1, 10, GETDATE()),
+(8, N'Học kỳ 1', '2025-2026', 3, 1, 11, GETDATE()),
+(9, N'Học kỳ 1', '2025-2026', 2, 1, 12, GETDATE());

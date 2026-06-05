@@ -79,8 +79,8 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTemplateColumn Header="Điểm Thường xuyên"
-                                            Width="1.5*"
+                    <DataGridTemplateColumn Header="TX 1"
+                                            Width="0.8*"
                                             HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -89,7 +89,61 @@
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
                                             <Binding Path="SubjectName" />
-                                            <Binding Path="RegularScore" />
+                                            <Binding Path="TX1" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="TX 2"
+                                            Width="0.8*"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock VerticalAlignment="Center"
+                                           Style="{StaticResource GlobalCenterElementStyle}">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                            <Binding Path="SubjectName" />
+                                            <Binding Path="TX2" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="TX 3"
+                                            Width="0.8*"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock VerticalAlignment="Center"
+                                           Style="{StaticResource GlobalCenterElementStyle}">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                            <Binding Path="SubjectName" />
+                                            <Binding Path="TX3" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="TX 4"
+                                            Width="0.8*"
+                                            HeaderStyle="{StaticResource GlobalCenterHeaderStyle}">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock VerticalAlignment="Center"
+                                           Style="{StaticResource GlobalCenterElementStyle}">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource ScoreDisplayConverter}">
+                                            <Binding Path="SubjectName" />
+                                            <Binding Path="TX4" />
                                         </MultiBinding>
                                     </TextBlock.Text>
                                 </TextBlock>
