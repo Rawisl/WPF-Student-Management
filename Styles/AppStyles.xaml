@@ -484,7 +484,7 @@
                 <ControlTemplate TargetType="TabItem">
                     <Border x:Name="PillBorder"
                             Background="Transparent"
-                            BorderBrush="#1A237E"
+                            BorderBrush="#273b5c"
                             BorderThickness="1.5,1.5,0.75,1.5"
                             CornerRadius="22.5,0,0,22.5"
                             Cursor="Hand">
@@ -500,7 +500,7 @@
                                  Value="True">
                             <Setter TargetName="PillBorder"
                                     Property="Background"
-                                    Value="#1A237E" />
+                                    Value="#273b5c" />
                             <Setter Property="Foreground"
                                     Value="White" />
                         </Trigger>
@@ -510,7 +510,7 @@
                                     Property="Background"
                                     Value="Transparent" />
                             <Setter Property="Foreground"
-                                    Value="#1A237E" />
+                                    Value="#273b5c" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -538,7 +538,7 @@
                 <ControlTemplate TargetType="TabItem">
                     <Border x:Name="PillBorder"
                             Background="Transparent"
-                            BorderBrush="#1A237E"
+                            BorderBrush="#273b5c"
                             BorderThickness="0.75,1.5,1.5,1.5"
                             CornerRadius="0,22.5,22.5,0"
                             Cursor="Hand">
@@ -553,7 +553,7 @@
                                  Value="True">
                             <Setter TargetName="PillBorder"
                                     Property="Background"
-                                    Value="#1A237E" />
+                                    Value="#273b5c" />
                             <Setter Property="Foreground"
                                     Value="White" />
                             <Setter Property="Panel.ZIndex"
@@ -565,7 +565,7 @@
                                     Property="Background"
                                     Value="Transparent" />
                             <Setter Property="Foreground"
-                                    Value="#1A237E" />
+                                    Value="#273b5c" />
                             <Setter Property="Panel.ZIndex"
                                     Value="0" />
                         </Trigger>

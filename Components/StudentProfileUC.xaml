@@ -125,7 +125,8 @@
                                     Height="35"
                                     Padding="0"
                                     Cursor="Hand"
-                                    ToolTip="Xóa học sinh">
+                                    ToolTip="Xóa học sinh"
+                                    Visibility="{Binding DeleteButtonVisibility, ElementName=RootStudentProfile}">
                                 <materialDesign:PackIcon Kind="TrashCanOutline"
                                                          Width="22"
                                                          Height="22"

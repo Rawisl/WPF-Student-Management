@@ -6,10 +6,15 @@
              xmlns:local="clr-namespace:WPF_Student_Management.Components"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:helpers="clr-namespace:WPF_Student_Management.Helpers"
+             xmlns:viewmodels="clr-namespace:WPF_Student_Management.ViewModels"
              mc:Ignorable="d"
              d:DesignHeight="900"
              d:DesignWidth="250"
              Background="Transparent">
+
+    <UserControl.DataContext>
+        <viewmodels:SidebarViewModel />
+    </UserControl.DataContext>
 
     <UserControl.Resources>
         <Style x:Key="ModernSidebarMenu"
@@ -75,16 +80,83 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Hidden"
                   HorizontalScrollBarVisibility="Disabled">
+
         <StackPanel x:Name="StPn_Button"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Top"
                     Margin="0,20,0,20">
+            <Border Background="#252A40"
+                    CornerRadius="12"
+                    Margin="10,0,10,25"
+                    Padding="15"
+                    Visibility="{Binding UserInfoVisibility}">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8"
+                                      ShadowDepth="2"
+                                      Color="#000000"
+                                      Opacity="0.3" />
+                </Border.Effect>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0"
+                            Width="46"
+                            Height="46"
+                            CornerRadius="23"
+                            Background="#313957"
+                            BorderBrush="#4C5880"
+                            BorderThickness="2"
+                            VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="UserTie"
+                                                 Width="26"
+                                                 Height="26"
+                                                 Foreground="#E0E6ED"
+                                                 HorizontalAlignment="Center"
+                                                 VerticalAlignment="Center" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1"
+                                Margin="12,0,0,0"
+                                VerticalAlignment="Center">
+
+                        <TextBlock Text="Xin chào,"
+                                   Foreground="#A0AEC0"
+                                   FontSize="11"
+                                   FontWeight="Medium"
+                                   Margin="0,0,0,2" />
+
+                        <TextBlock Text="{Binding DisplayName}"
+                                   Foreground="#FFFFFF"
+                                   FontWeight="Bold"
+                                   FontSize="16"
+                                   TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding DisplayName}"
+                                   MaxWidth="140"
+                                   Margin="0,0,0,4" />
+
+                        <Border Background="#2A4365"
+                                CornerRadius="4"
+                                HorizontalAlignment="Left"
+                                Padding="6,2">
+                            <TextBlock Text="{Binding DisplayRole}"
+                                       Foreground="#63B3ED"
+                                       FontWeight="SemiBold"
+                                       FontSize="11" />
+                        </Border>
+
+                    </StackPanel>
+                </Grid>
+            </Border>
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ViewGlobalStudents"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=GlobalStudentManagementViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding GlobalStudentManagementVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=GlobalStudentManagementViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.GlobalStudentManagementVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="DatabaseOutline"
                                              Width="20"
@@ -99,9 +171,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ManageGlobalStudents"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=ClassRosterViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding ClassRosterVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=ClassRosterViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.ClassRosterVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="AccountMultiplePlusOutline"
                                              Width="20"
@@ -116,9 +188,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="EditSubjectGrades"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=SubjectGradebookViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding SubjectGradebookVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=SubjectGradebookViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.SubjectGradebookVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="BookOpenVariant"
                                              Width="20"
@@ -133,9 +205,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ManageHomeroom"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=HomeroomDashboardViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding HomeroomDashboardVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=HomeroomDashboardViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.HomeroomDashboardVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="GoogleClassroom"
                                              Width="20"
@@ -151,9 +223,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ManageClasses"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=ClassManagementViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding ClassManagementVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=ClassManagementViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.ClassManagementVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="Domain"
                                              Width="20"
@@ -168,9 +240,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ManageSubjects"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=SubjectManagementViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding SubjectManagementVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=SubjectManagementViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.SubjectManagementVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="BookEducationOutline"
                                              Width="20"
@@ -185,9 +257,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ManageTeachingAssign"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=TeachingAssignmentViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding TeachingAssignmentVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=TeachingAssignmentViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.TeachingAssignmentVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="CalendarAccountOutline"
                                              Width="20"
@@ -202,9 +274,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ViewEmployeeList"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=EmployeeManagementViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding EmployeeManagementVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=EmployeeManagementViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.EmployeeManagementVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="BadgeAccountOutline"
                                              Width="20"
@@ -219,9 +291,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ViewRequests"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=EnrollmentChangeExecutionViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding EnrollmentChangeExecutionVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=EnrollmentChangeExecutionViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.EnrollmentChangeExecutionVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="FileDocumentMultipleOutline"
                                              Width="20"
@@ -236,9 +308,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ViewGlobalReports"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=GlobalSummaryReportViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding GlobalSummaryReportVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=GlobalSummaryReportViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.GlobalSummaryReportVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="FileChartOutline"
                                              Width="20"
@@ -253,9 +325,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ViewOwnGrades"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=GradeLookupViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding GradeLookupVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=GradeLookupViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.GradeLookupVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="TextSearch"
                                              Width="20"
@@ -270,9 +342,9 @@
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
                          helpers:Permission.Feature="ManageSystemConfig"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=RegulationSettingsViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding RegulationSettingsVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=RegulationSettingsViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.RegulationSettingsVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="Gavel"
                                              Width="20"
@@ -286,9 +358,9 @@
             </RadioButton>
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
-                         Command="{Binding NavigateCommand}"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=PersonalInfoLookupViewModel}"
-                         CommandParameter="{Binding PersonalInfoLookupVM}">
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=PersonalInfoLookupViewModel}"
+                         CommandParameter="{Binding DataContext.PersonalInfoLookupVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="Person"
                                              Width="20"
@@ -302,9 +374,9 @@
             </RadioButton>
 
             <RadioButton Style="{StaticResource ModernSidebarMenu}"
-                         IsChecked="{Binding CurrentView, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=SettingsViewModel}"
-                         Command="{Binding NavigateCommand}"
-                         CommandParameter="{Binding SettingsVM}">
+                         IsChecked="{Binding DataContext.CurrentView, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay, Converter={StaticResource ActiveViewConverter}, ConverterParameter=SettingsViewModel}"
+                         Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                         CommandParameter="{Binding DataContext.SettingsVM, RelativeSource={RelativeSource AncestorType=Window}}">
                 <StackPanel Orientation="Horizontal">
                     <materialDesign:PackIcon Kind="CogOutline"
                                              Width="20"

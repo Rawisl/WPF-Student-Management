@@ -195,6 +195,54 @@ namespace WPF_Student_Management.Helpers
             }
         }
 
+        // =======================================================
+        // CHỈ NHẬP VĂN BẢN TIẾNG VIỆT CHUẨN (Có dấu câu cơ bản)
+        // Dùng cho: Địa chỉ, Lý do từ chối, Ghi chú...
+        // =======================================================
+        public static readonly DependencyProperty IsStandardTextProperty =
+            DependencyProperty.RegisterAttached("IsStandardText", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnIsStandardTextChanged));
+
+        public static void SetIsStandardText(UIElement element, bool value) => element.SetValue(IsStandardTextProperty, value);
+        public static bool GetIsStandardText(UIElement element) => (bool)element.GetValue(IsStandardTextProperty);
+
+        private static void OnIsStandardTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is TextBox textBox)
+            {
+                if ((bool)e.NewValue)
+                {
+                    textBox.PreviewTextInput += BlockInvalidStandardText;
+                    DataObject.AddPastingHandler(textBox, OnPasteStandardText);
+                }
+                else
+                {
+                    textBox.PreviewTextInput -= BlockInvalidStandardText;
+                    DataObject.RemovePastingHandler(textBox, OnPasteStandardText);
+                }
+            }
+        }
+
+        private static void BlockInvalidStandardText(object sender, TextCompositionEventArgs e)
+        {
+            // Cho phép: Chữ Latin, số, khoảng trắng, chữ Tiếng Việt
+            // Và các dấu câu phổ biến: , . / - _ : " ' ( ) ! ?
+            Regex regex = new Regex(@"[^a-zA-Z0-9\s.,/\-_\:""'()!?àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private static void OnPasteStandardText(object sender, DataObjectPastingEventArgs e)
+        {
+            if (e.DataObject.GetDataPresent(typeof(string)))
+            {
+                string text = (string)e.DataObject.GetData(typeof(string));
+                Regex regex = new Regex(@"[^a-zA-Z0-9\s.,/\-_\:""'()!?àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]+");
+                if (regex.IsMatch(text))
+                {
+                    e.CancelCommand(); // Hủy paste nếu có ký tự lạ (như icon thả tim, mã code độc hại...)
+                }
+            }
+        }
+
         //tự động làm tròn điểm chuẩn theo quy định BGD
         public static readonly DependencyProperty IsBgdGradeOnlyProperty =
             DependencyProperty.RegisterAttached("IsBgdGradeOnly", typeof(bool), typeof(TextBoxHelper), new PropertyMetadata(false, OnIsBgdGradeOnlyChanged));
