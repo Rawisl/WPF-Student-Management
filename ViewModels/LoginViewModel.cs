@@ -34,10 +34,14 @@ namespace WPF_Student_Management.ViewModels
             {
                 string hashedPassword = PasswordHasher.HashPassword(Password);
 
+                //JOIN thêm Employee và Student để lấy FullName
                 string query = @"
-                    SELECT a.*, r.RoleName 
+                    SELECT a.*, r.RoleName, 
+                           COALESCE(e.FullName, s.FullName) AS RealFullName
                     FROM Account a
                     JOIN Role r ON a.RoleID = r.RoleID
+                    LEFT JOIN Employee e ON a.AccountID = e.AccountID
+                    LEFT JOIN Student s ON a.AccountID = s.AccountID
                     WHERE a.Username = @Username AND a.PasswordHash = @PasswordHash";
 
                 SqlParameter[] parameters = {
@@ -61,12 +65,16 @@ namespace WPF_Student_Management.ViewModels
                     int accountId = Convert.ToInt32(row["AccountID"]);
                     bool isRequiredChangePwd = Convert.ToBoolean(row["IsRequiredChangePassword"]);
 
+                    // Lấy Tên thật, nếu null do lỗi data thì lấy Username
+                    string realFullName = row["RealFullName"] != DBNull.Value
+                                        ? row["RealFullName"].ToString()
+                                        : Username;
+
                     // Lấy chữ RoleName từ DB và dùng hàm MapRole để chuyển thành Enum
                     string roleNameDB = row["RoleName"].ToString();
                     UserRole userRole = MapRoleNameToEnum(roleNameDB);
 
-                    // Khởi tạo CurrentUser an toàn tuyệt đối
-                    CurrentUser.Instance.Login(accountId, Username, userRole);
+                    CurrentUser.Instance.Login(accountId, realFullName, userRole);
 
                     if (isRequiredChangePwd)
                     {

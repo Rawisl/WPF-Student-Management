@@ -280,7 +280,7 @@
 
                         <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource RoundedTextBoxStyle}"
-                                 helpers:TextBoxHelper.IsAlphaNumericOnly="True"
+                                 helpers:TextBoxHelper.IsStandardText="True"
                                  VerticalContentAlignment="Top"
                                  Height="70"
                                  Padding="10,5,0,0"

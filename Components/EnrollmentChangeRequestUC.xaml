@@ -99,7 +99,7 @@
             </TextBlock>
             <TextBox Text="{Binding Reason, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource RoundedTextBoxStyle}"
-                     helpers:TextBoxHelper.IsLettersOnly="True"
+                     helpers:TextBoxHelper.IsStandardText="True"
                      Height="100"
                      TextWrapping="Wrap"
                      AcceptsReturn="True"
